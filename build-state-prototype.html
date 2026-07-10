@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EED Phase 2 — Build-State Indicator Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface-panel-header: #303030;
+    --surface-panel-footer: #2e2e2e;
+    --surface-viewport: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #aaaaaa;
+    --text-tertiary: #777777;
+    --text-disabled: #555555;
+    --status-warning: #ffcc00;
+    --status-success: #4a8c5c;
+    --surface-progress-track: #3d3d3d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #111;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-bottom: 32px;
+  }
+
+  /* State switcher */
+  .switcher {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 32px;
+    background: var(--surface-panel-header);
+    padding: 4px;
+    border-radius: 6px;
+  }
+
+  .switcher button {
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+  }
+
+  .switcher button:hover {
+    background: #3a3a3a;
+    color: var(--text-primary);
+  }
+
+  .switcher button.active {
+    background: var(--surface-viewport);
+    color: var(--text-primary);
+  }
+
+  .switcher button.warning { color: var(--status-warning); }
+  .switcher button.success { color: var(--status-success); }
+
+  /* Viewport container */
+  .viewport-container {
+    width: 960px;
+    max-width: 100%;
+  }
+
+  .viewport {
+    width: 100%;
+    height: 540px;
+    background: var(--surface-panel-header);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Top bar */
+  .top-bar {
+    height: 22px;
+    min-height: 22px;
+    background: var(--surface-panel-header);
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .top-bar .tab {
+    color: var(--text-secondary);
+  }
+
+  .top-bar .spacer { flex: 1; }
+
+  .top-bar .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Segoe UI', sans-serif;
+    color: var(--text-primary);
+    font-size: 12px;
+  }
+
+  /* Status chip */
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 18px;
+    padding: 0 8px;
+    border-radius: 3px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateX(8px);
+  }
+
+  .status-chip.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .status-chip.warning {
+    background: #332b00;
+    color: var(--status-warning);
+  }
+
+  .status-chip.success {
+    background: #1a2e1a;
+    color: var(--status-success);
+  }
+
+  .status-chip .action {
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .status-chip .action:hover {
+    text-decoration: underline;
+  }
+
+  /* Viewport content */
+  .viewport-content {
+    flex: 1;
+    background: var(--surface-viewport);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .viewport-content .placeholder {
+    font-size: 13px;
+    color: var(--text-disabled);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  /* Inline overlay */
+  .overlay {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(26, 26, 26, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #2a2a2a;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    opacity: 0;
+    transition: all 0.4s ease;
+    pointer-events: none;
+  }
+
+  .overlay.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+
+  .overlay .warning-icon {
+    color: var(--status-warning);
+    font-size: 14px;
+  }
+
+  .overlay .label {
+    color: var(--status-warning);
+  }
+
+  .overlay .progress-track {
+    width: 80px;
+    height: 3px;
+    background: var(--surface-progress-track);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .overlay .progress-fill {
+    height: 100%;
+    background: var(--status-warning);
+    border-radius: 2px;
+    transition: width 2s linear;
+  }
+
+  .overlay .percent {
+    color: var(--text-tertiary);
+    font-size: 11px;
+    min-width: 28px;
+  }
+
+  /* State info panel */
+  .state-info {
+    margin-top: 16px;
+    padding: 16px 20px;
+    background: var(--surface-panel-header);
+    border-radius: 6px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .state-info h3 {
+    font-family: Roboto, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .state-info h3.warning { color: var(--status-warning); }
+  .state-info h3.success { color: var(--status-success); }
+
+  .state-info p {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+  }
+
+  .state-info .placement {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: #2a2a2a;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .state-info .decision {
+    font-size: 11px;
+    color: var(--text-disabled);
+    margin-top: 6px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<h1>EED Phase 2 — Build-State Indicators</h1>
+<p class="subtitle">Interactive prototype · Top-bar chip + Overlay pattern · Per viewport placement guidelines</p>
+
+<div class="switcher">
+  <button class="active success" onclick="setState(0)">1. Real Build</button>
+  <button class="warning" onclick="setState(1)">2. Downloading</button>
+  <button class="warning" onclick="setState(2)">3. No Build</button>
+  <button class="warning" onclick="setState(3)">4. Build Failed</button>
+  <button class="success" onclick="setState(4)">5. Build Ready</button>
+</div>
+
+<div class="viewport-container">
+  <div class="viewport">
+    <div class="top-bar">
+      <span class="tab">Viewport</span>
+      <span class="spacer"></span>
+      <span id="chip" class="status-chip"></span>
+      <div class="controls">
+        <span>Default</span>
+        <span>Custom: 640x960</span>
+        <span>2D</span>
+      </div>
+    </div>
+    <div class="viewport-content">
+      <div id="placeholder" class="placeholder"></div>
+      <div id="overlay" class="overlay">
+        <span class="warning-icon">⚠</span>
+        <span class="label" id="overlay-label"></span>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+        <span class="percent" id="progress-percent"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="state-info" id="state-info"></div>
+</div>
+
+<script>
+const states = [
+  {
+    name: 'Real Build — Active',
+    type: 'success',
+    chip: null,
+    overlay: false,
+    placeholder: 'Scene viewport — WYSIWYG rendering\n\nReal build active. Custom components render correctly.\nNo indicator needed — this is the silent normal state.',
+    info: {
+      title: '1. Real Build — Silent',
+      titleClass: 'success',
+      desc: 'Build-ready is the normal state. No chip, no overlay, no indicator. The absence of any status message IS the signal that everything is working correctly.',
+      placement: 'None — silent',
+      decision: '"Is the status about a specific thing on the canvas?" No. "Is it about the viewport mode?" Yes, but it\'s the default. → No indicator.'
+    }
+  },
+  {
+    name: 'Fallback — Downloading',
+    type: 'warning',
+    chip: { label: 'Fallback', action: null, type: 'warning' },
+    overlay: true,
+    overlayLabel: 'Downloading game build',
+    placeholder: 'Engine fallback — flat rendering\n\nCustom components may appear generic.\nBuild is downloading — will auto-swap when ready.',
+    info: {
+      title: '2. Fallback — Downloading',
+      titleClass: 'warning',
+      desc: 'Two-layer approach: Top-bar chip marks the session state ("Fallback"), inline overlay shows the transient download progress near the canvas. Overlay disappears when download completes.',
+      placement: 'Top-bar chip + Inline overlay',
+      decision: '"Is the status about the viewport mode?" Yes → top-bar chip. "Is there transient canvas feedback?" Yes (download progress) → inline overlay.'
+    }
+  },
+  {
+    name: 'Fallback — No Build on Branch',
+    type: 'warning',
+    chip: { label: 'No build on branch', action: null, type: 'warning' },
+    overlay: false,
+    placeholder: 'Engine fallback — generic rendering\n\nNo game build available on this branch.\nEditor fully functional. Visual accuracy may differ.',
+    info: {
+      title: '3. Fallback — No Build on Branch',
+      titleClass: 'warning',
+      desc: 'Persistent session state shown as a top-bar chip. Short, scannable, non-interruptive. No overlay needed — nothing is happening that needs canvas-level feedback.',
+      placement: 'Top-bar chip',
+      decision: '"Is the status about the viewport mode or session state?" Yes → top-bar chip. No transient feedback → no overlay.'
+    }
+  },
+  {
+    name: 'Fallback — Build Failed',
+    type: 'warning',
+    chip: { label: 'Build failed', action: 'Retry', type: 'warning' },
+    overlay: false,
+    placeholder: 'Engine fallback — flat rendering\n\nBuild connection failed.\nEditor continues to work in fallback mode.',
+    info: {
+      title: '4. Fallback — Build Failed + Retry',
+      titleClass: 'warning',
+      desc: 'Top-bar chip with inline action. "Build failed" communicates state, "Retry" provides the recovery path — both in one compact chip. No modal, no blocking dialog.',
+      placement: 'Top-bar chip with action',
+      decision: '"Is the status about the viewport mode?" Yes → top-bar chip. Action needed? Yes → chip includes Retry. Yellow, never red.'
+    }
+  },
+  {
+    name: 'Build Ready — Load',
+    type: 'success',
+    chip: { label: 'Build ready', action: 'Load', type: 'success' },
+    overlay: false,
+    placeholder: 'Still showing fallback — build available\n\nGame build is ready to load.\nClick "Load" in the top bar to switch to WYSIWYG.',
+    info: {
+      title: '5. Build Ready — Manual Load',
+      titleClass: 'success',
+      desc: 'Green chip signals a positive state change. "Load" action lets the creator choose when to swap — no surprise viewport changes during editing. Chip disappears after load.',
+      placement: 'Top-bar chip with action',
+      decision: '"Is the status about the viewport mode?" Yes → top-bar chip. Manual swap model → chip includes Load action.'
+    }
+  }
+];
+
+let currentState = 0;
+let progressInterval = null;
+
+function setState(index) {
+  currentState = index;
+  const state = states[index];
+  const chip = document.getElementById('chip');
+  const overlay = document.getElementById('overlay');
+  const placeholder = document.getElementById('placeholder');
+  const stateInfo = document.getElementById('state-info');
+
+  // Update switcher buttons
+  document.querySelectorAll('.switcher button').forEach((btn, i) => {
+    btn.classList.toggle('active', i === index);
+  });
+
+  // Update placeholder
+  placeholder.textContent = state.placeholder;
+
+  // Update chip
+  if (state.chip) {
+    chip.className = `status-chip ${state.chip.type}`;
+    chip.innerHTML = state.chip.label;
+    if (state.chip.action) {
+      chip.innerHTML += ` <span class="action">${state.chip.action}</span>`;
+    }
+    requestAnimationFrame(() => {
+      chip.classList.add('visible');
+    });
+  } else {
+    chip.className = 'status-chip';
+    chip.innerHTML = '';
+  }
+
+  // Update overlay
+  if (progressInterval) clearInterval(progressInterval);
+  if (state.overlay) {
+    const label = document.getElementById('overlay-label');
+    const fill = document.getElementById('progress-fill');
+    const percent = document.getElementById('progress-percent');
+    label.textContent = state.overlayLabel;
+    fill.style.transition = 'none';
+    fill.style.width = '0%';
+    percent.textContent = '0%';
+
+    requestAnimationFrame(() => {
+      overlay.classList.add('visible');
+      let p = 0;
+      progressInterval = setInterval(() => {
+        p += 1;
+        if (p > 100) p = 0;
+        fill.style.transition = 'width 0.3s linear';
+        fill.style.width = p + '%';
+        percent.textContent = p + '%';
+      }, 80);
+    });
+  } else {
+    overlay.classList.remove('visible');
+  }
+
+  // Update info panel
+  stateInfo.innerHTML = `
+    <h3 class="${state.info.titleClass}">${state.info.title}</h3>
+    <p>${state.info.desc}</p>
+    <span class="placement">${state.info.placement}</span>
+    <p class="decision">${state.info.decision}</p>
+  `;
+
+  // Handle chip action clicks
+  if (state.chip && state.chip.action) {
+    setTimeout(() => {
+      const actionEl = chip.querySelector('.action');
+      if (actionEl) {
+        actionEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (state.chip.action === 'Load') {
+            setState(0); // Go to real build
+          } else if (state.chip.action === 'Retry') {
+            setState(1); // Go to downloading
+          }
+        });
+      }
+    }, 50);
+  }
+}
+
+// Initialize
+setState(0);
+</script>
+
+</body>
+</html>

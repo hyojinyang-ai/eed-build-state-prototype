@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EED Phase 2 — Build-State Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --panel-bg: #303030;
+    --panel-header: #303030;
+    --panel-border: #2a2a2a;
+    --viewport-bg: #1a1a1a;
+    --footer-bg: #2e2e2e;
+    --text-primary: #fff;
+    --text-secondary: #aaa;
+    --text-tertiary: #777;
+    --text-disabled: #555;
+    --warning: #f1b41b;
+    --warning-bg: #2e2510;
+    --success: #17c281;
+    --success-bg: #0e2e22;
+    --track: #3d3d3d;
+    --toolbar-bg: #383838;
+    --selected-blue: #4a7fd4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #111;
+    font-family: 'Nunito', sans-serif;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  /* Concept switcher - top level */
+  .concept-bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 16px 20px 12px;
+    background: #0a0a0a;
+    border-bottom: 1px solid #222;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .concept-bar .title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-right: 24px;
+  }
+
+  .concept-btn {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 20px;
+    border: 1px solid #333;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+  }
+
+  .concept-btn:first-of-type { border-radius: 6px 0 0 6px; }
+  .concept-btn:last-of-type { border-radius: 0 6px 6px 0; border-left: 0; }
+
+  .concept-btn:hover { background: #2a2a2a; color: var(--text-primary); }
+
+  .concept-btn.active {
+    background: var(--text-primary);
+    color: #111;
+    border-color: var(--text-primary);
+  }
+
+  .concept-desc {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-left: 20px;
+    max-width: 400px;
+  }
+
+  /* Main layout */
+  .editor-container {
+    width: 1400px;
+    max-width: 100%;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* State switcher */
+  .state-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 8px 20px;
+  }
+
+  .state-bar .label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-right: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+
+  .state-btn {
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-tertiary);
+    border-radius: 3px;
+    transition: all 0.15s ease;
+  }
+
+  .state-btn:hover { background: #2a2a2a; color: var(--text-secondary); }
+  .state-btn.active { background: #2a2a2a; color: var(--text-primary); }
+
+  /* Editor frame */
+  .editor {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+    margin: 0 20px;
+  }
+
+  /* System bar */
+  .system-bar {
+    height: 23px;
+    background: var(--panel-header);
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 0;
+    border-bottom: 1px solid var(--panel-border);
+    font-size: 12px;
+  }
+
+  .system-bar .menu-item {
+    padding: 0 8px;
+    height: 23px;
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+    cursor: default;
+  }
+
+  .system-bar .menu-item:hover { background: #4a4a4a; }
+
+  /* Main editor body */
+  .editor-body {
+    display: flex;
+    height: 520px;
+  }
+
+  /* Left panel - hierarchy */
+  .left-panel {
+    width: 320px;
+    background: var(--panel-bg);
+    border-right: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-tab-bar {
+    height: 22px;
+    background: var(--panel-header);
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 12px;
+    border-bottom: 1px solid var(--panel-border);
+    font-size: 12px;
+  }
+
+  .panel-tab { color: var(--text-secondary); cursor: default; }
+  .panel-tab.active { color: var(--text-primary); }
+
+  .panel-content {
+    flex: 1;
+    padding: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    overflow: hidden;
+  }
+
+  .tree-item {
+    padding: 2px 0 2px 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: default;
+  }
+
+  .tree-item.selected { background: var(--selected-blue); color: var(--text-primary); border-radius: 2px; }
+  .tree-item .icon { color: var(--text-tertiary); font-size: 10px; }
+
+  /* Viewport */
+  .viewport-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .viewport-tab-bar {
+    height: 22px;
+    min-height: 22px;
+    background: var(--panel-header);
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 8px;
+    border-bottom: 1px solid var(--panel-border);
+    font-size: 12px;
+    position: relative;
+  }
+
+  .viewport-tab-bar .tab { color: var(--text-secondary); }
+  .viewport-tab-bar .spacer { flex: 1; }
+
+  .viewport-tab-bar .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-primary);
+    font-size: 12px;
+  }
+
+  /* Top-bar toolbar row */
+  .toolbar-row {
+    height: 28px;
+    min-height: 28px;
+    background: #353535;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .toolbar-row .scene-select {
+    background: #444;
+    color: var(--text-primary);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    border: 1px solid #555;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .toolbar-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    border-radius: 2px;
+    cursor: default;
+  }
+
+  .toolbar-icon:hover { background: #4a4a4a; }
+  .toolbar-row .spacer { flex: 1; }
+
+  .toolbar-row .view-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-primary);
+  }
+
+  /* Status chip in top-bar */
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 18px;
+    padding: 0 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .status-chip[data-empty] { display: none; }
+  .status-chip.warning { background: #37383a; color: var(--warning); border: 1px solid #484b50; }
+  .status-chip.success { background: #37383a; color: var(--success); border: 1px solid #484b50; }
+  .status-chip.muted { background: #37383a; color: var(--text-disabled); border: 1px solid #484b50; }
+
+  .status-chip .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .status-chip.warning .dot { background: var(--warning); }
+  .status-chip.success .dot { background: var(--success); }
+  .status-chip.muted .dot { background: #555; }
+
+  .status-chip .action {
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .status-chip .action:hover { text-decoration: underline; }
+
+  .status-chip .sep {
+    width: 1px;
+    height: 10px;
+    background: currentColor;
+    opacity: 0.3;
+  }
+
+  /* Viewport border for downloading state */
+  .viewport-area.downloading .viewport-canvas {
+    border: 2px solid #a855f7;
+  }
+
+  .viewport-area.downloading .viewport-tab-bar,
+  .viewport-area.downloading .toolbar-row {
+    border-color: #a855f7;
+  }
+
+  /* Viewport canvas */
+  .viewport-canvas {
+    flex: 1;
+    background: var(--viewport-bg);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+    border: 2px solid transparent;
+  }
+
+  .viewport-canvas .game-preview {
+    width: 280px;
+    height: 380px;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(180deg, #ff6b35 0%, #ff4500 40%, #cc3700 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+  }
+
+  .game-preview .logo {
+    font-size: 42px;
+    font-weight: 700;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .game-preview .score-text {
+    font-size: 16px;
+    color: #fff;
+    margin-top: 8px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  }
+
+  .game-preview .buttons {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 200px;
+  }
+
+  .game-preview .btn {
+    background: rgba(0,0,0,0.2);
+    border: 2px solid #4a7fd4;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .game-preview.fallback {
+    background: linear-gradient(180deg, #4a4a4a 0%, #333 100%);
+    filter: saturate(0);
+    opacity: 0.7;
+  }
+
+  .game-preview.fallback .logo { color: #999; text-shadow: none; }
+  .game-preview.fallback .score-text { color: #888; text-shadow: none; }
+  .game-preview.fallback .btn { border-color: #666; color: #888; }
+
+  /* Inline overlay */
+  .overlay {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(20, 20, 20, 0.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    font-size: 12px;
+    opacity: 0;
+    transition: all 0.4s ease;
+    pointer-events: none;
+  }
+
+  .overlay.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+
+  .overlay .warn-icon { color: var(--warning); font-size: 13px; }
+  .overlay .label { color: var(--warning); }
+
+  .overlay .progress-track {
+    width: 80px; height: 3px;
+    background: var(--track); border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .overlay .progress-fill {
+    height: 100%; background: var(--warning);
+    border-radius: 2px; transition: width 0.3s linear;
+  }
+
+  .overlay .percent { color: var(--text-tertiary); font-size: 11px; min-width: 28px; }
+
+  /* Zoom bar */
+  .zoom-bar {
+    height: 22px;
+    background: var(--footer-bg);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    border-top: 1px solid var(--panel-border);
+    gap: 8px;
+  }
+
+  .zoom-bar .spacer { flex: 1; }
+
+  /* Right panel */
+  .right-panel {
+    width: 300px;
+    background: var(--panel-bg);
+    border-left: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .inspector-content {
+    flex: 1;
+    padding: 12px;
+    font-size: 11px;
+  }
+
+  .inspector-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    color: var(--text-secondary);
+  }
+
+  .inspector-row .label { color: var(--text-tertiary); min-width: 80px; }
+
+  /* Resource panel */
+  .resource-bar {
+    height: 22px;
+    background: var(--panel-header);
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 8px;
+    border-top: 1px solid var(--panel-border);
+    font-size: 11px;
+  }
+
+  .resource-bar span { color: var(--text-secondary); cursor: default; }
+  .resource-bar span.active { color: var(--text-primary); }
+
+  /* State info */
+  .info-panel {
+    margin: 12px 20px;
+    padding: 16px 20px;
+    background: var(--panel-bg);
+    border-radius: 6px;
+    border: 1px solid var(--panel-border);
+  }
+
+  .info-panel h3 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .info-panel h3.warning { color: var(--warning); }
+  .info-panel h3.success { color: var(--success); }
+  .info-panel p { font-size: 12px; color: var(--text-tertiary); line-height: 1.5; }
+
+  .info-panel .badge {
+    display: inline-block; font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 3px;
+    background: #2a2a2a; color: var(--text-secondary);
+    margin-top: 6px;
+  }
+
+  /* Concept 2: chip in toolbar row instead of overlay */
+  .toolbar-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .toolbar-chip[data-empty] { display: none; }
+  .toolbar-chip.warning { background: #37383a; color: var(--warning); border: 1px solid #484b50; }
+  .toolbar-chip.success { background: #37383a; color: var(--success); border: 1px solid #484b50; }
+  .toolbar-chip.muted { background: #37383a; color: var(--text-disabled); border: 1px solid #484b50; }
+
+  .toolbar-chip .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .toolbar-chip.warning .dot { background: var(--warning); }
+  .toolbar-chip.success .dot { background: var(--success); }
+  .toolbar-chip.muted .dot { background: #555; }
+  .toolbar-chip .action { color: var(--text-primary); cursor: pointer; font-weight: 600; }
+  .toolbar-chip .action:hover { text-decoration: underline; }
+
+  .toolbar-chip .progress-track {
+    width: 48px; height: 3px;
+    background: var(--track); border-radius: 2px; overflow: hidden;
+  }
+  .toolbar-chip .progress-fill {
+    height: 100%; background: var(--warning);
+    border-radius: 2px; transition: width 0.3s linear;
+  }
+  .toolbar-chip .percent { color: var(--text-tertiary); font-size: 10px; }
+
+  /* Canvas overlay controls — floating on the viewport canvas */
+  .canvas-overlay-controls {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+    transition: all 0.3s ease;
+  }
+
+  .canvas-overlay-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+
+  .canvas-overlay-chip[data-empty] { display: none; }
+  .canvas-overlay-chip.warning { background: #37383a; color: var(--warning); border-color: #4a4a4a; }
+  .canvas-overlay-chip.success { background: #37383a; color: var(--success); border-color: #4a4a4a; }
+  .canvas-overlay-chip.muted { background: #37383a; color: var(--text-disabled); border-color: #4a4a4a; }
+
+  .canvas-overlay-chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; flex-shrink: 0;
+  }
+  .canvas-overlay-chip.warning .dot { background: var(--warning); }
+  .canvas-overlay-chip.success .dot { background: var(--success); }
+  .canvas-overlay-chip.muted .dot { background: #555; }
+  .canvas-overlay-chip .action { color: var(--text-primary); cursor: pointer; font-weight: 600; }
+  .canvas-overlay-chip .action:hover { text-decoration: underline; }
+
+  .canvas-overlay-chip .progress-track {
+    width: 48px; height: 3px;
+    background: var(--track); border-radius: 2px; overflow: hidden;
+  }
+  .canvas-overlay-chip .progress-fill {
+    height: 100%; background: var(--warning);
+    border-radius: 2px; transition: width 0.3s linear;
+  }
+
+  .canvas-dropdown {
+    height: 22px;
+    padding: 0 6px;
+    background: rgba(48, 48, 48, 0.85);
+    border: 1px solid #555;
+    border-radius: 3px;
+    color: var(--text-primary);
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .canvas-dropdown .arrow { font-size: 8px; color: var(--text-tertiary); }
+
+  /* Left tool palette — floating on canvas */
+  .canvas-tool-palette {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+  }
+
+  .tool-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: default;
+    border-radius: 2px;
+  }
+
+  .tool-btn:hover { background: rgba(255,255,255,0.08); }
+
+  /* Zoom overlay — bottom left of canvas */
+  .canvas-zoom {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<!-- Concept switcher -->
+<div class="concept-bar">
+  <span class="title">EED Phase 2 — Build-State Indicators</span>
+  <button class="concept-btn active" onclick="setConcept(1)">Concept 1</button>
+  <button class="concept-btn" onclick="setConcept(2)">Concept 2</button>
+  <span class="concept-desc" id="concept-desc">In-viewport overlay — lightweight chip in toolbar row, spatially tied to viewport content</span>
+</div>
+
+<!-- State switcher -->
+<div class="state-bar">
+  <span class="label">State</span>
+  <button class="state-btn active" onclick="setState(0)">Real Build</button>
+  <button class="state-btn" onclick="setState(1)">Downloading</button>
+  <button class="state-btn" onclick="setState(2)">No Build</button>
+  <button class="state-btn" onclick="setState(3)">Build Failed</button>
+  <button class="state-btn" onclick="setState(4)">Build Ready</button>
+</div>
+
+<!-- Editor -->
+<div class="editor-container">
+  <div class="editor">
+    <!-- System bar -->
+    <div class="system-bar">
+      <span class="menu-item">File</span>
+      <span class="menu-item">Edit</span>
+      <span class="menu-item">Project</span>
+      <span class="menu-item">Tools</span>
+      <span class="menu-item">Plugins</span>
+      <span class="menu-item">Window</span>
+      <span class="menu-item">Help</span>
+    </div>
+
+    <!-- Editor body -->
+    <div class="editor-body">
+      <!-- Left panel -->
+      <div class="left-panel">
+        <div class="panel-tab-bar">
+          <span class="panel-tab active">Hierarchy</span>
+          <span class="panel-tab">Data Sources</span>
+        </div>
+        <div class="panel-content">
+          <div class="tree-item"><span class="icon">▸</span> SceneName</div>
+          <div class="tree-item" style="padding-left:24px"><span class="icon">●</span> Orange Background</div>
+          <div class="tree-item" style="padding-left:24px"><span class="icon">●</span> #Score Manager</div>
+          <div class="tree-item" style="padding-left:24px"><span class="icon">▸</span> LayoutPrefab</div>
+          <div class="tree-item selected" style="padding-left:36px"><span class="icon">●</span> King Logo</div>
+          <div class="tree-item" style="padding-left:36px"><span class="icon">▸</span> Buttons</div>
+          <div class="tree-item" style="padding-left:48px"><span class="icon">●</span> Buttons: 1 Point</div>
+          <div class="tree-item" style="padding-left:48px"><span class="icon">●</span> Buttons: 1,000 Points</div>
+        </div>
+        <div class="resource-bar">
+          <span class="active">Resource Browser</span>
+          <span>Log</span>
+        </div>
+      </div>
+
+      <!-- Viewport -->
+      <div class="viewport-area">
+        <div class="viewport-tab-bar">
+          <span class="tab">Viewport</span>
+          <span class="spacer"></span>
+          <span id="tab-chip" class="status-chip"></span>
+        </div>
+
+        <div class="toolbar-row">
+          <select class="scene-select"><option>nodegraphevens_main [scene]</option></select>
+          <span class="toolbar-icon">◀</span>
+          <span class="toolbar-icon">▶</span>
+          <span style="width:8px"></span>
+          <span class="toolbar-icon">⊙</span>
+          <span class="toolbar-icon">◎</span>
+          <span class="toolbar-icon" style="font-size:11px">Aᴬ</span>
+          <span class="toolbar-icon">EN ▾</span>
+          <span class="spacer"></span>
+          <span class="toolbar-icon">✦</span>
+          <span class="toolbar-icon">◑</span>
+          <span class="toolbar-icon">☐ ▾</span>
+          <span class="toolbar-icon">⊞</span>
+          <span class="toolbar-icon">◉ ▾</span>
+          <span class="toolbar-icon">⊡</span>
+          <span id="toolbar-chip" class="toolbar-chip"></span>
+        </div>
+
+        <div class="viewport-canvas">
+          <!-- Canvas overlay controls — floating on canvas -->
+          <div class="canvas-overlay-controls" id="canvas-overlays">
+            <span id="canvas-chip" class="canvas-overlay-chip"></span>
+            <span class="canvas-dropdown">Default <span class="arrow">▾</span></span>
+            <span class="canvas-dropdown">Custom: 640x960 <span class="arrow">▾</span></span>
+            <span class="canvas-dropdown">2D <span class="arrow">▾</span></span>
+          </div>
+
+          <!-- Left tool palette — floating on canvas -->
+          <div class="canvas-tool-palette">
+            <div class="tool-btn">✎</div>
+            <div class="tool-btn" style="color:var(--selected-blue)">◩</div>
+            <div class="tool-btn">⊞</div>
+            <div class="tool-btn">☐</div>
+            <div class="tool-btn">⧉</div>
+          </div>
+          <div id="game-preview" class="game-preview">
+            <div class="logo">King</div>
+            <div class="score-text">Score Goes Here</div>
+            <div class="buttons">
+              <div class="btn">1 : free!</div>
+              <div class="btn">1,000 : $0.01</div>
+              <div class="btn">1,000,000 : $0.50</div>
+            </div>
+          </div>
+
+          <!-- Zoom overlay — bottom left of canvas -->
+          <div class="canvas-zoom">
+            <span class="canvas-dropdown">120% <span class="arrow">▾</span></span>
+          </div>
+
+          <div id="overlay" class="overlay">
+            <span class="warn-icon">⚠</span>
+            <span class="label" id="overlay-label"></span>
+            <div class="progress-track">
+              <div class="progress-fill" id="overlay-progress" style="width:0%"></div>
+            </div>
+            <span class="percent" id="overlay-percent"></span>
+          </div>
+        </div>
+
+        <!-- zoom is now a canvas overlay, inside viewport-canvas -->
+      </div>
+
+      <!-- Right panel -->
+      <div class="right-panel">
+        <div class="panel-tab-bar">
+          <span class="panel-tab active">Inspector</span>
+          <span class="panel-tab">History</span>
+        </div>
+        <div class="inspector-content">
+          <div style="font-size:12px;color:var(--text-primary);margin-bottom:8px">Buttons: 1 Point</div>
+          <div class="inspector-row"><span class="label">Class</span><span></span></div>
+          <div class="inspector-row"><span class="label">Visibility</span><span>inherit</span></div>
+          <div class="inspector-row"><span class="label">Position</span><span>X 0 &nbsp; Y 150 &nbsp; Z 0</span></div>
+          <div class="inspector-row"><span class="label">Rotation</span><span>X 0 &nbsp; Y 0 &nbsp; Z 0</span></div>
+          <div class="inspector-row"><span class="label">Scale</span><span>X 1 &nbsp; Y 1 &nbsp; Z 1</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-panel" id="info-panel"></div>
+</div>
+
+<script>
+const states = [
+  {
+    name: 'Disconnected — Silent',
+    c1chip: { label: 'Disconnected', type: 'muted' },
+    c2chip: { label: 'Disconnected', type: 'muted' },
+    fallback: false,
+    info: { title: '1. Disconnected — Silent', cls: 'success',
+      desc: 'Concept 1: Muted "Disconnected" label in toolbar row — visible but visually secondary. Concept 2: No indicator at all — silence IS the signal.',
+      badge: 'Muted label (C1) / Silent (C2)' }
+  },
+  {
+    name: 'Fallback — Downloading',
+    c1chip: { label: 'Downloading', type: 'warning', progress: true },
+    c2chip: { label: 'Downloading', type: 'warning', progress: true },
+    fallback: true,
+    info: { title: '2. Fallback — Downloading', cls: 'warning',
+      desc: 'Concept 1: Toolbar chip with inline progress bar — lightweight, scannable. Concept 2: Tab-bar chip + floating overlay near canvas.',
+      badge: 'Toolbar chip (C1) / Tab chip + overlay (C2)' }
+  },
+  {
+    name: 'Fallback — No Build on Branch',
+    c1chip: { label: 'No build on branch', type: 'warning' },
+    c2chip: { label: 'No build on branch', type: 'warning' },
+    fallback: true,
+    info: { title: '3. No Build on Branch', cls: 'warning',
+      desc: 'Persistent session state. Short, scannable chip. Concept 1 places it in toolbar row, Concept 2 in the tab bar.',
+      badge: 'In-viewport overlay (C1) / Tab chip (C2)' }
+  },
+  {
+    name: 'Fallback — Build Failed',
+    c1chip: { label: 'Build failed', type: 'warning', action: 'Retry' },
+    c2chip: { label: 'Build failed', type: 'warning', action: 'Retry' },
+    fallback: true,
+    info: { title: '4. Build Failed + Retry', cls: 'warning',
+      desc: 'Chip with inline action. "Build failed" = state, "Retry" = recovery path. Yellow, never red. Non-blocking.',
+      badge: 'In-viewport overlay with action' }
+  },
+  {
+    name: 'Build Ready',
+    c1chip: { label: 'Build ready', type: 'success', action: 'Load' },
+    c2chip: { label: 'Build ready', type: 'success', action: 'Load' },
+    fallback: true,
+    info: { title: '5. Build Ready — Manual Load', cls: 'success',
+      desc: 'Green chip signals positive state change. "Load" lets creator choose when to swap. No surprise viewport changes during editing.',
+      badge: 'In-viewport overlay with action' }
+  }
+];
+
+let currentState = 0;
+let currentConcept = 1;
+let progressInterval = null;
+
+function setConcept(n) {
+  currentConcept = n;
+  document.querySelectorAll('.concept-btn').forEach((b, i) => b.classList.toggle('active', i === n - 1));
+  document.getElementById('concept-desc').textContent = n === 1
+    ? 'In-viewport overlay — chip floats on canvas alongside Default/Custom/2D controls'
+    : 'Top-bar status chip — same chip design, placed in the Viewport tab bar row';
+  setState(currentState);
+}
+
+function setState(index) {
+  currentState = index;
+  const s = states[index];
+
+  document.querySelectorAll('.state-btn').forEach((b, i) => b.classList.toggle('active', i === index));
+
+  // Game preview
+  const preview = document.getElementById('game-preview');
+  preview.className = 'game-preview' + (s.fallback ? ' fallback' : '');
+
+  // Clear progress
+  if (progressInterval) clearInterval(progressInterval);
+
+  const tabChip = document.getElementById('tab-chip');
+  const overlay = document.getElementById('overlay');
+  const toolbarChip = document.getElementById('toolbar-chip');
+  const canvasChip = document.getElementById('canvas-chip');
+  const viewportArea = document.querySelector('.viewport-area');
+
+  // Reset all
+  tabChip.className = 'status-chip'; tabChip.innerHTML = ''; tabChip.setAttribute('data-empty','');
+  toolbarChip.className = 'toolbar-chip'; toolbarChip.innerHTML = ''; toolbarChip.setAttribute('data-empty','');
+  canvasChip.className = 'canvas-overlay-chip'; canvasChip.innerHTML = ''; canvasChip.setAttribute('data-empty','');
+  overlay.classList.remove('visible');
+  viewportArea.classList.remove('downloading');
+
+  if (currentConcept === 1) {
+    // --- Concept 1: In-viewport overlay (floating on canvas) ---
+    const chip = s.c1chip;
+    if (chip) {
+      canvasChip.className = 'canvas-overlay-chip ' + chip.type;
+      let html = '<span class="dot"></span>' + chip.label;
+      if (chip.progress) {
+        html += ' <div class="progress-track"><div class="progress-fill" id="cv-progress" style="width:0%"></div></div>';
+      }
+      if (chip.action) {
+        html += ' <span class="action">' + chip.action + '</span>';
+      }
+      canvasChip.innerHTML = html;
+      canvasChip.removeAttribute('data-empty');
+      if (chip.progress) {
+        let p = 0;
+        progressInterval = setInterval(() => {
+          p = (p + 1) % 101;
+          const f = document.getElementById('cv-progress');
+          if (f) { f.style.transition = 'width 0.3s linear'; f.style.width = p + '%'; }
+        }, 80);
+      }
+    }
+
+  } else {
+    // --- Concept 2: Top-bar status chip (tab-bar), same chip design as C1 ---
+    const chip2 = s.c2chip;
+    if (chip2) {
+      tabChip.className = 'status-chip ' + chip2.type;
+      let html = '<span class="dot"></span>' + chip2.label;
+      if (chip2.progress) {
+        html += ' <div style="width:48px;height:3px;background:#3d3d3d;border-radius:2px;overflow:hidden;display:inline-block;vertical-align:middle"><div id="c2-progress" style="width:0%;height:100%;background:#f1b41b;border-radius:2px;transition:width 0.3s linear"></div></div>';
+      }
+      if (chip2.action) html += ' <span class="action">' + chip2.action + '</span>';
+      tabChip.innerHTML = html;
+      tabChip.removeAttribute('data-empty');
+      if (chip2.progress) {
+        let p = 0;
+        progressInterval = setInterval(() => {
+          p = (p + 1) % 101;
+          const f = document.getElementById('c2-progress');
+          if (f) { f.style.width = p + '%'; }
+        }, 80);
+      }
+    }
+  }
+
+  // Action handlers
+  setTimeout(() => {
+    document.querySelectorAll('.action').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        if (el.textContent === 'Load') setState(0);
+        else if (el.textContent === 'Retry') setState(1);
+      });
+    });
+  }, 50);
+
+  // Auto-load: when Build Ready, auto-transition to Real Build after 3.5s
+  if (autoLoadTimer) clearTimeout(autoLoadTimer);
+  if (index === 4) {
+    autoLoadTimer = setTimeout(() => {
+      if (currentState === 4) setState(0);
+    }, 3500);
+  }
+
+  // Info panel
+  document.getElementById('info-panel').innerHTML = `
+    <h3 class="${s.info.cls}">${s.info.title}</h3>
+    <p>${s.info.desc}</p>
+    <span class="badge">${s.info.badge}</span>
+  `;
+}
+
+let autoLoadTimer = null;
+setState(0);
+</script>
+</body>
+</html>

@@ -295,7 +295,7 @@
     align-items: center;
     gap: 5px;
     height: 18px;
-    padding: 0 8px;
+    padding: 0;
     border-radius: 3px;
     font-size: 11px;
     font-weight: 500;
@@ -303,9 +303,9 @@
   }
 
   .status-chip[data-empty] { display: none; }
-  .status-chip.warning { background: #37383a; color: var(--warning); border: 1px solid #484b50; }
-  .status-chip.success { background: #37383a; color: var(--success); border: 1px solid #484b50; }
-  .status-chip.muted { background: #37383a; color: var(--text-disabled); border: 1px solid #484b50; }
+  .status-chip.warning { background: transparent; color: var(--warning); border: none; }
+  .status-chip.success { background: transparent; color: var(--success); border: none; }
+  .status-chip.muted { background: transparent; color: var(--text-disabled); border: none; }
 
   .status-chip .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
   .status-chip.warning .dot { background: var(--warning); }

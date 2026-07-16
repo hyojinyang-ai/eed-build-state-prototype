@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EED Phase 2 — Editor Modes & Build Status</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* FictionUI Tokens -- synced from Figma */
+    --neutral0: #e9f1f5;
+    --neutral400: #484b50;
+    --neutral500: #37383a;
+    --text-emphasis: #e9f1f5;
+    --text-secondary: #9ea5ae;
+    --bg-accent-primary: #1d7bbf;
+    --border-primary: #222325;
+    --warning: #f1b41b;
+    --warning-bg: #2e2510;
+    --success: #17c281;
+    --success-bg: #0e2e22;
+    --spacing-s: 4px;
+    --spacing-l: 8px;
+    --corner-radius-m: 4px;
+    --border-size-xs: 1px;
+
+    /* DS Dark Mode tokens */
+    --panel-bg: #303030;
+    --panel-header: #303030;
+    --panel-border: #3f3f3f;
+    --viewport-bg: #4c4c4c;
+    --footer-bg: #353535;
+    --text-primary: var(--text-emphasis);
+    --text-tertiary: #777;
+    --text-disabled: #555;
+    --track: var(--neutral400);
+    --toolbar-bg: #353535;
+    --selected-blue: #678db2;
+    --processing: #309ae8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #111;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  /* Prototype control bar -- Inter font, separate from editor */
+  .proto-control-bar {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--neutral500);
+    border-bottom: 1px solid var(--neutral400);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .proto-row {
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 36px;
+    gap: 16px;
+  }
+
+  .proto-row.top {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .proto-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--neutral0);
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+    margin-right: 8px;
+  }
+
+  .proto-concepts {
+    display: flex;
+    gap: 0;
+  }
+
+  .proto-concept-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 16px;
+    border: 1px solid var(--neutral400);
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+    letter-spacing: 0.5px;
+  }
+
+  .proto-concept-btn:first-child { border-radius: 4px 0 0 4px; }
+  .proto-concept-btn:last-child { border-radius: 0 4px 4px 0; border-left: 0; }
+  .proto-concept-btn:not(:first-child):not(:last-child) { border-radius: 0; border-left: 0; }
+
+  .proto-concept-btn:hover { background: var(--neutral400); color: var(--neutral0); }
+
+  .proto-concept-btn.active {
+    background: var(--bg-accent-primary);
+    color: var(--neutral0);
+    border-color: var(--bg-accent-primary);
+  }
+
+  .proto-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-left: auto;
+    max-width: 420px;
+    opacity: 0.7;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+    text-align: right;
+  }
+
+  .proto-state-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-right: 4px;
+  }
+
+  .proto-states {
+    display: flex;
+    gap: 0;
+  }
+
+  .proto-state-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 12px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 3px;
+    transition: all 0.15s ease;
+    letter-spacing: 0.3px;
+  }
+
+  .proto-state-btn:hover { background: rgba(255,255,255,0.06); color: var(--neutral0); }
+  .proto-state-btn.active { background: var(--neutral400); color: var(--neutral0); }
+
+  .proto-rp-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-left: 24px;
+    margin-right: 4px;
+  }
+
+  .proto-rp-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 3px;
+    transition: all 0.15s ease;
+    letter-spacing: 0.3px;
+  }
+  .proto-rp-btn:hover { background: rgba(255,255,255,0.06); color: var(--neutral0); }
+  .proto-rp-btn.active { background: var(--neutral400); color: var(--neutral0); }
+
+  /* Main layout */
+  .editor-container {
+    width: 1400px;
+    max-width: 100%;
+    margin: 12px auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Editor frame */
+  .editor {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+    margin: 0 20px;
+  }
+
+  /* System bar */
+  .system-bar {
+    height: 32px;
+    background: #303030;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 0;
+    border-bottom: 1px solid var(--panel-border);
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    box-shadow: inset 0px 1px 0px 0px rgba(10,10,10,0.5);
+  }
+
+  .system-bar .menu-item {
+    padding: 0 8px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+    cursor: default;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .system-bar .menu-item:hover { background: #4c4c4c; }
+
+  /* Main editor body */
+  .editor-body {
+    display: flex;
+    flex-direction: column;
+    height: 680px;
+  }
+
+  .editor-body-top {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .editor-body-bottom {
+    display: flex;
+    height: 200px;
+    border-top: 1px solid var(--panel-border);
+  }
+
+  /* Left panel - hierarchy */
+  .left-panel {
+    width: 320px;
+    background: #353535;
+    border-right: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-tab-bar {
+    height: 22px;
+    background: #303030;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 8px;
+    gap: 8px;
+    border-bottom: 1px solid var(--panel-border);
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+    position: relative;
+  }
+
+  .panel-tab {
+    color: var(--text-secondary);
+    cursor: default;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+    padding: 4px 11px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+  }
+
+  .panel-tab.active {
+    background: #4c4c4c;
+    color: var(--text-secondary);
+    border-radius: 2px 2px 0 0;
+    box-shadow: 0 0 0 rgba(0,0,0,0.25);
+  }
+
+  .panel-tab-bar .hamburger {
+    position: absolute;
+    right: 4px;
+    top: 0;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: default;
+  }
+
+  .panel-content {
+    flex: 1;
+    padding: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    background: #353535;
+    border: 1px solid var(--panel-border);
+    border-top: 0;
+  }
+
+  .tree-item {
+    padding: 0 0 0 12px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: default;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+  }
+
+  .tree-item.selected {
+    background: #678db2;
+    color: #000;
+    border-radius: 2px;
+  }
+
+  .tree-item .icon { color: var(--text-tertiary); font-size: 10px; }
+  .tree-item.selected .icon { color: #000; }
+
+  /* Viewport */
+  .viewport-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .viewport-tab-bar {
+    height: 22px;
+    min-height: 22px;
+    background: #303030;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 30px 0 8px;
+    gap: 8px;
+    border-bottom: 1px solid var(--panel-border);
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+    position: relative;
+  }
+
+  .viewport-tab-bar .tab {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+    padding: 4px 11px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    background: #4c4c4c;
+    border-radius: 2px 2px 0 0;
+    box-shadow: 0 0 0 rgba(0,0,0,0.25);
+  }
+
+  .viewport-tab-bar .spacer { flex: 1; }
+
+  .viewport-tab-bar .hamburger {
+    position: absolute;
+    right: 4px;
+    top: 0;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: default;
+  }
+
+  /* Toolbar row */
+  .toolbar-row {
+    height: 28px;
+    min-height: 28px;
+    background: #464646;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+    border-bottom: 1px solid #585858;
+    font-family: 'Nunito Sans', sans-serif;
+  }
+
+  .toolbar-row .scene-select {
+    background: #2c2c2c;
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding: 2px var(--spacing-l);
+    border-radius: 1px;
+    border: var(--border-size-xs) solid #585858;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .toolbar-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    border-radius: 3px;
+    cursor: default;
+    background: linear-gradient(to bottom, #4b4b4b, #3f3f3f);
+    border: 1px solid #2d2d2d;
+    box-shadow: inset 0 0 0 1px #5a5a5a;
+  }
+
+  .toolbar-icon:hover { background: linear-gradient(to bottom, #555, #4a4a4a); }
+  .toolbar-row .spacer { flex: 1; }
+
+  /* Viewport canvas */
+  .viewport-canvas {
+    flex: 1;
+    background: #4c4c4c;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 2px solid #3f3f3f;
+  }
+
+  .viewport-canvas .game-preview {
+    width: 280px;
+    height: 380px;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(180deg, #ff6b35 0%, #ff4500 40%, #cc3700 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+    transition: filter 0.5s ease, opacity 0.5s ease, background 0.5s ease;
+  }
+
+  .game-preview .logo {
+    font-size: 42px;
+    font-weight: 700;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-family: 'Nunito Sans', sans-serif;
+    transition: color 0.5s ease, text-shadow 0.5s ease;
+  }
+
+  .game-preview .score-text {
+    font-size: 16px;
+    color: var(--neutral0);
+    margin-top: 8px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    transition: color 0.5s ease;
+  }
+
+  .game-preview .buttons {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 200px;
+  }
+
+  .game-preview .btn {
+    background: rgba(0,0,0,0.2);
+    border: 2px solid var(--selected-blue);
+    color: var(--neutral0);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    text-align: center;
+    font-family: 'Nunito Sans', sans-serif;
+    transition: border-color 0.5s ease, color 0.5s ease;
+  }
+
+  .game-preview.fallback {
+    background: linear-gradient(180deg, #4a4a4a 0%, #333 100%);
+    filter: saturate(0);
+    opacity: 0.7;
+  }
+
+  .game-preview.fallback .logo { color: #999; text-shadow: none; }
+  .game-preview.fallback .score-text { color: #888; text-shadow: none; }
+  .game-preview.fallback .btn { border-color: #666; color: #888; }
+
+  /* Canvas floating dropdowns */
+  .canvas-dropdown {
+    height: auto;
+    padding: 2px 6px;
+    padding-left: 6px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid #646464;
+    border-radius: 2px;
+    color: var(--neutral0);
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .canvas-dropdown .arrow {
+    font-size: 8px;
+    color: var(--neutral0);
+    display: inline-block;
+    transform: scaleY(0.7);
+  }
+
+  /* Concept B: Build status chip in toolbar row */
+  .toolbar-build-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: var(--corner-radius-m);
+    font-size: 11px;
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 500;
+    white-space: nowrap;
+    margin-left: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .toolbar-build-chip .tbc-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .toolbar-build-chip .tbc-dot.green { background: var(--success); }
+  .toolbar-build-chip .tbc-dot.green-bright { background: #71efb2; }
+  .toolbar-build-chip .tbc-dot.yellow { background: var(--warning); }
+  .toolbar-build-chip .tbc-dot.red { background: #e74c3c; }
+  .toolbar-build-chip .tbc-dot.blue {
+    background: transparent;
+    border: 1.5px solid var(--processing);
+    border-top-color: transparent;
+    animation: bw-spin 1s linear infinite;
+  }
+
+  .toolbar-build-chip.quiet { opacity: 0.35; }
+  .toolbar-build-chip.warning-state { background: var(--neutral500); color: #a5a5a5; border: 1px solid var(--neutral400); }
+  .toolbar-build-chip.error-state { background: var(--neutral500); color: #a5a5a5; border: 1px solid var(--neutral400); }
+  .toolbar-build-chip.processing-state { background: var(--neutral500); color: #a5a5a5; border: 1px solid var(--neutral400); }
+  .toolbar-build-chip.success-state { background: transparent; color: #a5a5a5; border: none; }
+  .toolbar-build-chip.success-available { background: var(--neutral500); color: #a5a5a5; border: 1px solid var(--neutral400); }
+
+  .toolbar-build-chip .tbc-action {
+    color: var(--neutral0);
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .toolbar-build-chip .tbc-action:hover { text-decoration: underline; }
+
+  /* Concept C: Build status as canvas overlay chip (next to Default/Custom/2D) */
+  .canvas-build-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: auto;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 500;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  .canvas-build-chip .cbc-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .canvas-build-chip .cbc-dot.green { background: var(--success); }
+  .canvas-build-chip .cbc-dot.green-bright { background: #71efb2; }
+  .canvas-build-chip .cbc-dot.yellow { background: var(--warning); }
+  .canvas-build-chip .cbc-dot.red { background: #e74c3c; }
+  .canvas-build-chip .cbc-dot.blue {
+    background: transparent;
+    border: 1.5px solid var(--processing);
+    border-top-color: transparent;
+    animation: bw-spin 1s linear infinite;
+  }
+
+  .canvas-build-chip.quiet { opacity: 0.3; }
+  .canvas-build-chip.warning-state { background: rgba(0,0,0,0.25); color: #a5a5a5; border: 1px solid #646464; }
+  .canvas-build-chip.error-state { background: rgba(0,0,0,0.25); color: #a5a5a5; border: 1px solid #646464; }
+  .canvas-build-chip.processing-state { background: rgba(0,0,0,0.25); color: #a5a5a5; border: 1px solid #646464; }
+  .canvas-build-chip.success-state { background: rgba(0,0,0,0.25); color: #a5a5a5; border: 1px solid #646464; }
+  .canvas-build-chip.success-available { background: rgba(0,0,0,0.25); color: #a5a5a5; border: 1px solid #646464; }
+
+  .canvas-build-chip .cbc-action {
+    color: var(--neutral0);
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .canvas-build-chip .cbc-action:hover { text-decoration: underline; }
+
+  /* Canvas overlay controls -- floating on viewport canvas */
+  .canvas-overlay-controls {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+  }
+
+  /* Left tool palette -- floating on canvas */
+  .canvas-tool-palette {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+    background: #464646;
+    border: 1px solid #585858;
+    border-radius: 3px;
+    padding: 2px;
+  }
+
+  .tool-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: default;
+    border-radius: 3px;
+    background: linear-gradient(to bottom, #4b4b4b, #3f3f3f);
+    border: 1px solid #2d2d2d;
+    box-shadow: inset 0 0 0 1px #5a5a5a;
+  }
+
+  .tool-btn:hover { background: linear-gradient(to bottom, #555, #4a4a4a); }
+
+  /* Open Documents panel */
+  .open-docs-panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .open-docs-content {
+    background: #353535;
+    border: 1px solid var(--panel-border);
+    border-top: 0;
+    padding: 1px;
+  }
+
+  .doc-item {
+    height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 1px;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    cursor: default;
+  }
+
+  .doc-item.selected {
+    background: #678db2;
+    color: #000;
+  }
+
+  .doc-item .doc-icon { font-size: 10px; width: 16px; text-align: center; }
+  .doc-item.selected .doc-icon { color: #000; }
+
+  .doc-item .doc-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 2px;
+    font-size: 10px;
+  }
+
+  /* Right panel */
+  .right-panel {
+    width: 300px;
+    background: #353535;
+    border-left: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .inspector-content {
+    flex: 1;
+    padding: 0;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    background: #353535;
+  }
+
+  .inspector-section-header {
+    background: #4a4a4a;
+    padding: 3px 8px;
+    font-size: 14px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .inspector-section-header .section-icon { font-size: 12px; color: #888; }
+  .inspector-section-header .section-actions { margin-left: auto; display: flex; gap: 4px; font-size: 11px; color: #888; }
+  .inspector-section-header .caret { font-size: 8px; color: #888; }
+
+  .inspector-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
+    color: var(--text-secondary);
+    background: #454545;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .inspector-row .label {
+    color: var(--text-secondary);
+    min-width: 80px;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+  }
+
+  .inspector-row .value-field {
+    background: #2c2c2c;
+    border-radius: 1px;
+    padding: 1px 4px;
+    font-size: 9px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    border: none;
+    letter-spacing: 1px;
+  }
+
+  .inspector-section { border-bottom: 1px solid #3a3a3a; }
+
+  /* Preview widget */
+  .preview-widget {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--panel-border);
+  }
+
+  .preview-header {
+    height: 22px;
+    background: #4a4a4a;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .preview-header .preview-checkbox {
+    width: 14px;
+    height: 14px;
+    background: #2c2c2c;
+    border: 1px solid #585858;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .preview-header .preview-checkbox.checked {
+    background: #678db2;
+    border-color: #678db2;
+    color: #000;
+  }
+
+  .preview-header .preview-label {
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+  }
+
+  .preview-header .preview-actions { margin-left: auto; display: flex; gap: 4px; }
+
+  .preview-header .preview-action-btn {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #888;
+    border-radius: 2px;
+    cursor: default;
+  }
+
+  .preview-header .preview-action-btn:hover {
+    background: #585858;
+    color: var(--text-secondary);
+  }
+
+  .preview-content {
+    background: #2c2c2c;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: height 0.2s ease;
+  }
+
+  .preview-content.collapsed { height: 0 !important; }
+
+  .preview-viewport {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #353535;
+    margin: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 120px;
+  }
+
+  .preview-viewport .preview-3d-content {
+    color: #555;
+    font-size: 32px;
+    font-family: 'Nunito Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .preview-viewport .preview-axis {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .preview-axis-indicator { position: relative; width: 28px; height: 28px; }
+  .preview-axis-indicator .axis-x { color: #e74c3c; font-size: 9px; font-weight: bold; position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
+  .preview-axis-indicator .axis-y { color: #2ecc71; font-size: 9px; font-weight: bold; position: absolute; left: 50%; top: 0; transform: translateX(-50%); }
+  .preview-axis-indicator .axis-z { color: #3498db; font-size: 9px; font-weight: bold; position: absolute; left: 2px; bottom: 2px; }
+
+  .preview-toolbar {
+    height: 20px;
+    background: #353535;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    gap: 2px;
+    border-top: 1px solid #3f3f3f;
+  }
+
+  .preview-toolbar-btn {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-secondary);
+    cursor: default;
+    border-radius: 2px;
+  }
+
+  .preview-toolbar-btn:hover { background: #4c4c4c; }
+  .preview-toolbar .preview-spacer { flex: 1; }
+
+  /* Bottom panels */
+  .bottom-left-panel {
+    width: 320px;
+    background: #353535;
+    border-right: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bottom-center-panel {
+    flex: 1;
+    background: #353535;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .breadcrumb-bar {
+    height: 22px;
+    background: #464646;
+    border-bottom: 1px solid #585858;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 4px;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+  }
+
+  .breadcrumb-bar .breadcrumb-sep { color: #666; font-size: 10px; }
+  .breadcrumb-bar .breadcrumb-item { cursor: default; }
+  .breadcrumb-bar .breadcrumb-item.active { color: var(--neutral0); }
+
+  .rb-toolbar {
+    height: 22px;
+    background: #303030;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 4px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .rb-toolbar .rb-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 10px;
+    cursor: default;
+  }
+
+  .rb-toolbar .rb-spacer { flex: 1; }
+
+  .rb-toolbar .rb-search {
+    background: #2c2c2c;
+    border: none;
+    border-radius: 1px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-family: 'Nunito Sans', sans-serif;
+    padding: 1px 4px;
+    width: 120px;
+    letter-spacing: 1px;
+  }
+
+  .rb-toolbar .rb-view-btn {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #353535;
+    border: 1px solid #2d2d2d;
+    border-radius: 1px;
+    color: var(--text-secondary);
+    font-size: 9px;
+    cursor: default;
+  }
+
+  .rb-toolbar .rb-view-btn.active { background: #4c4c4c; }
+
+  .rb-tree {
+    flex: 1;
+    padding: 2px;
+    overflow: hidden;
+    background: #353535;
+  }
+
+  .rb-content {
+    flex: 1;
+    background: #353535;
+    border-left: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rb-grid {
+    flex: 1;
+    padding: 8px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+
+  .rb-grid-item {
+    width: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: default;
+  }
+
+  .rb-grid-thumb {
+    width: 64px;
+    height: 64px;
+    background: #4a4a4a;
+    border: 1px solid #585858;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 24px;
+  }
+
+  .rb-grid-label {
+    font-size: 10px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+
+  .rb-status-bar {
+    height: 18px;
+    background: #303030;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 11px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: #777;
+    letter-spacing: 1px;
+    border-top: 1px solid var(--panel-border);
+  }
+
+  .timeline-content {
+    flex: 1;
+    background: #353535;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: #666;
+    letter-spacing: 1px;
+  }
+
+  /* Header toolbar */
+  .header-bar {
+    height: 32px;
+    background: #303030;
+    display: flex;
+    align-items: center;
+    padding: 0 9px;
+    position: relative;
+    box-shadow: inset 0px 1px 0px 0px rgba(10,10,10,0.5);
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .header-bar .header-left,
+  .header-bar .header-right {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .header-bar .header-spacer { flex: 1; }
+
+  .header-bar .hb-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    position: relative;
+  }
+
+  .header-bar .hb-icon img {
+    width: 16px;
+    height: 16px;
+    opacity: 0.65;
+    filter: brightness(1.5);
+  }
+
+  .header-bar .hb-icon:hover img { opacity: 0.9; }
+
+  .header-bar .hb-sep {
+    width: 8px;
+    height: 24px;
+  }
+
+  /* Zoom overlay */
+  .canvas-zoom {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    z-index: 10;
+  }
+
+  /* ============================================================
+     FOOTER — 28px, new build-status system
+     ============================================================ */
+  .bottom-footer {
+    height: 28px;
+    background: #2e2e2e;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    border-top: 1px solid #252525;
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 11px;
+    position: relative;
+  }
+
+  .footer-spacer { flex: 1; }
+
+  /* Resource pipeline indicator (left side) */
+  .rp-indicator {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px 0 4px;
+    height: 100%;
+  }
+
+  .rp-indicator.visible { display: flex; }
+
+  .rp-indicator .rp-bar-track {
+    width: 60px;
+    height: 2px;
+    background: #444;
+    border-radius: 1px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .rp-indicator .rp-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--processing);
+    border-radius: 1px;
+    animation: rp-progress 2.5s ease-in-out infinite;
+  }
+
+  @keyframes rp-progress {
+    0% { width: 0%; }
+    50% { width: 75%; }
+    100% { width: 100%; }
+  }
+
+  .rp-indicator .rp-label {
+    font-size: 11px;
+    color: #777;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  /* Build status area (right side) */
+  .footer-build-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px;
+    height: 100%;
+  }
+
+  .footer-build-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 0.4s ease;
+  }
+
+  .footer-build-dot.green { background: var(--success); }
+  .footer-build-dot.green-bright { background: #71efb2; }
+  .footer-build-dot.blue { background: var(--processing); }
+  .footer-build-dot.yellow { background: var(--warning); }
+  .footer-build-dot.red { background: #e74c3c; }
+
+  .inline-spinner {
+    width: 8px; height: 8px;
+    border: 1.5px solid var(--processing);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: bw-spin 1s linear infinite;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+
+  .requesting-label {
+    font-size: 11px;
+    color: #a5a5a5;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .footer-build-dot.blue {
+    animation: dot-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes dot-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .footer-build-label {
+    font-size: 11px;
+    color: #a5a5a5;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .footer-build-action {
+    font-size: 11px;
+    color: var(--neutral0);
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  .footer-build-action:hover { text-decoration: underline; }
+
+  /* Concept B: Build Widget */
+  .bw-ip-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--corner-radius-m);
+    border: 1px solid var(--border-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .bw-ip-btn.connected {
+    background: var(--bg-accent-primary);
+    color: var(--neutral0);
+  }
+
+  .bw-ip-btn.disconnected {
+    background: var(--neutral400);
+    color: var(--text-secondary);
+  }
+
+  .bw-arrow {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .bw-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--neutral400);
+    flex-shrink: 0;
+    margin: 0 4px;
+  }
+
+  /* Concept C: Mode Badge */
+  .mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 10px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .mode-badge.runtime {
+    background: rgba(23, 194, 129, 0.12);
+    color: #71efb2;
+    border: 1px solid rgba(23, 194, 129, 0.2);
+  }
+
+  .mode-badge.fallback {
+    background: rgba(241, 180, 27, 0.1);
+    color: #f1b41b;
+    border: 1px solid rgba(241, 180, 27, 0.15);
+  }
+
+  .mode-badge .mode-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .mode-badge.runtime .mode-dot { background: #71efb2; }
+  .mode-badge.fallback .mode-dot { background: var(--warning); }
+
+  .mode-secondary {
+    font-size: 11px;
+    color: #777;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    margin-left: 4px;
+  }
+
+  /* Warning/Error counts (far right) */
+  .footer-counters {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding-left: 4px;
+  }
+
+  .footer-counter-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 4px;
+  }
+
+  .footer-counter-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .footer-counter-num {
+    font-size: 12px;
+    color: #a5a5a5;
+    letter-spacing: 0.84px;
+    font-family: 'Nunito Sans', sans-serif;
+  }
+
+  .footer-warning-triangle {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 9px solid #f1b41b;
+    position: relative;
+  }
+
+  .footer-warning-triangle::after {
+    content: '!';
+    position: absolute;
+    top: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 7px;
+    font-weight: bold;
+    font-family: 'Nunito Sans', sans-serif;
+    color: #000;
+    line-height: 1;
+  }
+
+  @keyframes bw-spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Prototype control bar -->
+<div class="proto-control-bar">
+  <div class="proto-row top">
+    <span class="proto-title">EED Phase 2 -- Editor Modes & Build Status</span>
+    <div class="proto-concepts">
+      <button class="proto-concept-btn active" onclick="setConcept('A')">Concept A</button>
+      <button class="proto-concept-btn" onclick="setConcept('B')">Concept B</button>
+      <button class="proto-concept-btn" onclick="setConcept('C')">Concept C</button>
+    </div>
+    <span class="proto-desc" id="concept-desc"></span>
+  </div>
+  <div class="proto-row">
+    <span class="proto-state-label">State</span>
+    <div class="proto-states">
+      <button class="proto-state-btn active" onclick="setState(0)">Runtime Editing</button>
+      <button class="proto-state-btn" onclick="setState(1)">Fallback Mode</button>
+      <button class="proto-state-btn" onclick="setState(2)">Build Failed</button>
+    </div>
+    <span class="proto-rp-label">RP</span>
+    <button class="proto-rp-btn" id="rp-running-btn" onclick="setRP(true)">Running</button>
+    <button class="proto-rp-btn active" id="rp-idle-btn" onclick="setRP(false)">Idle</button>
+  </div>
+</div>
+
+<!-- Editor -->
+<div class="editor-container">
+  <div class="editor">
+    <!-- System bar -->
+    <div class="system-bar">
+      <span class="menu-item">File</span>
+      <span class="menu-item">Edit</span>
+      <span class="menu-item">Project</span>
+      <span class="menu-item">Tools</span>
+      <span class="menu-item">Plugins</span>
+      <span class="menu-item">Window</span>
+      <span class="menu-item">Help</span>
+    </div>
+
+    <!-- Header toolbar (icon bar) -->
+    <div class="header-bar">
+      <div class="header-left">
+        <span class="hb-icon"><img src="http://localhost:3845/assets/80b7c68943f337978d53204aaedf56026402bd25.svg" alt="Settings"></span>
+        <span class="hb-sep"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/99cc5d98bb3aeceac1ea96fed7a664af9f40272b.svg" alt="New"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/98a12e8e11803b12a7282c4d3c50b06f8ce86697.svg" alt="Load"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/c56b172f655e079930e3f58759e15fb3e5f1f151.svg" alt="Save"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/7ff50be90782d832ad021bf7de945b176c8ac6a6.svg" alt="Save All"></span>
+        <span class="hb-sep"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/526810557647ef73ac57645dc9d3ce1ff396b816.svg" alt="Undo"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/4b1ad2d2eefbf2cb5a617f70ced307538eab54f8.svg" alt="Redo"></span>
+      </div>
+      <span class="header-spacer"></span>
+      <div class="header-right">
+        <span class="hb-icon"><img src="http://localhost:3845/assets/ca761dfed43178c8999946d36ee9f9413bfc7fb6.svg" alt="Bug"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/2dc6131c3fa525a7dfa36665ba5340c25146ad75.svg" alt="Feature Request"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/57c60449f4804fc5c0787d6db18d3554dd782d9c.svg" alt="Docs"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/cca36ff55830ae427998e31ab78dba983d8992cf.svg" alt="Video"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/83f81c24730d6ef9e819cbde542c94a486297185.svg" alt="Release Notes"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/32db4364fe35c4ebe2d6092722162399854c0879.svg" alt="Roadmap"></span>
+        <span class="hb-icon"><img src="http://localhost:3845/assets/34838cf56db34bf991c5429faf4db36abcec25be.svg" alt="Slack"></span>
+      </div>
+    </div>
+
+    <!-- Editor body -->
+    <div class="editor-body">
+      <!-- Top row: left panel + viewport + right panel -->
+      <div class="editor-body-top">
+      <!-- Left panel -->
+      <div class="left-panel">
+        <!-- Open Documents -->
+        <div class="open-docs-panel">
+          <div class="panel-tab-bar">
+            <span class="panel-tab active">Open Documents</span>
+            <span class="hamburger"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M2 4h10M2 7h10M2 10h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+          </div>
+          <div class="open-docs-content">
+            <div class="doc-item"><span class="doc-icon">&#9656;</span><span class="doc-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M2 7l5-4.5L12 7v5.5a1 1 0 01-1 1H3a1 1 0 01-1-1V7z" stroke="currentColor" stroke-width="1.2"/></svg></span> Scenes</div>
+            <div class="doc-item selected"><span class="doc-icon">&nbsp;</span><span class="doc-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M2 7l5-4.5L12 7v5.5a1 1 0 01-1 1H3a1 1 0 01-1-1V7z" stroke="currentColor" stroke-width="1.2"/></svg></span> Scenes <span class="doc-actions"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M9.5 11H2.5a1 1 0 01-1-1V2a1 1 0 011-1h5.586L10.5 3.414V10a1 1 0 01-1 1z" stroke="currentColor" stroke-width="1"/><rect x="4" y="7" width="4" height="3" rx=".5" stroke="currentColor" stroke-width=".8"/></svg> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></div>
+          </div>
+        </div>
+
+        <!-- Hierarchy -->
+        <div class="panel-tab-bar">
+          <span class="panel-tab active">Hierarchy</span>
+          <span class="panel-tab">Data Sources</span>
+          <span class="hamburger"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M2 4h10M2 7h10M2 10h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+        </div>
+        <!-- Hierarchy header bar -->
+        <div class="breadcrumb-bar" style="height:32px; gap:8px;">
+          <span style="font-size:14px; color:#678db2;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 3v8M3 7h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+          <span style="flex:1; background:#2c2c2c; border-radius:1px; padding:1px 6px; font-size:11px; color:#777;">Filter/Search</span>
+          <span style="display:flex;align-items:center;justify-content:center;color:var(--text-secondary);"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 3h10L6 9 1 3z" fill="currentColor" opacity=".6"/></svg></span>
+        </div>
+        <div class="panel-content">
+          <div class="tree-item"><span class="icon">&#9656;</span> SceneName</div>
+          <div class="tree-item" style="padding-left:20px"><span class="icon" style="color:#678db2;font-weight:bold">&#9679;</span> <b style="color:#678db2">Orange Background</b> <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">S L <span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:20px"><span class="icon">&#9679;</span> #Score Manager <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">G S P E T L <span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:20px"><span class="icon">&#9679;</span> #Score Manager <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">G P E <span style="display:inline-block;width:6px;height:6px;background:#2ecc71;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:20px"><span class="icon" style="color:#678db2">&#9656;</span> <span style="color:#678db2">LayoutEntity</span> <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0"><span style="display:inline-block;width:6px;height:6px;background:#2ecc71;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:36px"><span class="icon">&#9656;</span> King Logo <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">G P T <span style="display:inline-block;width:6px;height:6px;background:#2ecc71;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:48px"><span class="icon">&#9492;</span> Text: Title/Score <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">T <span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:36px"><span class="icon">&#9662;</span> Buttons</div>
+          <div class="tree-item" style="padding-left:48px"><span class="icon">&#9656;</span> Buttons: 1 Point <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">G S P E <span style="display:inline-block;width:6px;height:6px;background:#2ecc71;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:60px"><span class="icon">&#9492;</span> Text: 1 Point <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">T <span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item selected" style="padding-left:48px"><span class="icon">&#9656;</span> Buttons: 1,000 Points <span style="margin-left:auto;font-size:9px;letter-spacing:0">G S P E <span style="display:inline-block;width:6px;height:6px;background:#2ecc71;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:60px"><span class="icon">&#9492;</span> Text: 1,000 Points <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">T <span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+        </div>
+      </div>
+
+      <!-- Viewport -->
+      <div class="viewport-area">
+        <div class="viewport-tab-bar">
+          <span class="tab">Viewport</span>
+          <span class="spacer"></span>
+          <span class="hamburger"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M2 4h10M2 7h10M2 10h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+        </div>
+
+        <div class="toolbar-row">
+          <select class="scene-select"><option>nodegraphevens_main [scene]</option></select>
+          <span class="toolbar-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="toolbar-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span style="width:8px"></span>
+          <span class="toolbar-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="4" stroke="currentColor" stroke-width="1"/><circle cx="7" cy="7" r="1" fill="currentColor"/></svg></span>
+          <span class="toolbar-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M7 2v2M7 10v2M2 7h2M10 7h2M3.8 3.8l1.4 1.4M8.8 8.8l1.4 1.4M3.8 10.2l1.4-1.4M8.8 5.2l1.4-1.4" stroke="currentColor" stroke-width=".8"/></svg></span>
+          <span class="toolbar-icon" style="font-size:11px">A&#7468;</span>
+          <span class="toolbar-icon"><span style="font-size:10px">EN</span> <span style="font-size:8px;color:var(--neutral0)">&#9662;</span></span>
+          <span class="spacer"></span>
+          <span class="toolbar-icon"><span style="font-size:11px">&#10022;</span></span>
+          <span class="toolbar-icon"><span style="font-size:11px">&#9681;</span></span>
+          <span class="toolbar-icon"><span style="font-size:11px">&#9744;</span> <span style="font-size:8px;color:var(--neutral0)">&#9662;</span></span>
+          <span class="toolbar-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="3" y="3" width="3.5" height="3.5" stroke="currentColor" stroke-width="1"/><rect x="7.5" y="3" width="3.5" height="3.5" stroke="currentColor" stroke-width="1"/><rect x="3" y="7.5" width="3.5" height="3.5" stroke="currentColor" stroke-width="1"/><rect x="7.5" y="7.5" width="3.5" height="3.5" stroke="currentColor" stroke-width="1"/></svg></span>
+          <span class="toolbar-icon"><span style="font-size:11px">&#9673;</span> <span style="font-size:8px;color:var(--neutral0)">&#9662;</span></span>
+          <span class="toolbar-icon"><span style="font-size:11px">&#8865;</span></span>
+          <!-- Concept B: build status in toolbar -->
+          <span id="toolbar-build-status" style="display:none;"></span>
+        </div>
+
+        <div class="viewport-canvas">
+          <!-- Canvas overlay controls -- floating on canvas (NO build status here) -->
+          <div class="canvas-overlay-controls">
+            <!-- Concept C: build status as canvas overlay chip -->
+            <span id="canvas-build-status" style="display:none;"></span>
+            <span class="canvas-dropdown">Default <span class="arrow">&#9662;</span></span>
+            <span class="canvas-dropdown">Custom: 640x960 <span class="arrow">&#9662;</span></span>
+            <span class="canvas-dropdown">2D <span class="arrow">&#9662;</span></span>
+          </div>
+
+          <!-- Left tool palette -- floating on canvas -->
+          <div class="canvas-tool-palette">
+            <div class="tool-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13l1.5-4L12 1.5 14.5 4 7 11.5 3 13z" stroke="currentColor" stroke-width="1.2"/></svg></div>
+            <div class="tool-btn" style="color:#678db2"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="3" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M3 3l10 10" stroke="currentColor" stroke-width=".8" opacity=".4"/></svg></div>
+            <div class="tool-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="3" width="4" height="4" stroke="currentColor" stroke-width="1"/><rect x="9" y="3" width="4" height="4" stroke="currentColor" stroke-width="1"/><rect x="3" y="9" width="4" height="4" stroke="currentColor" stroke-width="1"/><rect x="9" y="9" width="4" height="4" stroke="currentColor" stroke-width="1"/></svg></div>
+            <div class="tool-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M6 13h4" stroke="currentColor" stroke-width="1.2"/></svg></div>
+            <div class="tool-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1"/><rect x="6" y="6" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1"/></svg></div>
+          </div>
+          <div id="game-preview" class="game-preview">
+            <div class="logo">King</div>
+            <div class="score-text">Score Goes Here</div>
+            <div class="buttons">
+              <div class="btn">1 : free!</div>
+              <div class="btn">1,000 : $0.01</div>
+              <div class="btn">1,000,000 : $0.50</div>
+            </div>
+          </div>
+
+          <!-- Zoom overlay -- bottom left of canvas -->
+          <div class="canvas-zoom">
+            <span class="canvas-dropdown">120% <span class="arrow">&#9662;</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div class="right-panel">
+        <div class="panel-tab-bar">
+          <span class="panel-tab active">Inspector</span>
+          <span class="panel-tab">History</span>
+          <span class="hamburger"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M2 4h10M2 7h10M2 10h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+        </div>
+        <div class="inspector-content">
+          <!-- Node name header -->
+          <div class="inspector-section-header" style="padding:3px 8px;gap:8px;">
+            <span class="section-icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M7.5 1.5l3 3-2 2-.5 2.5L5.5 6.5 3 9" stroke="currentColor" stroke-width="1"/></svg></span>
+            <span class="section-icon"><span style="display:inline-block;width:10px;height:10px;background:#e74c3c;border-radius:2px;"></span></span>
+            <span style="font-size:14px;color:var(--text-secondary)">background</span>
+            <span class="section-actions">+ ?</span>
+          </div>
+          <!-- Column headers -->
+          <div style="display:flex;height:16px;">
+            <div style="width:146px;background:#3f3f3f;padding:0 2px;font-size:12px;color:var(--text-secondary);letter-spacing:1px;box-shadow:inset -1px -1px 0 rgba(0,0,0,0.25), inset -1px 1px 0 rgba(255,255,255,0.25);">Property</div>
+            <div style="flex:1;background:#3f3f3f;padding:0 2px;font-size:12px;color:var(--text-secondary);letter-spacing:1px;box-shadow:inset -1px -1px 0 rgba(0,0,0,0.25), inset -1px 1px 0 rgba(255,255,255,0.25);">Value</div>
+          </div>
+          <div class="inspector-row"><span class="label">Class</span><span class="value-field">&nbsp;</span></div>
+          <div class="inspector-row"><span class="label">Visibility</span><span class="value-field">inherit</span></div>
+          <div class="inspector-row"><span class="label">Mask enabled</span><span style="font-size:11px">&#10003;</span></div>
+          <div class="inspector-row"><span class="label">Parent bone ID</span><span class="value-field">-1</span></div>
+          <div class="inspector-row"><span class="label">Parent bone name</span><span class="value-field">&nbsp;</span></div>
+          <div class="inspector-row"><span class="label">Layer flags</span><span class="value-field">inherit</span></div>
+          <div class="inspector-row"><span class="label">Position</span><span><span class="value-field">X -0.87</span> <span class="value-field">Y -0.45</span> <span class="value-field">Z 0</span></span></div>
+          <div class="inspector-row"><span class="label">Rotation</span><span><span class="value-field">X 0</span> <span class="value-field">Y 0</span> <span class="value-field">Z 0</span></span></div>
+          <div class="inspector-row"><span class="label">Scale</span><span><span class="value-field">X 1</span> <span class="value-field">Y 1</span> <span class="value-field">Z 1</span></span></div>
+
+          <!-- LAYOUT section -->
+          <div class="inspector-section">
+            <div class="inspector-section-header">
+              <span class="caret">&#9662;</span>
+              <span class="section-icon"><span style="display:inline-block;width:10px;height:10px;background:#3498db;border-radius:2px;"></span></span>
+              LAYOUT
+              <span class="section-actions">? &#8942;</span>
+            </div>
+            <div class="inspector-row"><span class="label">Layout version</span><span class="value-field">1.0</span></div>
+            <div class="inspector-row"><span class="label">Name</span><span class="value-field">Default</span></div>
+            <div class="inspector-row"><span class="label">Visible</span><span class="value-field">inherit</span></div>
+            <div style="display:flex;height:18px;padding:2px 8px;background:#454545;align-items:center;">
+              <span style="font-size:12px;color:var(--text-secondary);letter-spacing:1px;font-weight:bold">&#9662; Size</span>
+            </div>
+            <div class="inspector-row"><span class="label" style="padding-left:12px">Constrain Proporti...</span><span></span></div>
+            <div class="inspector-row"><span class="label" style="padding-left:12px">Width</span><span><span class="value-field">W &#10003;</span> <span class="value-field">100%</span> <span style="font-size:9px;color:#777">Max</span> <span class="value-field">0</span></span></div>
+            <div class="inspector-row"><span class="label" style="padding-left:12px">Height</span><span><span class="value-field">H</span> <span class="value-field">100%</span> <span style="font-size:9px;color:#777">Max</span> <span class="value-field">0</span></span></div>
+            <div class="inspector-row"><span class="label" style="padding-left:12px">Original size</span><span><span class="value-field">W 0 px</span> <span class="value-field">H 0 px</span></span></div>
+            <div class="inspector-row"><span class="label">Align</span><span><span style="font-size:9px;color:#777">Horizontal:</span> <span class="value-field">0%</span></span></div>
+          </div>
+
+          <!-- Preview Widget -->
+          <div class="preview-widget">
+            <div class="preview-header" onclick="togglePreview()">
+              <span class="preview-checkbox checked" id="preview-checkbox">&#10003;</span>
+              <span class="preview-label">Preview</span>
+              <span class="preview-actions">
+                <span class="preview-action-btn">&#10226;</span>
+                <span class="preview-action-btn">&#8862;</span>
+                <span class="preview-action-btn">&#9776;</span>
+              </span>
+            </div>
+            <div class="preview-content" id="preview-content" style="height:160px;">
+              <div class="preview-viewport">
+                <div class="preview-3d-content">
+                  <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                    <rect x="25" y="8" width="30" height="12" rx="2" fill="#555"/>
+                    <rect x="20" y="20" width="40" height="30" rx="2" fill="#4a4a4a"/>
+                    <rect x="12" y="22" width="10" height="24" rx="2" fill="#4a4a4a"/>
+                    <rect x="58" y="22" width="10" height="24" rx="2" fill="#4a4a4a"/>
+                    <rect x="24" y="50" width="14" height="20" rx="2" fill="#454545"/>
+                    <rect x="42" y="50" width="14" height="20" rx="2" fill="#454545"/>
+                  </svg>
+                </div>
+                <div class="preview-axis">
+                  <div class="preview-axis-indicator">
+                    <div style="position:absolute;width:16px;height:16px;background:#3498db;border-radius:2px;top:0;right:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:bold;color:var(--neutral0);font-family:'Nunito Sans',sans-serif;">-Z</div>
+                    <span class="axis-x">X</span>
+                    <span class="axis-y">Y</span>
+                    <span class="axis-z">-Z</span>
+                  </div>
+                </div>
+              </div>
+              <div class="preview-toolbar">
+                <span class="preview-toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6a5 5 0 019-2.5M11 6a5 5 0 01-9 2.5" stroke="currentColor" stroke-width="1"/><path d="M10 1v2.5h-2.5M2 11V8.5h2.5" stroke="currentColor" stroke-width="1"/></svg></span>
+                <span class="preview-toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1"/><path d="M8 8l3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+                <span class="preview-toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M4 6V3M6 6V2M8 6V3M3 8l-1-2V4.5M10 6v2l-2 3H5L3 8" stroke="currentColor" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span class="preview-spacer"></span>
+                <span class="preview-toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><rect x="1.5" y="1.5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1"/><rect x="4" y="4" width="4" height="4" fill="currentColor" opacity=".4"/></svg></span>
+                <span class="preview-toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/></svg></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div><!-- /editor-body-top -->
+
+      <!-- Bottom panels: Resource Browser / Timeline Editor / Log -->
+      <div class="editor-body-bottom">
+        <!-- Bottom left tree -->
+        <div class="bottom-left-panel">
+          <div class="panel-tab-bar" style="border-top:0;">
+            <span class="panel-tab active">Resource Browser</span>
+            <span class="panel-tab">Log</span>
+            <span class="hamburger"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M2 4h10M2 7h10M2 10h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+          </div>
+          <div class="rb-tree">
+            <div class="tree-item"><span class="icon">&#9656;</span> Project</div>
+            <div class="tree-item" style="padding-left:24px"><span class="icon">&#9656;</span> blue_pack</div>
+            <div class="tree-item" style="padding-left:24px"><span class="icon">&#9662;</span> ff-optional-assets</div>
+            <div class="tree-item" style="padding-left:36px"><span class="icon">&#9656;</span> #Score Manager</div>
+            <div class="tree-item" style="padding-left:48px"><span class="icon">&#9656;</span> King Logo</div>
+            <div class="tree-item selected" style="padding-left:60px"><span class="icon">&#9492;</span> Text: Title/Score</div>
+          </div>
+        </div>
+
+        <!-- Bottom center content -->
+        <div class="bottom-center-panel">
+          <div class="rb-toolbar">
+            <span class="rb-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M2 4V3a1 1 0 011-1h3l1.5 1.5H11a1 1 0 011 1V11a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="currentColor" stroke-width="1"/></svg></span>
+            <span class="rb-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M2 7a5 5 0 019-3M12 7a5 5 0 01-9 3" stroke="currentColor" stroke-width="1.2"/><path d="M11 1v3h-3M3 13v-3h3" stroke="currentColor" stroke-width="1.2"/></svg></span>
+            <span class="rb-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><rect x="3" y="3" width="3.5" height="3.5" stroke="currentColor" stroke-width="1"/><rect x="7.5" y="3" width="3.5" height="3.5" stroke="currentColor" stroke-width="1"/><rect x="3" y="7.5" width="3.5" height="3.5" stroke="currentColor" stroke-width="1"/><rect x="7.5" y="7.5" width="3.5" height="3.5" stroke="currentColor" stroke-width="1"/></svg></span>
+            <span class="rb-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M2 4h10M2 7h10M2 10h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+            <span class="rb-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="rb-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:11px;font-family:'Nunito Sans',sans-serif;color:var(--text-secondary);letter-spacing:1px;">
+              <span class="breadcrumb-item">Scenes</span>
+              <span class="breadcrumb-sep">&#8250;</span>
+              <span class="breadcrumb-item">Scenes</span>
+              <span class="breadcrumb-sep">&#8250;</span>
+              <span class="breadcrumb-item">Scenes</span>
+              <span class="breadcrumb-sep">&#8250;</span>
+              <span class="breadcrumb-item active" style="color:var(--neutral0)">Scenes</span>
+            </span>
+            <span class="rb-spacer"></span>
+            <input class="rb-search" placeholder="Filter/Search" />
+            <span style="display:flex;align-items:center;justify-content:center;color:var(--text-secondary);"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 3h10L6 9 1 3z" fill="currentColor" opacity=".6"/></svg></span>
+            <span class="rb-view-btn active"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><rect x="1" y="1" width="4" height="4" stroke="currentColor" stroke-width=".8"/><rect x="7" y="1" width="4" height="4" stroke="currentColor" stroke-width=".8"/><rect x="1" y="7" width="4" height="4" stroke="currentColor" stroke-width=".8"/><rect x="7" y="7" width="4" height="4" stroke="currentColor" stroke-width=".8"/></svg></span>
+            <span style="font-size:10px;color:var(--text-secondary);letter-spacing:1px;cursor:default">Scenes</span>
+            <span style="font-size:10px;color:var(--text-secondary);letter-spacing:1px;cursor:default">Timeline</span>
+          </div>
+          <div class="rb-content">
+            <div class="rb-grid">
+              <div class="rb-grid-item">
+                <div class="rb-grid-thumb" style="background:#3a5a3a;"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M6 16l10-9 10 9v11a2 2 0 01-2 2H8a2 2 0 01-2-2V16z" stroke="currentColor" stroke-width="1.5"/></svg></div>
+                <span class="rb-grid-label">Scenes</span>
+              </div>
+              <div class="rb-grid-item">
+                <div class="rb-grid-thumb" style="background:#3a5a3a;"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M6 16l10-9 10 9v11a2 2 0 01-2 2H8a2 2 0 01-2-2V16z" stroke="currentColor" stroke-width="1.5"/></svg></div>
+                <span class="rb-grid-label">Scenes</span>
+              </div>
+              <div class="rb-grid-item">
+                <div class="rb-grid-thumb" style="background:#3a5a3a;"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M6 16l10-9 10 9v11a2 2 0 01-2 2H8a2 2 0 01-2-2V16z" stroke="currentColor" stroke-width="1.5"/></svg></div>
+                <span class="rb-grid-label">Scenes</span>
+              </div>
+            </div>
+            <div class="rb-status-bar">3 items</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         FOOTER -- the ONLY place for build status
+         ============================================================ -->
+    <div class="bottom-footer" id="editor-footer">
+      <!-- Resource pipeline (left) -->
+      <div class="rp-indicator" id="rp-indicator">
+        <div class="rp-bar-track"><div class="rp-bar-fill"></div></div>
+        <span class="rp-label">Processing resources...</span>
+      </div>
+
+      <span class="footer-spacer"></span>
+
+      <!-- Build status (right, concept-dependent) -->
+      <div id="footer-build-area"></div>
+
+      <!-- Warning/Error counts (far right) -->
+      <div class="footer-counters">
+        <div class="footer-counter-group">
+          <span class="footer-counter-icon" style="color:var(--warning)">
+            <span class="footer-warning-triangle"></span>
+          </span>
+          <span class="footer-counter-num">5</span>
+        </div>
+        <div class="footer-counter-group">
+          <span class="footer-counter-icon" style="color:#e05252;font-size:13px;font-weight:bold">&#10005;</span>
+          <span class="footer-counter-num">1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// States definition
+const states = [
+  {
+    name: 'Runtime Editing',
+    dotColor: 'green-bright',
+    label: 'Runtime editing',
+    fallback: false,
+    ipBtn: 'connected',
+    modeType: 'runtime'
+  },
+  {
+    name: 'Fallback Mode',
+    dotColor: 'yellow',
+    label: 'Fallback mode',
+    requesting: true,
+    fallback: true,
+    ipBtn: 'disconnected',
+    modeType: 'fallback'
+  },
+  {
+    name: 'Build Failed',
+    dotColor: 'red',
+    label: 'Build failed',
+    requesting: true,
+    fallback: true,
+    ipBtn: 'reset',
+    modeType: 'fallback'
+  },
+];
+
+let currentState = 0;
+let currentConcept = 'A';
+let rpRunning = false;
+let autoLoadTimer = null;
+let failedRevertTimer = null;
+
+function setConcept(c) {
+  currentConcept = c;
+  const btns = document.querySelectorAll('.proto-concept-btn');
+  const map = { 'A': 0, 'B': 1, 'C': 2 };
+  btns.forEach((b, i) => b.classList.toggle('active', i === map[c]));
+  const descs = {
+    'A': 'Footer only — minimal dot + label in the footer. Maximum subtlety.',
+    'B': 'Toolbar chip — build status in the viewport toolbar row, global status in footer.',
+    'C': 'Canvas overlay — build status next to viewport overlay controls (Default, Custom, 2D).'
+  };
+  document.getElementById('concept-desc').textContent = descs[c];
+  setState(currentState);
+}
+
+function setState(index) {
+  currentState = index;
+  const s = states[index];
+
+  // Update state buttons
+  document.querySelectorAll('.proto-state-btn').forEach((b, i) => b.classList.toggle('active', i === index));
+
+  // Game preview
+  const preview = document.getElementById('game-preview');
+  preview.className = 'game-preview' + (s.fallback ? ' fallback' : '');
+
+  // Clear timers
+  if (autoLoadTimer) clearTimeout(autoLoadTimer);
+  if (failedRevertTimer) clearTimeout(failedRevertTimer);
+
+  // Clear viewport-level indicators
+  const toolbarBuild = document.getElementById('toolbar-build-status');
+  const canvasBuild = document.getElementById('canvas-build-status');
+  toolbarBuild.style.display = 'none';
+  toolbarBuild.innerHTML = '';
+  canvasBuild.style.display = 'none';
+  canvasBuild.innerHTML = '';
+
+  // Render concept-specific status
+  renderFooter(s, index);
+  if (currentConcept === 'B') renderToolbarChip(s, index);
+  if (currentConcept === 'C') renderCanvasChip(s, index);
+
+  // State 1: Fallback Mode -- auto-switch to Runtime Editing (state 0) after 3.5s
+  if (index === 1) {
+    autoLoadTimer = setTimeout(() => {
+      if (currentState === 1) setState(0);
+    }, 3500);
+  }
+
+  // State 2: Build Failed -- briefly show red, then auto-transition to Fallback Mode (state 1)
+  if (index === 2) {
+    failedRevertTimer = setTimeout(() => {
+      if (currentState === 2) setState(1);
+    }, 2000);
+  }
+
+  // Action handlers — Build Available clicks go to Runtime Editing
+  setTimeout(() => {
+    document.querySelectorAll('.footer-build-action').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        setState(0);
+      });
+    });
+  }, 50);
+}
+
+function renderFooter(s, index) {
+  const area = document.getElementById('footer-build-area');
+
+  if (currentConcept === 'A') {
+    // Concept A: Minimal -- just dot + label
+    let html = '<div class="footer-build-status">';
+    if (index === 0) {
+      // Runtime: bright green dot + label (same color as Build Available)
+      html += '<span class="footer-build-dot green-bright" style="width:6px;height:6px;"></span>';
+      html += '<span class="footer-build-label">Runtime editing</span>';
+    } else if (index === 1) {
+      // Fallback Mode + requesting build spinner
+      html += '<span class="footer-build-dot yellow"></span>';
+      html += '<span class="footer-build-label">Fallback mode</span>';
+      html += '<span style="margin:0 6px;color:#555;">·</span>';
+      html += '<span class="inline-spinner"></span>';
+      html += '<span class="requesting-label" style="margin-left:4px;">Requesting build...</span>';
+    } else if (index === 2) {
+      // Build Failed + requesting build spinner
+      html += '<span class="footer-build-dot red"></span>';
+      html += '<span class="footer-build-label">Build failed</span>';
+      html += '<span style="margin:0 6px;color:#555;">·</span>';
+      html += '<span class="inline-spinner"></span>';
+      html += '<span class="requesting-label" style="margin-left:4px;">Requesting build...</span>';
+    }
+    html += '</div>';
+    area.innerHTML = html;
+
+  } else if (currentConcept === 'B' || currentConcept === 'C') {
+    // Concepts B & C: no build status in footer — status is in viewport
+    area.innerHTML = '';
+  }
+}
+
+function renderToolbarChip(s, index) {
+  const el = document.getElementById('toolbar-build-status');
+  el.style.display = '';
+  const chipConfigs = [
+    { cls: 'success-state', dot: 'green-bright', label: 'Runtime editing', requesting: false },
+    { cls: 'warning-state', dot: 'yellow', label: 'Fallback mode', requesting: true },
+    { cls: 'error-state', dot: 'red', label: 'Build failed', requesting: true },
+  ];
+  const c = chipConfigs[index];
+  let html = '<span class="toolbar-build-chip ' + c.cls + '">';
+  html += '<span class="tbc-dot ' + c.dot + '"></span>';
+  html += c.label;
+  if (c.requesting) {
+    html += '<span style="margin:0 4px;color:#555;">·</span>';
+    html += '<span class="inline-spinner"></span>';
+    html += '<span class="requesting-label" style="margin-left:3px;">Requesting build</span>';
+  }
+  html += '</span>';
+  el.innerHTML = html;
+}
+
+function renderCanvasChip(s, index) {
+  const el = document.getElementById('canvas-build-status');
+  el.style.display = '';
+  const chipConfigs = [
+    { cls: 'success-state', dot: 'green-bright', label: 'Runtime editing', requesting: false },
+    { cls: 'warning-state', dot: 'yellow', label: 'Fallback mode', requesting: true },
+    { cls: 'error-state', dot: 'red', label: 'Build failed', requesting: true },
+  ];
+  const c = chipConfigs[index];
+  let html = '<span class="canvas-build-chip ' + c.cls + '">';
+  html += '<span class="cbc-dot ' + c.dot + '"></span>';
+  html += c.label;
+  if (c.requesting) {
+    html += '<span style="margin:0 4px;color:#555;">·</span>';
+    html += '<span class="inline-spinner"></span>';
+    html += '<span class="requesting-label" style="margin-left:3px;">Requesting build</span>';
+  }
+  html += '</span>';
+  el.innerHTML = html;
+}
+
+function setRP(running) {
+  rpRunning = running;
+  document.getElementById('rp-running-btn').classList.toggle('active', running);
+  document.getElementById('rp-idle-btn').classList.toggle('active', !running);
+  const indicator = document.getElementById('rp-indicator');
+  indicator.classList.toggle('visible', running);
+}
+
+// Preview widget toggle
+function togglePreview() {
+  const content = document.getElementById('preview-content');
+  const checkbox = document.getElementById('preview-checkbox');
+  if (content.classList.contains('collapsed')) {
+    content.classList.remove('collapsed');
+    content.style.height = '160px';
+    checkbox.classList.add('checked');
+    checkbox.textContent = '\u2713';
+  } else {
+    content.classList.add('collapsed');
+    checkbox.classList.remove('checked');
+    checkbox.textContent = '';
+  }
+}
+
+// Initialize
+setConcept('A');
+setState(0);
+</script>
+</body>
+</html>

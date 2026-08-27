@@ -1,0 +1,2125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EED Phase 2 — Editor Modes & Build Status (v4)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* FictionUI Tokens -- synced from Figma */
+    --neutral0: #e9f1f5;
+    --neutral400: #484b50;
+    --neutral500: #37383a;
+    --text-emphasis: #e9f1f5;
+    --text-secondary: #9ea5ae;
+    --bg-accent-primary: #1d7bbf;
+    --border-primary: #222325;
+    --warning: #f1b41b;
+    --warning-bg: #2e2510;
+    --success: #17c281;
+    --success-bg: #0e2e22;
+    --spacing-s: 4px;
+    --spacing-l: 8px;
+    --corner-radius-m: 4px;
+    --border-size-xs: 1px;
+
+    /* DS Dark Mode tokens */
+    --panel-bg: #303030;
+    --panel-header: #303030;
+    --panel-border: #3f3f3f;
+    --viewport-bg: #4c4c4c;
+    --footer-bg: #353535;
+    --text-primary: var(--text-emphasis);
+    --text-tertiary: #777;
+    --text-disabled: #555;
+    --track: var(--neutral400);
+    --toolbar-bg: #353535;
+    --selected-blue: #678db2;
+    --processing: #309ae8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    background: #111;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow: auto;
+  }
+
+  /* Prototype control bar -- Inter font, separate from editor */
+  .proto-control-bar {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #e0e0e0;
+    border-bottom: 1px solid #ccc;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .proto-row {
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 36px;
+    gap: 16px;
+  }
+
+  .proto-row.top {
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .proto-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+    margin-right: 8px;
+  }
+
+  .proto-concepts {
+    display: flex;
+    gap: 0;
+  }
+
+  .proto-concept-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 16px;
+    border: 1px solid #aaa;
+    cursor: pointer;
+    background: transparent;
+    color: #555;
+    transition: all 0.15s ease;
+    letter-spacing: 0.5px;
+  }
+
+  .proto-concept-btn:first-child { border-radius: 4px 0 0 4px; }
+  .proto-concept-btn:not(:first-child) { border-left: 0; }
+  .proto-concept-btn:last-child { border-radius: 0 4px 4px 0; }
+
+  .proto-concept-btn:hover { background: #ccc; color: #333; }
+
+  .proto-concept-btn.active {
+    background: var(--bg-accent-primary);
+    color: #fff;
+    border-color: var(--bg-accent-primary);
+  }
+
+  .proto-desc {
+    font-size: 11px;
+    color: #666;
+    margin-left: auto;
+    max-width: 420px;
+    opacity: 0.7;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+    text-align: right;
+  }
+
+  .proto-state-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-right: 4px;
+  }
+
+  .proto-states {
+    display: flex;
+    gap: 0;
+  }
+
+  .proto-state-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 12px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: #666;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+    letter-spacing: 0.3px;
+  }
+
+  .proto-state-btn:hover { background: rgba(0,0,0,0.08); color: #333; }
+  .proto-state-btn.active { background: #555; color: #fff; }
+
+  .proto-rp-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-left: 24px;
+    margin-right: 4px;
+  }
+
+  .proto-rp-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: #666;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+    letter-spacing: 0.3px;
+  }
+  .proto-rp-btn:hover { background: rgba(0,0,0,0.08); color: #333; }
+  .proto-rp-btn.active { background: #555; color: #fff; }
+
+  /* Main layout */
+  .editor-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 72px);
+  }
+
+  /* Editor frame */
+  .editor {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    flex: 1;
+  }
+
+  /* System bar */
+  .system-bar {
+    height: 32px;
+    background: #303030;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 0;
+    border-bottom: 1px solid var(--panel-border);
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    box-shadow: inset 0px 1px 0px 0px rgba(10,10,10,0.5);
+  }
+
+  .system-bar .menu-item {
+    padding: 0 8px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+    cursor: default;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .system-bar .menu-item:hover { background: #4c4c4c; }
+
+  /* Main editor body */
+  .editor-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .editor-body-top {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .editor-body-bottom {
+    display: flex;
+    height: 180px;
+    min-height: 180px;
+    border-top: 1px solid var(--panel-border);
+  }
+
+  /* Left panel - hierarchy */
+  .left-panel {
+    width: 260px;
+    min-width: 200px;
+    background: #353535;
+    border-right: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .panel-tab-bar {
+    height: 22px;
+    background: #303030;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 8px;
+    gap: 8px;
+    border-bottom: 1px solid var(--panel-border);
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+    position: relative;
+  }
+
+  .panel-tab {
+    color: var(--text-secondary);
+    cursor: default;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+    padding: 4px 11px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+  }
+
+  .panel-tab.active {
+    background: #4c4c4c;
+    color: var(--text-secondary);
+    border-radius: 2px 2px 0 0;
+    box-shadow: 0 0 0 rgba(0,0,0,0.25);
+  }
+
+  .panel-tab-bar .hamburger {
+    position: absolute;
+    right: 4px;
+    top: 0;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: default;
+  }
+
+  .panel-content {
+    flex: 1;
+    padding: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    background: #353535;
+    border: 1px solid var(--panel-border);
+    border-top: 0;
+  }
+
+  .tree-item {
+    padding: 0 0 0 12px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: default;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+  }
+
+  .tree-item.selected {
+    background: #678db2;
+    color: #000;
+    border-radius: 2px;
+  }
+
+  .tree-item .icon { color: var(--text-tertiary); font-size: 10px; }
+  .tree-item.selected .icon { color: #000; }
+
+  /* Exact icon exports from the FictionUI Figma library. */
+  .ui-icon { display:block; width:20px; height:20px; object-fit:contain; flex-shrink:0; }
+  .ui-icon.icon-16 { width:16px; height:16px; }
+  .ui-icon.icon-12 { width:12px; height:12px; }
+  .tree-item img.icon { width:16px; height:16px; object-fit:contain; flex-shrink:0; }
+  .panel-tab-bar .hamburger .ui-icon { width:20px; height:20px; }
+
+  /* Viewport */
+  .viewport-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .viewport-tab-bar {
+    height: 22px;
+    min-height: 22px;
+    background: #303030;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 30px 0 8px;
+    gap: 8px;
+    border-bottom: 1px solid var(--panel-border);
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+    position: relative;
+  }
+
+  .viewport-tab-bar .tab {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+    padding: 4px 11px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    background: #4c4c4c;
+    border-radius: 2px 2px 0 0;
+    box-shadow: 0 0 0 rgba(0,0,0,0.25);
+  }
+
+  .viewport-tab-bar .spacer { flex: 1; }
+
+  .viewport-tab-bar .hamburger {
+    position: absolute;
+    right: 4px;
+    top: 0;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: default;
+  }
+
+  /* Toolbar row */
+  .toolbar-row {
+    height: 28px;
+    min-height: 28px;
+    background: #464646;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+    border-bottom: 1px solid #585858;
+    font-family: 'Nunito Sans', sans-serif;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .toolbar-row .scene-select {
+    background: #2c2c2c;
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding: 2px var(--spacing-l);
+    border-radius: 1px;
+    border: var(--border-size-xs) solid #585858;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+    max-width: 220px;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .toolbar-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    border-radius: 3px;
+    cursor: default;
+    background: linear-gradient(to bottom, #4b4b4b, #3f3f3f);
+    border: 1px solid #2d2d2d;
+    box-shadow: inset 0 0 0 1px #5a5a5a;
+  }
+
+  .toolbar-icon:hover { background: linear-gradient(to bottom, #555, #4a4a4a); }
+  .toolbar-row .spacer { flex: 1; }
+
+  /* Viewport canvas */
+  .viewport-canvas {
+    flex: 1;
+    background: #4c4c4c;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 2px solid #3f3f3f;
+  }
+
+  .viewport-canvas .game-preview {
+    width: 280px;
+    height: 380px;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(180deg, #ff6b35 0%, #ff4500 40%, #cc3700 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+  }
+
+  .game-preview .logo {
+    font-size: 42px;
+    font-weight: 700;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-family: 'Nunito Sans', sans-serif;
+  }
+
+  .game-preview .score-text {
+    font-size: 16px;
+    color: var(--neutral0);
+    margin-top: 8px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  }
+
+  .game-preview .buttons {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 200px;
+  }
+
+  .game-preview .btn {
+    background: rgba(0,0,0,0.2);
+    border: 2px solid var(--selected-blue);
+    color: var(--neutral0);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    text-align: center;
+    font-family: 'Nunito Sans', sans-serif;
+  }
+
+  /* Canvas floating dropdowns */
+  .canvas-dropdown {
+    height: auto;
+    padding: 2px 6px;
+    padding-left: 6px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid #646464;
+    border-radius: 2px;
+    color: var(--neutral0);
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .canvas-dropdown .arrow {
+    font-size: 8px;
+    color: var(--neutral0);
+    display: inline-block;
+    transform: scaleY(0.7);
+  }
+
+  /* Concept B: Build status chip in toolbar row */
+  .toolbar-build-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: var(--corner-radius-m);
+    font-size: 11px;
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 500;
+    white-space: nowrap;
+    margin-left: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .toolbar-build-chip .tbc-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .toolbar-build-chip .tbc-dot.green-bright { background: #71efb2; }
+  .toolbar-build-chip .tbc-dot.yellow { background: var(--warning); }
+
+  .toolbar-build-chip.quiet { opacity: 0.35; }
+  .toolbar-build-chip.warning-state { background: var(--neutral500); color: #a5a5a5; border: 1px solid var(--neutral400); }
+  .toolbar-build-chip.success-state { background: transparent; color: #a5a5a5; border: none; }
+  .toolbar-build-chip.requesting-state { background: var(--neutral500); color: #a5a5a5; border: 1px solid var(--neutral400); }
+
+  /* Canvas overlay controls -- floating on viewport canvas */
+  .canvas-overlay-controls {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+  }
+
+  /* Left tool palette -- floating on canvas */
+  .canvas-tool-palette {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+    background: #464646;
+    border: 1px solid #585858;
+    border-radius: 3px;
+    padding: 2px;
+  }
+
+  .tool-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: default;
+    border-radius: 3px;
+    background: linear-gradient(to bottom, #4b4b4b, #3f3f3f);
+    border: 1px solid #2d2d2d;
+    box-shadow: inset 0 0 0 1px #5a5a5a;
+  }
+
+  .tool-btn:hover { background: linear-gradient(to bottom, #555, #4a4a4a); }
+
+  /* Open Documents panel */
+  .open-docs-panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .open-docs-content {
+    background: #353535;
+    border: 1px solid var(--panel-border);
+    border-top: 0;
+    padding: 1px;
+  }
+
+  .doc-item {
+    height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 1px;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    cursor: default;
+  }
+
+  .doc-item.selected {
+    background: #678db2;
+    color: #000;
+  }
+
+  .doc-item .doc-icon { font-size: 10px; width: 16px; text-align: center; }
+  .doc-item.selected .doc-icon { color: #000; }
+
+  .doc-item .doc-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 2px;
+    font-size: 10px;
+  }
+
+  /* Right panel */
+  .right-panel {
+    width: 260px;
+    min-width: 200px;
+    background: #353535;
+    border-left: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  .inspector-content {
+    flex: 1;
+    padding: 0;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    background: #353535;
+  }
+
+  .inspector-section-header {
+    background: #4a4a4a;
+    padding: 3px 8px;
+    font-size: 14px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .inspector-section-header .section-icon { font-size: 12px; color: #888; }
+  .inspector-section-header .section-actions { margin-left: auto; display: flex; gap: 4px; font-size: 11px; color: #888; }
+  .inspector-section-header .caret { font-size: 8px; color: #888; }
+
+  .inspector-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
+    color: var(--text-secondary);
+    background: #454545;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .inspector-row .label {
+    color: var(--text-secondary);
+    min-width: 80px;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+  }
+
+  .inspector-row .value-field {
+    background: #2c2c2c;
+    border-radius: 1px;
+    padding: 1px 4px;
+    font-size: 9px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    border: none;
+    letter-spacing: 1px;
+  }
+
+  .inspector-section { border-bottom: 1px solid #3a3a3a; }
+
+  /* Preview widget */
+  .preview-widget {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--panel-border);
+  }
+
+  .preview-header {
+    height: 22px;
+    background: #4a4a4a;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .preview-header .preview-checkbox {
+    width: 14px;
+    height: 14px;
+    background: #2c2c2c;
+    border: 1px solid #585858;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .preview-header .preview-checkbox.checked {
+    background: #678db2;
+    border-color: #678db2;
+    color: #000;
+  }
+
+  .preview-header .preview-label {
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+  }
+
+  .preview-header .preview-actions { margin-left: auto; display: flex; gap: 4px; }
+
+  .preview-header .preview-action-btn {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #888;
+    border-radius: 2px;
+    cursor: default;
+  }
+
+  .preview-header .preview-action-btn:hover {
+    background: #585858;
+    color: var(--text-secondary);
+  }
+
+  .preview-content {
+    background: #2c2c2c;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: height 0.2s ease;
+  }
+
+  .preview-content.collapsed { height: 0 !important; }
+
+  .preview-viewport {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #353535;
+    margin: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 120px;
+  }
+
+  .preview-viewport .preview-3d-content {
+    color: #555;
+    font-size: 32px;
+    font-family: 'Nunito Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .preview-viewport .preview-axis {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .preview-axis-indicator { position: relative; width: 28px; height: 28px; }
+  .preview-axis-indicator .axis-x { color: #e74c3c; font-size: 9px; font-weight: bold; position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
+  .preview-axis-indicator .axis-y { color: #2ecc71; font-size: 9px; font-weight: bold; position: absolute; left: 50%; top: 0; transform: translateX(-50%); }
+  .preview-axis-indicator .axis-z { color: #3498db; font-size: 9px; font-weight: bold; position: absolute; left: 2px; bottom: 2px; }
+
+  .preview-toolbar {
+    height: 20px;
+    background: #353535;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    gap: 2px;
+    border-top: 1px solid #3f3f3f;
+  }
+
+  .preview-toolbar-btn {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-secondary);
+    cursor: default;
+    border-radius: 2px;
+  }
+
+  .preview-toolbar-btn:hover { background: #4c4c4c; }
+  .preview-toolbar .preview-spacer { flex: 1; }
+
+  /* Bottom panels */
+  .bottom-left-panel {
+    width: 260px;
+    min-width: 200px;
+    background: #353535;
+    border-right: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .bottom-center-panel {
+    flex: 1;
+    background: #353535;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .breadcrumb-bar {
+    height: 22px;
+    background: #464646;
+    border-bottom: 1px solid #585858;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 4px;
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+  }
+
+  .breadcrumb-bar .breadcrumb-sep { color: #666; font-size: 10px; }
+  .breadcrumb-bar .breadcrumb-item { cursor: default; }
+  .breadcrumb-bar .breadcrumb-item.active { color: var(--neutral0); }
+
+  .rb-toolbar {
+    height: 22px;
+    background: #303030;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 4px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .rb-toolbar .rb-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 10px;
+    cursor: default;
+  }
+
+  .rb-toolbar .rb-spacer { flex: 1; }
+
+  .rb-toolbar .rb-search {
+    background: #2c2c2c;
+    border: none;
+    border-radius: 1px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-family: 'Nunito Sans', sans-serif;
+    padding: 1px 4px;
+    width: 120px;
+    letter-spacing: 1px;
+  }
+
+  .rb-toolbar .rb-view-btn {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #353535;
+    border: 1px solid #2d2d2d;
+    border-radius: 1px;
+    color: var(--text-secondary);
+    font-size: 9px;
+    cursor: default;
+  }
+
+  .rb-toolbar .rb-view-btn.active { background: #4c4c4c; }
+
+  .rb-tree {
+    flex: 1;
+    padding: 2px;
+    overflow: hidden;
+    background: #353535;
+  }
+
+  .rb-content {
+    flex: 1;
+    background: #353535;
+    border-left: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rb-grid {
+    flex: 1;
+    padding: 8px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+
+  .rb-grid-item {
+    width: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: default;
+  }
+
+  .rb-grid-thumb {
+    width: 64px;
+    height: 64px;
+    background: #4a4a4a;
+    border: 1px solid #585858;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 24px;
+  }
+
+  .rb-grid-label {
+    font-size: 10px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+
+  .rb-status-bar {
+    height: 18px;
+    background: #303030;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 11px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: #777;
+    letter-spacing: 1px;
+    border-top: 1px solid var(--panel-border);
+  }
+
+  /* Header toolbar */
+  .header-bar {
+    height: 32px;
+    background: #303030;
+    display: flex;
+    align-items: center;
+    padding: 0 9px;
+    position: relative;
+    box-shadow: inset 0px 1px 0px 0px rgba(10,10,10,0.5);
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .header-bar .header-left,
+  .header-bar .header-right {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .header-bar .header-spacer { flex: 1; }
+
+  .header-bar .hb-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    position: relative;
+  }
+
+  .header-bar .hb-icon img {
+    width: 20px;
+    height: 20px;
+    opacity: 0.65;
+    filter: brightness(1.5);
+  }
+
+  .header-bar .hb-icon:hover img { opacity: 0.9; }
+
+  .header-bar .hb-sep {
+    width: 8px;
+    height: 24px;
+  }
+
+  /* Build widget (header bar) -- always visible */
+  .build-widget {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: 26px;
+    margin-left: 2px;
+    background: #313131;
+    border-radius: 4px;
+  }
+
+  .build-widget .bw-transport {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding-left: 4px;
+  }
+
+  .build-widget .bw-btn {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: default;
+    border-radius: 3px;
+  }
+  .build-widget .bw-btn:hover { color: var(--neutral0); }
+  .build-widget .bw-btn.dim { opacity: 0.2; }
+
+  .build-widget .bw-menu-btn {
+    width: 22px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: default;
+    opacity: 0.3;
+    padding: 0 4px;
+  }
+
+  .build-widget .bw-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--neutral400);
+    margin: 0 4px;
+    flex-shrink: 0;
+  }
+
+  .build-widget .bw-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px;
+  }
+
+  .build-widget .bw-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 100px;
+    flex-shrink: 0;
+  }
+  .build-widget .bw-status-dot.green { background: #71efb2; }
+  .build-widget .bw-status-dot.yellow { background: var(--warning); }
+  .build-widget .bw-status-dot.spinner {
+    background: transparent;
+    border: 1.5px solid var(--processing);
+    border-top-color: transparent;
+    animation: bw-spin 1s linear infinite;
+  }
+
+  .build-widget .bw-status-label {
+    font-size: 12px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: #a5a5a5;
+    letter-spacing: 0.84px;
+    white-space: nowrap;
+  }
+
+  .build-widget .bw-ip-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 8px;
+    background: var(--bg-accent-primary);
+    border-radius: 3px;
+    cursor: default;
+    margin: 0 2px;
+  }
+
+  .build-widget .bw-collapse {
+    width: 16px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: default;
+    margin-right: 4px;
+  }
+
+  /* Zoom overlay */
+  .canvas-zoom {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    z-index: 10;
+  }
+
+  /* ============================================================
+     FOOTER — 28px, build-status system
+     ============================================================ */
+  .bottom-footer {
+    height: 28px;
+    background: #2e2e2e;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    border-top: 1px solid #252525;
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 11px;
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+    flex-shrink: 0;
+  }
+
+  .footer-spacer { flex: 1; }
+
+  /* Resource pipeline indicator (left side) */
+  .rp-indicator {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px 0 4px;
+    height: 100%;
+  }
+
+  .rp-indicator.visible { display: flex; }
+
+  .rp-indicator .rp-bar-track {
+    width: 60px;
+    height: 2px;
+    background: #444;
+    border-radius: 1px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .rp-indicator .rp-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--processing);
+    border-radius: 1px;
+    animation: rp-progress 2.5s ease-in-out infinite;
+  }
+
+  @keyframes rp-progress {
+    0% { width: 0%; }
+    50% { width: 75%; }
+    100% { width: 100%; }
+  }
+
+  .rp-indicator .rp-label {
+    font-size: 11px;
+    color: #777;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  /* Build status area (right side) */
+  .footer-build-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px;
+    height: 100%;
+  }
+
+  .footer-build-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 0.4s ease;
+  }
+
+  .footer-build-dot.green-bright { background: #71efb2; }
+  .footer-build-dot.yellow { background: var(--warning); }
+
+  .inline-spinner {
+    width: 8px; height: 8px;
+    border: 1.5px solid var(--processing);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: bw-spin 1s linear infinite;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+
+  .requesting-label {
+    font-size: 11px;
+    color: #a5a5a5;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .footer-build-label {
+    font-size: 11px;
+    color: #a5a5a5;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  /* Warning/Error counts (far right) */
+  .footer-counters {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding-left: 4px;
+  }
+
+  .footer-counter-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 4px;
+  }
+
+  .footer-counter-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .footer-counter-num {
+    font-size: 12px;
+    color: #a5a5a5;
+    letter-spacing: 0.84px;
+    font-family: 'Nunito Sans', sans-serif;
+  }
+
+  .footer-warning-triangle {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 9px solid #f1b41b;
+    position: relative;
+  }
+
+  .footer-warning-triangle::after {
+    content: '!';
+    position: absolute;
+    top: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 7px;
+    font-weight: bold;
+    font-family: 'Nunito Sans', sans-serif;
+    color: #000;
+    line-height: 1;
+  }
+
+  @keyframes bw-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Toolbar fallback info message */
+  .toolbar-fallback-info {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    background: rgba(241,180,27,0.08);
+    border: 1px solid rgba(241,180,27,0.15);
+    border-radius: 3px;
+    font-size: 10px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: #c9a834;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    margin-left: 6px;
+  }
+  .toolbar-fallback-info.visible { display: inline-flex; }
+  .toolbar-fallback-info .info-icon {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--warning);
+    flex-shrink: 0;
+  }
+
+  /* Canvas overlay fallback info (Concept A) */
+  .canvas-fallback-info {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    background: rgba(241,180,27,0.08);
+    border: 1px solid rgba(241,180,27,0.15);
+    border-radius: 3px;
+    font-size: 10px;
+    font-family: 'Nunito Sans', sans-serif;
+    color: #c9a834;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .canvas-fallback-info.visible { display: inline-flex; }
+  .canvas-fallback-info .info-icon {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--warning);
+    flex-shrink: 0;
+  }
+
+  /* ============================================================
+     RESIZABLE PANELS
+     ============================================================ */
+  .left-panel,
+  .right-panel,
+  .bottom-left-panel {
+    resize: horizontal;
+    overflow: auto;
+  }
+
+  .editor-body-bottom {
+    resize: vertical;
+    overflow: auto;
+  }
+
+  /* Resize handle visual hint */
+  .left-panel::-webkit-resizer,
+  .right-panel::-webkit-resizer,
+  .bottom-left-panel::-webkit-resizer,
+  .editor-body-bottom::-webkit-resizer {
+    background: #555;
+  }
+
+  /* ============================================================
+     RESPONSIVE — smaller screens
+     ============================================================ */
+
+  /* Allow body to scroll vertically */
+  body {
+    overflow: auto;
+  }
+
+  /* Proto control bar: wrap on small screens */
+  .proto-row {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 36px;
+    padding: 4px 24px;
+  }
+
+  .proto-desc {
+    max-width: none;
+    width: 100%;
+    text-align: left;
+    margin-left: 0;
+    margin-top: 2px;
+  }
+
+  /* Panels shrink below fixed widths */
+  .left-panel,
+  .bottom-left-panel {
+    min-width: 120px;
+  }
+
+  .right-panel {
+    min-width: 120px;
+  }
+
+  /* Game preview scales */
+  .viewport-canvas .game-preview {
+    max-width: 90%;
+    max-height: 90%;
+    width: 280px;
+    height: 380px;
+  }
+
+  /* Toolbar row wraps */
+  .toolbar-row {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 28px;
+  }
+
+  /* Canvas overlay wraps */
+  .canvas-overlay-controls {
+    flex-wrap: wrap;
+    max-width: calc(100% - 24px);
+  }
+
+  @media (max-width: 1100px) {
+    .left-panel,
+    .bottom-left-panel {
+      width: 180px;
+      min-width: 100px;
+    }
+    .right-panel {
+      width: 180px;
+      min-width: 100px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .left-panel,
+    .bottom-left-panel {
+      width: 140px;
+      min-width: 80px;
+    }
+    .right-panel {
+      width: 140px;
+      min-width: 80px;
+    }
+    .editor-body-bottom {
+      height: 120px;
+      min-height: 80px;
+    }
+    .viewport-canvas .game-preview {
+      width: 200px;
+      height: 280px;
+    }
+    .proto-title {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .editor-body-top {
+      flex-direction: column;
+    }
+    .left-panel,
+    .right-panel {
+      width: 100% !important;
+      min-width: 0;
+      max-height: 150px;
+      resize: vertical;
+      border-right: none;
+      border-left: none;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .right-panel {
+      border-top: 1px solid var(--panel-border);
+      border-bottom: none;
+    }
+    .editor-body-bottom {
+      flex-direction: column;
+      height: auto;
+      min-height: 80px;
+    }
+    .bottom-left-panel {
+      width: 100% !important;
+      min-width: 0;
+      max-height: 100px;
+      border-right: none;
+    }
+    .viewport-canvas .game-preview {
+      width: 160px;
+      height: 220px;
+    }
+    .canvas-overlay-controls {
+      top: 4px;
+      right: 4px;
+      gap: 3px;
+    }
+    .canvas-dropdown {
+      font-size: 10px;
+      padding: 1px 4px;
+    }
+    .canvas-fallback-info {
+      font-size: 9px;
+      padding: 2px 6px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Prototype control bar -->
+<div class="proto-control-bar">
+  <div class="proto-row top">
+    <span class="proto-title">EED Phase 2 — Build Status Communication (v4)</span>
+    <div class="proto-concepts">
+      <button class="proto-concept-btn active" onclick="setConcept('A')">Concept A</button>
+      <button class="proto-concept-btn" onclick="setConcept('B')">Concept B</button>
+      <button class="proto-concept-btn" onclick="setConcept('C')">Concept C</button>
+    </div>
+    <span class="proto-desc" id="concept-desc"></span>
+  </div>
+  <div class="proto-row">
+    <span class="proto-state-label">State</span>
+    <div class="proto-states">
+      <button class="proto-state-btn active" onclick="setState(0)">Ready</button>
+      <button class="proto-state-btn" onclick="setState(1)">Fallback</button>
+      <button class="proto-state-btn" onclick="setState(2)">Requesting Build</button>
+    </div>
+  </div>
+</div>
+
+<!-- Editor -->
+<div class="editor-container">
+  <div class="editor">
+    <!-- System bar -->
+    <div class="system-bar">
+      <span class="menu-item">File</span>
+      <span class="menu-item">Edit</span>
+      <span class="menu-item">Project</span>
+      <span class="menu-item">Tools</span>
+      <span class="menu-item">Plugins</span>
+      <span class="menu-item">Window</span>
+      <span class="menu-item">Help</span>
+    </div>
+
+    <!-- Header toolbar (icon bar) -->
+    <div class="header-bar">
+      <div class="header-left">
+        <span class="hb-icon" title="Settings"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAl5JREFUeAG9VE1O20AUnjcmqlA35gahUhVnUzyoCexIbtCeIHAC6Anq3iDcIDlBe4O6SxKkcbpJaBdNT4BXRYJ4Xt8b28GxTcsCMQvPeN68733vV4gnXvCQQGvt3sntgRQQv91rjfnuYnY1cGiXSSPc33/1+9GAE704JUGAINzsKsz2nlVCERuB5weqHZR1Za0VKICRMn3domWWAcjTOt0K4FRffUQCMChmgNjvKm+n63uq43t9sEwhMojkLroXeh48CMhAU724RsAAEceHyvM7qh1WOWB8qNpNAh4BgNWZzH6s2VpPtJ43VwCamSGK5YHydtP7NDHko09s32VhCIlxn+WTaKFp8wkmbuCfXaVUbBneSnnEYCllPMmtrWD7M8VwKCwYfJEgzhp48/7eP+csY+0m8uWAT1v84VIwKeG4o7xww0EUETFWomZ137z+No0WMZNxKBRrQK4zEhwj0SmtmDLeozL6Re5GDrOs1uCS36msVmWJjVv830L8IAGOKfgRJUpRdkd38nZYNrqhwx/uAFLokeKGUKn2MmNgrU/TJLglQJ/vLgmDPbWAYNBN843u5PvPI44N/1WynIKFORK/RZNYA052Z11uiBdjyKkbs3bpf1nGZDVOTxAjxdaecuElFacxJhC21mDU9Vsn5OJXTlNed8VFXcKFPeDWxEJfV4aDbT3qFnq4JCmzjouA1s0kOafs71HcP5UHRO20IWbXuBn8kJ66FMfm/QQCMtTaKevWThtKwjCbMmurQIVbnEBUTkGd6j8G7LyZUEty9vKi5dLgSnDMzZj7VjzH+gvv7y6w0sCceAAAAABJRU5ErkJggg==" alt=""></span>
+        <span class="hb-sep"></span>
+        <span class="hb-icon" title="New"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAWlJREFUeAHVVEFSg0AQnFmSnH2CWqVlPJiQ0uhRXxB+YH6Q/CDJC5Qf+AR8gTmDVYAXIR7UH3C2ZMfZrYoSRAhWDtoXlmWmt3t2GIC/BNePRm64GGX3xDqJXhhP8okKiGABSSu71ygj8v3H7TdAh4g6RHKWVQaaDLqK1Q2iO0Dh9Dv79o+E3sPT4D1Nb5DXTWFY5tHe7fKbEAL4AJbIL0SKUy+16kKycHHFCWNJELaoNej1dl8L41gZ8bPfPbgotPxlUXYkSfvMPBxDCZBt5hVh1iKwRXVi0zCGWYt1oG/Z8+MJydQhhC0+Ivgt2SchCkwQccpy53WSi/pQ1/CYr1srDaJzqAHVh/q2AewVhZtEoypA1xdpqtbc4LNTsz0ti69UuCRT4DpPquI3bjlPmLCOLqwJSbST31upIQnjGmRqcTs8cz++FJHoQcBAHgyqb5u5Mnz7l+/D+JKLP4RKYMKjyz4x23P4V/gAmG2Y8AvxwJIAAAAASUVORK5CYII=" alt=""></span>
+        <span class="hb-icon" title="Open"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAYdJREFUeAHVVEtSwkAQ7Z4AW/EEKlVa4gIIhZ+deAK4gdwAbkA8geYGegM8gdlKqErixoAL9QbZuLHMtD1RNAQkQLHxbTLVM/26+83LAKwZCCui7/htzm7+MoneUXnPzCySbHvDLgEGKmEcE0IAkQQCqEcBXjNMMY/IcR637x3fJSKDZLgZ39Pk2w3NyPmzQ/vhqfERhtdKk6zQmnpp9zZe6B3A4r0tQdgipBbNI7S90SV31OEhvBzlGnqp8DpNhhtIdFbT962BN8rjLMKvw9hjbcqSpHmiH3SSxUIhTkESZShXr1YLnorVYtpifETgEVXrWU1rxUdcBtGl2A7fogx7hJDnEu6qZD+EKDBARIPbtZZJVl7se6N2PBZpONbAdv06LAFkY9O3/yY6XCdS/5RIXyRDrdngF8d60Zh3PrXDMZkC69xNO7/2kZOEAfdRgQXB/t5JxiY0JKFdgQybbIdn9uPLLJK+69+pLxJUlG+zCRmm3sOBNzxn8VuQCgz4yTIP9aIF/wqfUmyoC9Gj/DEAAAAASUVORK5CYII=" alt=""></span>
+        <span class="hb-icon" title="Save"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAV9JREFUeAHVVE1Og1AQnnm2+3qC1oW23QgkhbhrvUFvYG+gNxBPINyg3sAj4LKY8GNM2mrScATWBhgHUyxFMDTWRL8E8t7MvG++9zMD8NeB+Yn99DqkJL5iYwtqQiBOB1L37gvhzF9eINEUCEJE8NgkUxXxOiYmOmLCNoiDkXZ6/PCR4DMT0YQIAk3pHapy7xwIjUpVQuhpzJnS77CiMN1V5mvkAzlrkI1VpXtju4tUyRi2g6yBdGLmLF7+iBrwDVhtutCEHSBgz9g7YeWWH/3lNRGNynwCxX3hHDe+MqPtv1wymc7DVvquil9CiTFz5zrUVYiUjPkNWlr6fMrUewuXb3sIdRXWQFjl+L1bRsCA/7LjrNrwA2xKr9E0kIs0wjeLdmgOCddzfr7VbZznlRRHGSHyOZFXRoLEjYNrkpsJlzy0mogTZd1xsBjsuvNOhOKWyWqo5KSUmKrSt+Df4B0Dn3c8zb9dHgAAAABJRU5ErkJggg==" alt=""></span>
+        <span class="hb-icon" title="Save all"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAaNJREFUeAHVVFFOwkAQnWla9U+4AZio8CNdosQ/4AZ4ArkB3MAeAW6AN+AI9RMwaTEmgH5Yb7BfGlE6zoJAS1oao4nxJZttZmffvNmZKcAvA5Mc+s64wV61mNuuPttpFYsHz0uTBgnQNG0eNWoBQfMDp3bvflJYx/gBHGeUeQOwNdT2DXrJCiGkHnTo3z2WyZ81OUoqiUxD7IjC8TWTVt6Bnqaw12SztSLsDSeX4M86SCBZt8cmM4bL9YnSvHdYgCdODm8G7tglxHnaqzfUiOpE4JVELm3QbpVVyk0mdW7Qa/Vc5DPqXGXzdSSXWYWKggtlIERW6kQCAbvsaC8Wdg3aqal3WiqNehodYiBE3uPtAr6JxLb5c8LYlAfDyRURVYI27rfuaeGoDVsQqbA/fGgwmcWfqeBk+OS3es7I2vRHDqSCxSpE8mvElS2ZuWpItTt2+HZ50z+oOqhQcp8lTYhMOF8TInLPIZhRKUWBpyUbZQ/9HAYOFwLJUuPHo8QWckPOBKayI6dCCCkDsa7mOZZQ4ZZnmgtSh61ACeS3z0Tehn+HT/ljolGlr34fAAAAAElFTkSuQmCC" alt=""></span>
+        <span class="hb-sep"></span>
+        <span class="hb-icon" title="Undo"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAASdJREFUeAHtk8FNwzAUht8zaeEYJqBwQb3VlRBX2IANYIOKCepOAGzABnQErg0HJ6e2nMIGPiHUUP/YEkGhTRNoe+wnRbJ+23/+Zz8T7fBEetKLktcerYFYFF70tE9M97DzQ9oUbxbFE4z0WNGacNEMDOUkQ4S4diPz89688djtnrwV9Z+SWXgjD0L+/tOqzxECUJ8ii0fJ9Lo0YTGlWzw4l21FFWg9bmXMT27YCWyzlSf9dSln8nTAYOXK6dfdspTttIH9S5fIzPjjdqnkRVNB9Uh57I8pZRZHuRaULfSm9HeMSxnSqoT/wZ8jiC4sbLKxoTebEQ/9uImDu1wPqjb5J+j64Gp5hsOM0GGQEeCbYi9WGgohCLBlU6nr7GGA9wcppaEdW+ULofxxS1QHKjYAAAAASUVORK5CYII=" alt=""></span>
+        <span class="hb-icon" title="Redo"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAASlJREFUeAHtk0tSwkAQQLvbVKpkFU9gyoWWqwSKgi038AgcIdyAeAO9gd7AG+gWtBhYQTZ+bpA9YdoeMWhCgBC2vKp8KpN53T3TA3CkDEM1CwZqGhaNEVSAiAAR+5uklXhVUX84nnFeivkflVJOQrVAM/sy6MB2OksL9Vre5b15zZT8pqJuAqcfzByKzMXfiFuu2MxjvThLHdZfZlN3jvygGSa2tv1G4+ILdpTMyB0JftuuX4fp91WGCZ0E5mmzfVNSFuZlmQwlb1/uL7tkBiSMEbDX9JfrViyU9WAGF0rQ9NZFKfQv7Kf0lmt2GQ5gJbT0QqKyM8fa82j0fg4VyfThYBJ1ifmOf/oPxxIgXp9BT61SJQtt7+rRYq5L6dKHHBf1XqWzemQvvgF9rnH0M+oWTgAAAABJRU5ErkJggg==" alt=""></span>
+      </div>
+      <!-- Build Widget — always visible with status -->
+      <div class="build-widget" id="header-build-widget">
+        <div class="bw-transport">
+          <span class="bw-btn" title="Play"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAKhJREFUeAHtjs0JwkAQRr9NTAFW4HrwKliR6cCStATtwJs/yGouSjxISvAmLDGjaBCEbDKbH3LJuyzMDm8e0NEY6nwboARO1nAXhNNY62h7CudK2Ykdw1B+X/JjodeH9wFUEf4hIBOiBbe2WPhb5NWyhR/S2n1wndUjTKHk2Tf99WBlwt1zXX8yHq1MK+xCglh6eAzzZGAVMqpQVCiAyKaKxeZ4kehohRcxukKjg9bpDQAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
+          <span class="bw-btn dim" title="Stop"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAHpJREFUeAHtksENQFAQRGdoQAfcHB2VowUl0IEW9CNxdqMDDfhD4iYrJCIh+e+4s/uyhwE8n4PWsOuHQlAjIjKvhFEBqzxL22MUWPsLXH0q299IKDRWZApJxrhE0W3hE7zwJeFWzhkXaOvibaEjSydNOLVhDsEKnn+wAlHmHREeTeu8AAAAAElFTkSuQmCC" width="20" height="20" alt=""></span>
+          <span class="bw-btn dim" title="Pause"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAEhJREFUeAHtjDEKwCAQBN183MvzEgvt1Nes2AoeYifeNAuzMM4Z5xBi9X8q/GIWzY08s4Og9AXgNbcc3MWCVwdBSF+Sr+aMA2jaYCK3P61xegAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
+          <span class="bw-btn dim" title="Step"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAPVJREFUeAHtkjsOgkAQhmc2inZyA42VdmJhrTfwBnoDPYo38AzegNIYI1D5KIzegE55hHEJLBFZAomNJnwV7Ga+zD87ABW/zc44LfbWeQZfgCmheaL4U68Fynw47N5lRYZhqEStluyegZyxzzxzZ10WWdmx40LT9NHVD4dru6yQQypQsNqa57UojGSg82AUAKFMmhf5ww23GilTD51NKKuTMkZ00OFyFv7DQ+PYBR2mUCNvugOMz8J5QnHkBJ13N+APYDX4bEVUET3s9v1x8oUENkO2HA16E1Ggaf2bkMpkouuE8mtz7AA8bTG3XKLFzq5KxZ/zAm1Yeu1gaFmCAAAAAElFTkSuQmCC" width="20" height="20" alt=""></span>
+        </div>
+        <span class="bw-menu-btn"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAFRJREFUeAHt0TkKACEMBdDEOcyU08x99Gh6HEEQS0/jUgouAQst8iCQIgQ+H4D12BClK0O5RcozTEnXXSCq/3vN7F7AwjPYt9S4nhj5DC7lQlwKa2XC5TcYYqjg1QAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
+        <span class="bw-divider"></span>
+        <div class="bw-status" id="bw-status-area">
+          <span class="bw-status-dot green" id="bw-dot"></span>
+          <span class="bw-status-label" id="bw-label">Ready</span>
+        </div>
+        <span class="bw-ip-btn"><svg width="14" height="12" viewBox="0 0 14 12" fill="none"><path d="M2.5 8C1.5 7 1.5 5.5 2.5 4.5c1-1 2-1.5 4.5-1.5s3.5.5 4.5 1.5c1 1 1 2.5 0 3.5" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><path d="M4.5 7.5c-.5-.5-.5-1.5 0-2C5 5 5.5 4.5 7 4.5s2 .5 2.5 1c.5.5.5 1.5 0 2" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><circle cx="7" cy="8.5" r="1.2" fill="#fff"/></svg></span>
+        <span class="bw-collapse"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M2 3l2 2.5L6 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </div>
+      <span class="header-spacer"></span>
+      <div class="header-right">
+        <span class="hb-icon" title="Bug"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAeBJREFUeAGtU8tR40AQ7dZK2l3gYCLAcAGf0FD8jpCBMwAiACIQRAAZgCMAMtAVcxhz4nPBRGA4UIAl1HSPJXtsZMAUr0qab7953TMP4JeBny1qfVWOEY+QICCEEgGceqm/s7Awcz8yoZAlgFqIBkIe3NQLhpE68jvXV826vr6zFxLEA6OKqObR86RHNM1kxwBUSpz2sb3XjjeEiDjFWsv2Jk6vKq1Hf0Ol1INSlaZH/m6mMujTbMU7Barh4vIm7Cp12s1645rki/G1lR1Xql/eHhTFuvZAa83pjIdE6Q58Bd7DqT768HIYW9OdlAEiaWP838rJ3NQvLwdzKF+2HuXjTj1NqqHEGH6CRpfQJdripmEL+OxpSD0HpiKub7WbcrZBSV9qBSNAFNtjV67c3NIP0SeAoOmMJOcLCJe7qirloSd+Ax9Sll/uWe6u5QvyhORBF5FofVeK4dUSgA22Y1Uu0twy2+zEJhO04d/Qt8hkG/0zFOR2NAr5CGMl8Wz8Z2Ie0rdI3hi7oeWlT7XEUp04Y9vs7z2zH3ETUv8sc9CazGFPdq8eF/omJOwEDQOT7q+oyt5gfKGXl9TsvsOn5w7qsYDUNEKi9ZxsECbllOgeAftud3F+tsZNDb6Bovhfwzu0pOmhjIkN2AAAAABJRU5ErkJggg==" alt=""></span>
+        <span class="hb-icon" title="Feature request"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAaVJREFUeAHNlEtOAkEQhqsGBjBxASeAmPhg40yToHEl3kBP4NxAOYFwArmB4SbjyigJA8Zo0MTADdhJGOiyunEMkQHauPFfTNX048vf3dWN8Ae1n9/zYRhW7Kntl0pbA9WGUWer27siIi92ppXwDva3b+ebWgGPR6pF/zy3fiiKNZzBXq+J5OUSI2AjesLZbcbBJEHXQnD0OPrIJWd46Wm7RCcTgP48LAOjoXDFcJkzCzHPZgbIcQIZVwMJIKtiWRR9WKF5mFoiopXnzGNYlgj6Now6FhjqJ0zvF32thmBoU+pUCDE0AsbBvtsYlqRUhU+5q7dgHey+2zs3hRkBQcq6KcwIqE5PRTudvtHlFQN7eHw7bj/1dOkkV8HugpdClE/G475O4pzJqT+RqEort9LhkSj2uTQaEYi/ftwyZ6LsWodKZWenyqEKhjKuQ1MtOAyCIBsmNh2+TgUwkAXo8liuAugsABVsDBs+yqmDYCZSF5eVsrCxANQwfjnUveRy8cFQSLIp3D1/HqjsuhHMVicpZg/mb6WBNtFZaOGFzmWqEb2+/0KfrDj1FNaYkmYAAAAASUVORK5CYII=" alt=""></span>
+        <span class="hb-icon" title="Docs"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAZlJREFUeAHtVEFOAkEQ7G5AD17wBaIJ6gmBKFfgBfIEfAH4AtcfwAvEFwg/wCuY7MJFlMv6ArkYo+xO27PZxRWBjYaDB+vUM+muqZlMFcCagaZ5n5oi3kid9bcsBWDFiNonmXRn0VBvOC6CUlUALiFDkhGSwGDHeaOEfWtk8oxsDtJEhMbx0cG1XvaH41PlOk1E3FkisIs9a8S6KmQPRa2ZnMJWikgVHcXn5A8y8yUBMSMbwS0Qoc0KOwl4sXO53CTg+UI4f9zd4LHGrAxpSPqKJ0Qkiveb357B5yFYAT3IFKsEa/1Gi8jCWEnoKc+kb4M6n98bRPVHEv4U/4R/kDAeFMHHDLwsH7gV/jJheF5mtwKM4mVOeV72gZ9EC9GNq42qQ++2XiSYdyVIrqQsLRuYXVlbL8Gv2y5zWc5pKeYnPejQ1Ap6HAknj0wsKAFhiLqyngnbVqfNs+dVpHohZCsdaw7FtJfrYQWKVXMT3gwdCLMnMEc1QGiwpBPqAJCmBqwBOpU8qX3z4cIFdUbLcy4KNiE1ooLjV/gAQCW9FJC9LEsAAAAASUVORK5CYII=" alt=""></span>
+        <span class="hb-icon" title="Tutorial"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAT9JREFUeAG1lEtOwzAQhmesgMSuN6BiAZRNSCTKcegNSE9AegLKCQgnAG4BrZTHBhoWUG6QFUKkeHAcB7WV8nAf38a2lHwa2+MfYMNgMRlH8RVwcgihBRogQUKMeV3zsP8vHEdv10TcgTUgosG51XGNfMV72WDw3bZtH3xqeCAIXtsp4gciuxRLl0kf5NtclgVB0HqO4gvff98vE1pWZ6pqlA4GFcxw7x6JvBn7mT6F8W2VuIBBQxhQLxOPxHlXf6eLuDz/pbxSPaFoEYbMsU/KL86oUSSFCBkODfq6sUwrqfqhUmgQ9VOAxx34fqgTNRKqlvBAgwXhKJwQrIn+LdewUGH39BhhBeZ3tvEKpRBVezR5Wstk4ZDPUDpU2uBQBJsrn1Y4AR1SNXL6vVPF5chM5CLGNAO2aPoz82gA2+APNr+AgtqEojUAAAAASUVORK5CYII=" alt=""></span>
+        <span class="hb-icon" title="Release notes"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAhlJREFUeAG1VEtS20AQ7R5LppxsdAPkLBInlSokL5wl4gThBvYNQm6g3MDcwJwA3yDaxlBIZhMTqgLcwNmEKovpzrR+hthYsKA3M5p+/fr1dGsQaiyOYydVrb7sbbo98n1/vgmPdWQLaEWIsFPAE5v/7m0iVU8hY4ZrYr4BYC/FV9/F92zCFFvHJZnNzWALIFiSto6fRfhjeiF3FpRk3e6bG99/f70khWAy/fXlyYRA9E2WpsJQyMpjIVUNK2sQMIfrQleaMjm/3AXSkaj75HfacfzTXQBECMhWofY0mV0RgGtZ6HU/vptuVEignSJVIsudUn1E3Dbfrm6kg0JHlGE1eFBXcoPRyyvCbDQsoiO5N1Hc0PYo8wE/2uUHJZ/GF31CLoJMyV6nvS7oJJnFxp+rQ3XQ23l7uEIod3UHGDNCld1qNt3uh2VTSlyKeHVP09wMe7sc9qrkhVK7QkaAI5NlLGeUpsH/6gRXVDA2uMjsHK1e90t/RaiYB7JuKR4DYt4QghVC5PysgSrSCoay10zBCqHJ5sqaahhyMWMKYf/s7Pf2stzYYaa9TD3TUBGGhcu7x5PbJJlxJYNhTsB/lIzLOjP+Irq6757XwQcKy9EwMxfacNuW38xEjNbQRWbAPRvYNwkHZRy8lGEd4OT88jOTPsjRKjEz93UT3oIaY61dkzbI9kROHV7VAXp+5xAZQ/M4jM1Ttl+H/we52vpuB91EGQAAAABJRU5ErkJggg==" alt=""></span>
+        <span class="hb-icon" title="Roadmap"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAXRJREFUeAG1lM1RwzAQhXeF4wMnUwEZLoSblUO4Jh2khNBBOoAOUgJQAekAn8NMpBtw4acCnFuIjZeVZXvsYYBYgTdj2d6xPu8+rQTwx0IzKHXfTRAv+XHIIe1lnXG/f/QKDhJmSBFvLMyIwlRsrsBReYYL/UAWvzeE7CPadjJPmncyf1qvRhTUKH9rASvmjVOR6OXy6bCMeflAdJbYskO+Ii/zJ795aH0X55znpLBoVPzEXUo9Bwm+vzEmHoTHByYmYCetA3unoIw4A5VSwQbgIsfx4pRxr/mR7UckCAkh+AmYQOEXQdwhf/oFaGApoOLHgLZxlkFM1B41F7ACcnPPyMCIrn1YT6WUMTioyqVsbm6Zruu2MxI1cp4R4moFO6i+ytoMCe7P6p3/nYznXNWtqWyhH1U5B+sfsI/K+AhuigZhb1RlKOXJC29BiYDzVhhzoFgNGxm21R2XS9WRx11EoE9lTzrvFHOgQOE7K+LmHsN/6BPwLJXoITG7rAAAAABJRU5ErkJggg==" alt=""></span>
+        <span class="hb-icon" title="Slack"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAfBJREFUeAG9VFFum0AQnVkDpv3iBsH5qVxVitdSlc9yg+QmOUK5QXOEHsE3KP2q4lTBjio5bqQW34B+NYFdJrMYO+AYK85HnmQvzM68nTc7A8BrIY5jb3x9+6luu/g1P7q6+nOwK05sJ5v5Ct78hUJH48nNN2O7jOefUdFEiSy5vL492YvwDiAgBK96Dcp/pGC1r3VxCvsQuuCOCqIFvADWNqOUvZQX/wdL3xVs6pyJtye2tqPh8HDRIDR1oWJDClJqaee8jTADd4JEB0rkKZP3pJSptTxp5ueFHj2JIACFmTmkx7/0cUP/M9kjYnXj5ClwB/wQlTXMQXttWVC1diwnNHUlgsQh98uGW/RR9qNS1Foyt0X9JivNaaewQ67PFJ4JhD3ATX2UiyzkoIYiIvp+LPthg7Bq4MA8W47j4/09ZiwFOW2y8fT4w7vpRTxLHuvWhGXhYMg+ZQ2rEQvqDkp0zspgBB8UhWUmsAOZXV5aecu2tqYKdcoBnin68P3h4udk7q0IVhK7fGiOcAaEDcm2ECM5qPWhaWRuHZlzgAN3o7YkqNslDjg3B7b5rBtbyn7Cy1fYAZVlxgfG8U1iw39pGnnTR8BLwHXVPHLbtloJlaC1dNMWSx6IlgZIBc8v7AszkuP496Bu45ELzEcBXgsPouXYAy2YKeYAAAAASUVORK5CYII=" alt=""></span>
+      </div>
+    </div>
+
+    <!-- Editor body -->
+    <div class="editor-body">
+      <!-- Top row: left panel + viewport + right panel -->
+      <div class="editor-body-top">
+      <!-- Left panel -->
+      <div class="left-panel">
+        <!-- Open Documents -->
+        <div class="open-docs-panel">
+          <div class="panel-tab-bar">
+            <span class="panel-tab active">Open Documents</span>
+            <span class="hamburger"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAEtJREFUeAHt0KsNACAMRdFHwyxYHHOwCbOwCXNgsEzDRxIUKQaSHnlT0TxAPEftIZcaZvU4oSg5a+Ka9H5DROi9gfXNF2TDe7KhYBgmARgZ05l4fQAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
+          </div>
+          <div class="open-docs-content">
+            <div class="doc-item"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAHFJREFUeAHtjMEJgCAUQH/aAG3SCNEGjRBSx8COQlFB3R0gohHaINuoBdRO0SURBG++63s8gIA/SNOndcsyW4eMAstCayQI7UZwGXyBHirKzpLSBFwGb7Zzfv8bCwqiaeVLbvKxSWCED6n0tfFZQMAvDyaVGtvcziAjAAAAAElFTkSuQmCC" width="16" height="16" alt=""><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAUBJREFUeAHNUk1OwmAQfa+UxiWewMZEiRuhBN3KEbyBegLxBMAJqDeQG3CEulQSP2JMgLiBG7DRGEq/sa2xKW0NcaVv8WUyP29m3nzAX4M/BR6fX88YBEMBliiVLk+PD+6L8ozCYjW9hg68AFhoCCP7QU26WydQSlVW2HFJXojIwMJHG6hgbfgdEd0GDbes33qO4yxzBEpN7BU4JFEzaLSbtcPbNPlIzTpC6UIwN8VqNRr7i40V1mQ/Kg5NL1sc4cSp9sJuXtjS9o2V++03E0PkJiSxBdvAsSXvVzkCxzmaj8bTZLdYSOI8HpO8a9aqg6+ILNMamEU9Ij18IhlTi7SeXmbjYJ2fr/CMfsncy/oCX+8W5RYS/AZZgnA31qG1m00UsB8+dQ3O0/4NDaJL+GSHEBvRydKIfww9S5e7+Ff4BNnGe3eU6iPFAAAAAElFTkSuQmCC" width="16" height="16" alt=""> Scenes</div>
+            <div class="doc-item selected"><span class="doc-icon">&nbsp;</span><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAUBJREFUeAHNUk1OwmAQfa+UxiWewMZEiRuhBN3KEbyBegLxBMAJqDeQG3CEulQSP2JMgLiBG7DRGEq/sa2xKW0NcaVv8WUyP29m3nzAX4M/BR6fX88YBEMBliiVLk+PD+6L8ozCYjW9hg68AFhoCCP7QU26WydQSlVW2HFJXojIwMJHG6hgbfgdEd0GDbes33qO4yxzBEpN7BU4JFEzaLSbtcPbNPlIzTpC6UIwN8VqNRr7i40V1mQ/Kg5NL1sc4cSp9sJuXtjS9o2V++03E0PkJiSxBdvAsSXvVzkCxzmaj8bTZLdYSOI8HpO8a9aqg6+ILNMamEU9Ij18IhlTi7SeXmbjYJ2fr/CMfsncy/oCX+8W5RYS/AZZgnA31qG1m00UsB8+dQ3O0/4NDaJL+GSHEBvRydKIfww9S5e7+Ff4BNnGe3eU6iPFAAAAAElFTkSuQmCC" width="16" height="16" alt=""> Scenes <span class="doc-actions"><img class="ui-icon icon-12" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAUFJREFUeAGtU8tNw0AQnTExXJMKIAcgvhCvFCxuiTsIFeAOoANcAukgdOASwjEJkm0uELikBN84sY9ZR7YS5GAkM9JKo7c7b9/8iBoaF87i5WMI/XUnQLsuyGKeDvrnjyXBPF3dMDAlUCbIWiB3T2yigY4QHJN1MPIuTp+snBEIAFp7qtexceQLa/Yz0tzb+PSvlHNi7o3aPLbMZfMzKdXNWoBi4kgezjaHIxuHY6VUQZwUqbaqdCrlGLJr+oNZ1NAaE1SmsExX9wBGOz+xFQ36ZxOqU7BI328lOBS3bXpcHA39MI9fw1oFDD2GVN5ze/6OquQtllYN9ynIpM91E5hVgTkBs/Scya2SWGUyjd3CL3dhGUvhGCHLOIMNjGQ7SHDX4DLyBKa2zRwo2QfefvQsOyEFDOhX44ygJ5fKmdF/2DfiyXl1x3S5VwAAAABJRU5ErkJggg==" width="12" height="12" alt=""> <img class="ui-icon icon-12" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAY5JREFUeAHNUkFOwkAU/X/SEqML6wksJgYwxLRNQHfiDbyB3kBuQDkBeARPoN6gLoXEgjFBdGE5gbhQI23nO79p0QDqUv9i0s68ee/9Nx/grwsXbXZuHvaA4gMiMBXAUKieFufajrMxmsWK2Y1u/74FMvZAwpG6bCYKBPVITIIrf+D+SND1hw0iWZckT3R4y1etol2xivs6UR4JXURsdFhgEYHvD0xCcomouWtv1Sf68np2NtHFasUuNBFFG5RA0uJsBmyd1TWZMyN8XQPUfCYTIIiJNQ0tDHOjCN8fY5KnLML3tKkXkpZavTSokWrHVfQuqQCYyCkX+4lQ7y5QTtYXZTBWqRvwe42Tl0nr0wGKAIFqvu8bIejTPLgFdnJ9OzzDUD6HADUOec4BIZ6r1QjFSqNql3tAwt6xSy6Hx99OudCPQBwyNkdLrTmC6vbmZZYyv7dG2lN2psNLkIScuvo6UHOTmMyCAqa/noIYSKRaAoOtZ+l/S8DFMxEKPEYC9TI4VoQBSrqo2CUP/l19AMNuyN0lnZDaAAAAAElFTkSuQmCC" width="12" height="12" alt=""></span></div>
+          </div>
+        </div>
+
+        <!-- Hierarchy -->
+        <div class="panel-tab-bar">
+          <span class="panel-tab active">Hierarchy</span>
+          <span class="panel-tab">Data Sources</span>
+          <span class="hamburger"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAEtJREFUeAHt0KsNACAMRdFHwyxYHHOwCbOwCXNgsEzDRxIUKQaSHnlT0TxAPEftIZcaZvU4oSg5a+Ka9H5DROi9gfXNF2TDe7KhYBgmARgZ05l4fQAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
+        </div>
+        <!-- Hierarchy header bar -->
+        <div class="breadcrumb-bar" style="height:32px; gap:8px;">
+          <span style="font-size:14px; color:#678db2;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 3v8M3 7h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+          <span style="flex:1; background:#2c2c2c; border-radius:1px; padding:1px 6px; font-size:11px; color:#777;display:flex;align-items:center;gap:4px;"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAUNJREFUeAHNkk1OAkEQhes1vyvtGyAngCOwNybquNAYFhPYww0YTiDsJbMghhUa4wXmCMMN4AbjzkCosjpG0wEns9S3el2p/vLyuon+WjgcxHFsqWoHTNw2MJaY0j140r8PNoWA2fy5ZUCJgKweUwgygXR0ac0luuzdXq9yAXG8OONKNTGA7Ou1Tj8433zNX3TOCYBTbN+bYRhmPsD8uEp9oEsN/7JTGF6tzc501FounwwPExjPtxWQ+Jd9CAmlVKJWPkAoIxFLOQIhM2RsPqBMqWiKx6dl43DJ9ePKFJFVPuCDpi5FiZD4kO9y1WZcrz0cJ/M0m7+1CNtXV6brQ4FWSNpQsHtaYRn3ukH0ewJVr3uxco0LMNEP5LRWQEQ7NGEkgsFoNl9GuQmKFC+WI2FEzDzsd2+mRwmKFN4FY5eE/pU+ATzxgd6BZXRbAAAAAElFTkSuQmCC" width="16" height="16" alt="">Filter/Search</span>
+          <span style="display:flex;align-items:center;justify-content:center;color:var(--text-secondary);"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 3h10L6 9 1 3z" fill="currentColor" opacity=".6"/></svg></span>
+        </div>
+        <div class="panel-content">
+          <div class="tree-item"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAHFJREFUeAHtjMEJgCAUQH/aAG3SCNEGjRBSx8COQlFB3R0gohHaINuoBdRO0SURBG++63s8gIA/SNOndcsyW4eMAstCayQI7UZwGXyBHirKzpLSBFwGb7Zzfv8bCwqiaeVLbvKxSWCED6n0tfFZQMAvDyaVGtvcziAjAAAAAElFTkSuQmCC" width="16" height="16" alt=""><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAWRJREFUeAGtklFOwkAQhmeWlkRf4AhookhiLCUij8IN8ARyA7gB9QZwAzmBegL3GQgLvgiaGLwBbyal3XEWrFFCFaJ/0nQz++ffb2YX4I/CuA2lVDoQu3WtNZbcnLdVgFKPGR/wFhGcRYFgalGyXCjsv656xWqhq8b1AFDxMoVEFS2gqoEwEP60O3qqxxIY5Dnu3PCyzJ+06e3Cdd1ZRDRH0WSUmga8Tmrbi2gWAd2H53MKgw4CpoQQ3qlz2IY16jOBJt0yLWEi0SieHNxhT02ahOR9eORZ/qgCP6g3HN/TkpKPFw0LBRpMD4iqBBtLIqHkIYMV4XJyGbZQ0c1emb8VZxgMXpwQfclUM7KxWjrOjtb5RFxAKPwWIaR5zBkIPme0ecBXcavpTQJ4mJiHX6SJ9lbClzJvAXQozR1zdYoE+UULSxuH0zCq2Yg118l2vgUY9UeTSyKqxZ/PQaTbRTcn4b/0Dg2ijqjOt5EtAAAAAElFTkSuQmCC" width="16" height="16" alt=""> SceneName</div>
+          <div class="tree-item" style="padding-left:20px"><span class="icon" style="color:#678db2;font-weight:bold">&#9679;</span> <b style="color:#678db2">Orange Background</b> <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">S L <span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:20px"><span class="icon">&#9679;</span> #Score Manager <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">G S P E T L <span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:20px"><span class="icon">&#9679;</span> #Score Manager <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">G P E <span style="display:inline-block;width:6px;height:6px;background:#2ecc71;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:20px"><span class="icon" style="color:#678db2">&#9656;</span> <span style="color:#678db2">LayoutEntity</span> <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0"><span style="display:inline-block;width:6px;height:6px;background:#2ecc71;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:36px"><span class="icon">&#9656;</span> King Logo <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">G P T <span style="display:inline-block;width:6px;height:6px;background:#2ecc71;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:48px"><span class="icon">&#9492;</span> Text: Title/Score <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">T <span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:36px"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAIBJREFUeAHtjisKgEAURd/MKFZ3IhhsgktwDWIVpougYLGI1SC4BHcggsFgcQmuQ8dfG2SKiFjmwAvvcLlcAMn/IJH0gsjAhLm8I5g1ZZ5N96wiKtCUVV92HPOObWonyhKRHId+Ni373Iec698AJVWR1vAUn4btdfAGSqkOkm85AFisGsrcPxmtAAAAAElFTkSuQmCC" width="16" height="16" alt=""> Buttons</div>
+          <div class="tree-item" style="padding-left:48px"><span class="icon">&#9656;</span> Buttons: 1 Point <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">G S P E <span style="display:inline-block;width:6px;height:6px;background:#2ecc71;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:60px"><span class="icon">&#9492;</span> Text: 1 Point <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">T <span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item selected" style="padding-left:48px"><span class="icon">&#9656;</span> Buttons: 1,000 Points <span style="margin-left:auto;font-size:9px;letter-spacing:0">G S P E <span style="display:inline-block;width:6px;height:6px;background:#2ecc71;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+          <div class="tree-item" style="padding-left:60px"><span class="icon">&#9492;</span> Text: 1,000 Points <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">T <span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
+        </div>
+      </div>
+
+      <!-- Viewport -->
+      <div class="viewport-area">
+        <div class="viewport-tab-bar">
+          <span class="tab">Viewport</span>
+          <span class="spacer"></span>
+          <span class="hamburger"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAEtJREFUeAHt0KsNACAMRdFHwyxYHHOwCbOwCXNgsEzDRxIUKQaSHnlT0TxAPEftIZcaZvU4oSg5a+Ka9H5DROi9gfXNF2TDe7KhYBgmARgZ05l4fQAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
+        </div>
+
+        <div class="toolbar-row">
+          <select class="scene-select"><option>nodegraphevens_main [scene]</option></select>
+          <!-- Concept B: build status chip in toolbar (between dropdown and arrows) -->
+          <span id="toolbar-build-status" style="display:none;"></span>
+          <!-- Fallback info message in toolbar (Concept B) -->
+          <span id="toolbar-fallback-info" class="toolbar-fallback-info">
+            <span class="info-icon">&#9432;</span>
+            Rendering may differ from the live game build
+          </span>
+          <span class="toolbar-icon" title="Back"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAJ5JREFUeAHtkj0OwjAMhZ+jFtjKDfjZGN0T9MZcoStL3Q0mBDfIhqgQJpUYSWTRLpX6jcnTJz3bwMx0ETlvT+3lKCLrVC6DUdYBNRSqWhThyceyZJaBNNdFVZb7eypPY8qSwn9kPS7+tfIKw0ysQuadXwLVG0ov6uqmuW5gwLSUZ6juQvVs6FJ+SXM8OBA9G2cRMh9ufX0iar93ODMlPr5XSTwO7oJbAAAAAElFTkSuQmCC" width="16" height="16" alt=""></span>
+          <span class="toolbar-icon" title="Forward"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAGhJREFUeAHt0MEJgDAMBdD84AIu4dmDe9UN6gqOZT1UT1ancAGtC0igKJRA3/UnHxKiQhfng5n8NqTssBgyEwCbWiqa/W7dEqKeUrceRpoTf/gm3ldNX/16cvaySgrBOEHou7YZqdDrATxfRrx5ouQCAAAAAElFTkSuQmCC" width="16" height="16" alt=""></span>
+          <span style="width:8px"></span>
+          <span class="toolbar-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="4" stroke="currentColor" stroke-width="1"/><circle cx="7" cy="7" r="1" fill="currentColor"/></svg></span>
+          <span class="toolbar-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M7 2v2M7 10v2M2 7h2M10 7h2M3.8 3.8l1.4 1.4M8.8 8.8l1.4 1.4M3.8 10.2l1.4-1.4M8.8 5.2l1.4-1.4" stroke="currentColor" stroke-width=".8"/></svg></span>
+          <span class="toolbar-icon" style="font-size:11px">A&#7468;</span>
+          <span class="toolbar-icon"><span style="font-size:10px">EN</span> <span style="font-size:8px;color:var(--neutral0)">&#9662;</span></span>
+          <span class="spacer"></span>
+          <span class="toolbar-icon"><span style="font-size:11px">&#10022;</span></span>
+          <span class="toolbar-icon"><span style="font-size:11px">&#9681;</span></span>
+          <span class="toolbar-icon"><span style="font-size:11px">&#9744;</span> <span style="font-size:8px;color:var(--neutral0)">&#9662;</span></span>
+          <span class="toolbar-icon" title="Thumbnail view"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAFVJREFUeAHtkbsKwCAMRZP+SNutaxf/f3VydNUfMb4QFEHBScUz5V7CIRCA5cE8cCEVIt4hECj2f2+r91yFLS1F9dPrK8EIhcAQ6TSTO7XXz8H5whZY2oQ0B99xx98AAAAASUVORK5CYII=" width="16" height="16" alt=""></span>
+          <span class="toolbar-icon"><span style="font-size:11px">&#9673;</span> <span style="font-size:8px;color:var(--neutral0)">&#9662;</span></span>
+          <span class="toolbar-icon"><span style="font-size:11px">&#8865;</span></span>
+        </div>
+
+        <div class="viewport-canvas">
+          <!-- Canvas overlay controls -->
+          <div class="canvas-overlay-controls">
+            <!-- Fallback info on canvas overlay (left of Default) -->
+            <span id="canvas-fallback-info" class="canvas-fallback-info">
+              <span class="info-icon">&#9432;</span>
+              Rendering may differ from the live game build
+            </span>
+            <span class="canvas-dropdown">Default <span class="arrow">&#9662;</span></span>
+            <span class="canvas-dropdown">Custom: 640x960 <span class="arrow">&#9662;</span></span>
+            <span class="canvas-dropdown">2D <span class="arrow">&#9662;</span></span>
+          </div>
+
+          <!-- Left tool palette -->
+          <div class="canvas-tool-palette">
+            <div class="tool-btn" title="Select"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAXNJREFUeAHNUlFOAjEQnaksmvizN3DxQ8GQsCUB/VNvoCfQG7CeADiBeAKvoDfYX5bELoYE0R+8wf6ZyG7H6ZoaZNFfnaRt2r6+N/M6AH8duO4wenw5BsrOiMBjgMuouJSVB83m7usqVqwejMbP16CzEDRc8mMvVyAIUvE+H6pp71eCkZp1iXSgSd848FZp+1XZ8qunDlEFCXuI2I2MwLpQaupF8RMtqwwns4YZy9kZTF7iagap2OiY1aHNWwvGlGIzrGpJO30uKdHZ4rxYAmmf59AYFamJb0tBFAO+Cx44EykrCWPmfLZTJGBmdt2FZYNEiaAYSf4zBQIUzIyeUspty3pslW0mzfr+2PjEjCe8HxcICPGOZ3chtrtm32rsXQEJacaRPAhyn0BcmLVMW18/8a2RjHGUq1LfmGkbx2SVMrG9O5S13lqCnMT0ApIFhAxxkcgjBNeUYrP5keBTceotBHaQgH8GEyaco6b7lqyF8O/iAxviy7VV3K2DAAAAAElFTkSuQmCC" width="16" height="16" alt=""></div>
+            <div class="tool-btn" title="Translate"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAALpJREFUeAHNksENwjAMRf2tLsASXOGAOHcENmmZoIwAk8AGcCU9pJwoTJEFqEkUKlUliFS99EtRYsl+cvxNNDkpXWdXfd/F5nM3KPWjINAeQBEL4W6xQHyRkHEQdXtm/wBJ+wDDgJCLNBuBjQUXgIarrOqzsic2n2mkogG/3IkGMDOF3Pkak53BUQiptaIKcFJfxfl6MT8EO0hEtvY64UPvHeNypHnNaKjcnlh3pP+FJBbQ7slq6Vufjt6Ai0m0DzQP1AAAAABJRU5ErkJggg==" width="16" height="16" alt=""></div>
+            <div class="tool-btn" title="Scale"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAN5JREFUeAGtU8sNgkAQnVn1TglyUk9KouEoJdiBlmAHWgJ2gJWIR9EDesJ4oQNpgB0Hwho98Mvykt28/czb+S2AJlCR4PFakky3vGHUGQlEbz4dHXOeTZf7cw0y9ZHAwUK1bEgik4eXPZjZ9nMVoo0kiG1rbEIDXMPoLdlbpmfxjQUhhuYIVagCNKEt0P/hThBG9HfKeSGBe7vIeHsPEIZcGbfqSoMQyNAUqEZnAgm0QNaNiudVINFzuZVXZQZcnZPinNQZIRgDxF2+Vgc3/g/ELQ21wARIHhbWxIcu8AFRyUuFDq1KZgAAAABJRU5ErkJggg==" width="16" height="16" alt=""></div>
+            <div class="tool-btn" title="Fit"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAARpJREFUeAHVlE2ywUAQx7vneXtHeG/xnp2PKmWLG+QG3IAbuAI34ATcAMvEQlgFC27ABaR1Kx8jyaiMFb+qVM3kn57q6c6/Ad4d1DfeclOl8Njml1lANaoU/ntJQd48aHGkI2uF2C8XcoOrpq4Ld7FqQHicIEENdSEBpdQ5k5Dol5++JBL7aOYHY3cebMESjtu7fjCMZSggwg7s8c8lupC5H6ZGCPZE44xnSE2R65OkcSOaeiMeNDDAwo9Joyfas2a+xAcfyN3ambQMpPi9xE7eYt0CS6JxtwxRvEmhA5ZE4/QrH1gugiXiZ31/cwqpry4PB8cTP4sFU0wbHiRFQsh+I3ZiGVbyf1NxgPg57bTh+/J0onrJ4Jr35ASpmWM5DaCvsAAAAABJRU5ErkJggg==" width="20" height="20" alt=""></div>
+            <div class="tool-btn" title="Screenshot"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAcZJREFUeAHlU11OwkAQntmKiW/cQDBRMTHQEhXf5AbiCdQTyA3AG+gN8AZ6AvHJACZbiAkQHoAT2FeB3XG2UqxgCT4zyXZ3ZzrffvMHsHaCy4x12bnhPwphHRG95JyDcpSPiDI0ZLfEYHd8jOP0ZX8hlmqyXYZVGNZbvTPSqoiACeZiM5vbeTbmIUIyuqrPCLFylNl/WACsNbuXSFQBAg8RXETxeJTZu/dt790MahE/Se++/LCnvCJKMuA2CCsf2GaADbfzrAkSOSeVnOlavXNQqkIIcV9BMEDLKh6nd59Cfh+a2ebs1MVCDpnZIDhL2U5w+I8KYEikL8zSwMGyzjAOubnMKh5cNiBCxihKvHmbFDvPZneG34/0qxP47OuxuuZr8S+/yCojUIJjdAMwI46T9AwjgSIT5RcJCChc/thSylk4Jg282RpwEOUWGbJlbVQmk1FxDFuSi+OHN1Lq1uRrU8fK8F+G2cOdphZQCAphFoNtx4RVCKdhGUPOD+bDxtN0yrTH06ts5y2wvBNnz50H0NyLPD394D7rQzMloFXV9BqE2meZIIFtejSGeOVMp+XX6L3xtPC4XcHKgh6Qvj92DqqwvvIFl57GrN0+w30AAAAASUVORK5CYII=" width="20" height="20" alt=""></div>
+          </div>
+
+          <!-- Game preview — no desaturation, always normal rendering -->
+          <div id="game-preview" class="game-preview">
+            <div class="logo">King</div>
+            <div class="score-text">Score Goes Here</div>
+            <div class="buttons">
+              <div class="btn">1 : free!</div>
+              <div class="btn">1,000 : $0.01</div>
+              <div class="btn">1,000,000 : $0.50</div>
+            </div>
+          </div>
+
+          <!-- Zoom overlay -->
+          <div class="canvas-zoom">
+            <span class="canvas-dropdown">120% <span class="arrow">&#9662;</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div class="right-panel">
+        <div class="panel-tab-bar">
+          <span class="panel-tab active">Inspector</span>
+          <span class="panel-tab">History</span>
+          <span class="hamburger"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAEtJREFUeAHt0KsNACAMRdFHwyxYHHOwCbOwCXNgsEzDRxIUKQaSHnlT0TxAPEftIZcaZvU4oSg5a+Ka9H5DROi9gfXNF2TDe7KhYBgmARgZ05l4fQAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
+        </div>
+        <div class="inspector-content">
+          <!-- Node name header -->
+          <div class="inspector-section-header" style="padding:3px 8px;gap:8px;">
+            <span class="section-icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M7.5 1.5l3 3-2 2-.5 2.5L5.5 6.5 3 9" stroke="currentColor" stroke-width="1"/></svg></span>
+            <span class="section-icon"><span style="display:inline-block;width:10px;height:10px;background:#e74c3c;border-radius:2px;"></span></span>
+            <span style="font-size:14px;color:var(--text-secondary)">background</span>
+            <span class="section-actions">+ ?</span>
+          </div>
+          <!-- Column headers -->
+          <div style="display:flex;height:16px;">
+            <div style="width:146px;background:#3f3f3f;padding:0 2px;font-size:12px;color:var(--text-secondary);letter-spacing:1px;box-shadow:inset -1px -1px 0 rgba(0,0,0,0.25), inset -1px 1px 0 rgba(255,255,255,0.25);">Property</div>
+            <div style="flex:1;background:#3f3f3f;padding:0 2px;font-size:12px;color:var(--text-secondary);letter-spacing:1px;box-shadow:inset -1px -1px 0 rgba(0,0,0,0.25), inset -1px 1px 0 rgba(255,255,255,0.25);">Value</div>
+          </div>
+          <div class="inspector-row"><span class="label">Class</span><span class="value-field">&nbsp;</span></div>
+          <div class="inspector-row"><span class="label">Visibility</span><span class="value-field">inherit</span></div>
+          <div class="inspector-row"><span class="label">Mask enabled</span><span style="font-size:11px">&#10003;</span></div>
+          <div class="inspector-row"><span class="label">Parent bone ID</span><span class="value-field">-1</span></div>
+          <div class="inspector-row"><span class="label">Parent bone name</span><span class="value-field">&nbsp;</span></div>
+          <div class="inspector-row"><span class="label">Layer flags</span><span class="value-field">inherit</span></div>
+          <div class="inspector-row"><span class="label">Position</span><span><span class="value-field">X -0.87</span> <span class="value-field">Y -0.45</span> <span class="value-field">Z 0</span></span></div>
+          <div class="inspector-row"><span class="label">Rotation</span><span><span class="value-field">X 0</span> <span class="value-field">Y 0</span> <span class="value-field">Z 0</span></span></div>
+          <div class="inspector-row"><span class="label">Scale</span><span><span class="value-field">X 1</span> <span class="value-field">Y 1</span> <span class="value-field">Z 1</span></span></div>
+
+          <!-- LAYOUT section -->
+          <div class="inspector-section">
+            <div class="inspector-section-header">
+              <span class="caret">&#9662;</span>
+              <span class="section-icon"><span style="display:inline-block;width:10px;height:10px;background:#3498db;border-radius:2px;"></span></span>
+              LAYOUT
+              <span class="section-actions">? &#8942;</span>
+            </div>
+            <div class="inspector-row"><span class="label">Layout version</span><span class="value-field">1.0</span></div>
+            <div class="inspector-row"><span class="label">Name</span><span class="value-field">Default</span></div>
+            <div class="inspector-row"><span class="label">Visible</span><span class="value-field">inherit</span></div>
+            <div style="display:flex;height:18px;padding:2px 8px;background:#454545;align-items:center;">
+              <span style="font-size:12px;color:var(--text-secondary);letter-spacing:1px;font-weight:bold">&#9662; Size</span>
+            </div>
+            <div class="inspector-row"><span class="label" style="padding-left:12px">Constrain Proporti...</span><span></span></div>
+            <div class="inspector-row"><span class="label" style="padding-left:12px">Width</span><span><span class="value-field">W &#10003;</span> <span class="value-field">100%</span> <span style="font-size:9px;color:#777">Max</span> <span class="value-field">0</span></span></div>
+            <div class="inspector-row"><span class="label" style="padding-left:12px">Height</span><span><span class="value-field">H</span> <span class="value-field">100%</span> <span style="font-size:9px;color:#777">Max</span> <span class="value-field">0</span></span></div>
+            <div class="inspector-row"><span class="label" style="padding-left:12px">Original size</span><span><span class="value-field">W 0 px</span> <span class="value-field">H 0 px</span></span></div>
+            <div class="inspector-row"><span class="label">Align</span><span><span style="font-size:9px;color:#777">Horizontal:</span> <span class="value-field">0%</span></span></div>
+          </div>
+
+          <!-- Preview Widget -->
+          <div class="preview-widget">
+            <div class="preview-header" onclick="togglePreview()">
+              <span class="preview-checkbox checked" id="preview-checkbox">&#10003;</span>
+              <span class="preview-label">Preview</span>
+              <span class="preview-actions">
+                <span class="preview-action-btn">&#10226;</span>
+                <span class="preview-action-btn">&#8862;</span>
+                <span class="preview-action-btn">&#9776;</span>
+              </span>
+            </div>
+            <div class="preview-content" id="preview-content" style="height:160px;">
+              <div class="preview-viewport">
+                <div class="preview-3d-content">
+                  <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                    <rect x="25" y="8" width="30" height="12" rx="2" fill="#555"/>
+                    <rect x="20" y="20" width="40" height="30" rx="2" fill="#4a4a4a"/>
+                    <rect x="12" y="22" width="10" height="24" rx="2" fill="#4a4a4a"/>
+                    <rect x="58" y="22" width="10" height="24" rx="2" fill="#4a4a4a"/>
+                    <rect x="24" y="50" width="14" height="20" rx="2" fill="#454545"/>
+                    <rect x="42" y="50" width="14" height="20" rx="2" fill="#454545"/>
+                  </svg>
+                </div>
+                <div class="preview-axis">
+                  <div class="preview-axis-indicator">
+                    <div style="position:absolute;width:16px;height:16px;background:#3498db;border-radius:2px;top:0;right:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:bold;color:var(--neutral0);font-family:'Nunito Sans',sans-serif;">-Z</div>
+                    <span class="axis-x">X</span>
+                    <span class="axis-y">Y</span>
+                    <span class="axis-z">-Z</span>
+                  </div>
+                </div>
+              </div>
+              <div class="preview-toolbar">
+                <span class="preview-toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6a5 5 0 019-2.5M11 6a5 5 0 01-9 2.5" stroke="currentColor" stroke-width="1"/><path d="M10 1v2.5h-2.5M2 11V8.5h2.5" stroke="currentColor" stroke-width="1"/></svg></span>
+                <span class="preview-toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1"/><path d="M8 8l3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+                <span class="preview-toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M4 6V3M6 6V2M8 6V3M3 8l-1-2V4.5M10 6v2l-2 3H5L3 8" stroke="currentColor" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span class="preview-spacer"></span>
+                <span class="preview-toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><rect x="1.5" y="1.5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1"/><rect x="4" y="4" width="4" height="4" fill="currentColor" opacity=".4"/></svg></span>
+                <span class="preview-toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/></svg></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div><!-- /editor-body-top -->
+
+      <!-- Bottom panels: Resource Browser -->
+      <div class="editor-body-bottom">
+        <div class="bottom-left-panel">
+          <div class="panel-tab-bar" style="border-top:0;">
+            <span class="panel-tab active">Resource Browser</span>
+            <span class="panel-tab">Log</span>
+            <span class="hamburger"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAEtJREFUeAHt0KsNACAMRdFHwyxYHHOwCbOwCXNgsEzDRxIUKQaSHnlT0TxAPEftIZcaZvU4oSg5a+Ka9H5DROi9gfXNF2TDe7KhYBgmARgZ05l4fQAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
+          </div>
+          <div class="rb-tree">
+            <div class="tree-item"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAHFJREFUeAHtjMEJgCAUQH/aAG3SCNEGjRBSx8COQlFB3R0gohHaINuoBdRO0SURBG++63s8gIA/SNOndcsyW4eMAstCayQI7UZwGXyBHirKzpLSBFwGb7Zzfv8bCwqiaeVLbvKxSWCED6n0tfFZQMAvDyaVGtvcziAjAAAAAElFTkSuQmCC" width="16" height="16" alt=""> Project</div>
+            <div class="tree-item" style="padding-left:24px"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAHFJREFUeAHtjMEJgCAUQH/aAG3SCNEGjRBSx8COQlFB3R0gohHaINuoBdRO0SURBG++63s8gIA/SNOndcsyW4eMAstCayQI7UZwGXyBHirKzpLSBFwGb7Zzfv8bCwqiaeVLbvKxSWCED6n0tfFZQMAvDyaVGtvcziAjAAAAAElFTkSuQmCC" width="16" height="16" alt=""> blue_pack</div>
+            <div class="tree-item" style="padding-left:24px"><img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAIBJREFUeAHtjisKgEAURd/MKFZ3IhhsgktwDWIVpougYLGI1SC4BHcggsFgcQmuQ8dfG2SKiFjmwAvvcLlcAMn/IJH0gsjAhLm8I5g1ZZ5N96wiKtCUVV92HPOObWonyhKRHId+Ni373Iec698AJVWR1vAUn4btdfAGSqkOkm85AFisGsrcPxmtAAAAAElFTkSuQmCC" width="16" height="16" alt=""> ff-optional-assets</div>
+            <div class="tree-item" style="padding-left:36px"><span class="icon">&#9656;</span> #Score Manager</div>
+            <div class="tree-item" style="padding-left:48px"><span class="icon">&#9656;</span> King Logo</div>
+            <div class="tree-item selected" style="padding-left:60px"><span class="icon">&#9492;</span> Text: Title/Score</div>
+          </div>
+        </div>
+
+        <div class="bottom-center-panel">
+          <div class="rb-toolbar">
+            <span class="rb-icon"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAV1JREFUeAG1UlFOwkAQnVlb8I96AsQP8K8tUeKfeANvYDwBcAL0BngDjqAnkF9KwoIhApoI3IAvocV23K22amlrYuJLNtmdeTN5M/sA/hP9/osuTj6Nw5ISFp/UXHQ6b8yZW8OnWhIPowHOuebAbgsRL8Szg4BLAjr3ANtZem2YprlMbCAlb9C+E8V5hqx+pBdvZLzHp01CugKCuUKZarl8sNgaIZAsegounQXFEsdm6VpRMoYHhNGRfAVdPm5/SgaVVntRmV/jjfc3iDN5lyOdGKVL5HymCdn3HgEyBL1iHCKkwBpMyCNaMMCcCqtCmOgNp02ZhF8gOZIbvJUkYrg4f1DWqujFRhwv1gcWHxlhsQR59f5jvKHijbSTzUVDrm0XUhuIzfib746mugeuFiUiY3nr4fl0Kx5c5G/YsB4wYSJIAQkzqd/M9OPLPmycrQr7akkNVFjfJvnkT3gHE62fs1LkmCkAAAAASUVORK5CYII=" width="16" height="16" alt=""></span>
+            <span class="rb-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle"><path d="M2 7a5 5 0 019-3M12 7a5 5 0 01-9 3" stroke="currentColor" stroke-width="1.2"/><path d="M11 1v3h-3M3 13v-3h3" stroke="currentColor" stroke-width="1.2"/></svg></span>
+            <span class="rb-icon"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAFVJREFUeAHtkbsKwCAMRZP+SNutaxf/f3VydNUfMb4QFEHBScUz5V7CIRCA5cE8cCEVIt4hECj2f2+r91yFLS1F9dPrK8EIhcAQ6TSTO7XXz8H5whZY2oQ0B99xx98AAAAASUVORK5CYII=" width="16" height="16" alt=""></span>
+            <span class="rb-icon"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAFRJREFUeAHt0TkKACEMBdDEOcyU08x99Gh6HEEQS0/jUgouAQst8iCQIgQ+H4D12BClK0O5RcozTEnXXSCq/3vN7F7AwjPYt9S4nhj5DC7lQlwKa2XC5TcYYqjg1QAAAABJRU5ErkJggg==" width="16" height="16" alt=""></span>
+            <span class="rb-icon"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAJ5JREFUeAHtkj0OwjAMhZ+jFtjKDfjZGN0T9MZcoStL3Q0mBDfIhqgQJpUYSWTRLpX6jcnTJz3bwMx0ETlvT+3lKCLrVC6DUdYBNRSqWhThyceyZJaBNNdFVZb7eypPY8qSwn9kPS7+tfIKw0ysQuadXwLVG0ov6uqmuW5gwLSUZ6juQvVs6FJ+SXM8OBA9G2cRMh9ufX0iar93ODMlPr5XSTwO7oJbAAAAAElFTkSuQmCC" width="16" height="16" alt=""></span>
+            <span class="rb-icon"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAGhJREFUeAHt0MEJgDAMBdD84AIu4dmDe9UN6gqOZT1UT1ancAGtC0igKJRA3/UnHxKiQhfng5n8NqTssBgyEwCbWiqa/W7dEqKeUrceRpoTf/gm3ldNX/16cvaySgrBOEHou7YZqdDrATxfRrx5ouQCAAAAAElFTkSuQmCC" width="16" height="16" alt=""></span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:11px;font-family:'Nunito Sans',sans-serif;color:var(--text-secondary);letter-spacing:1px;">
+              <span class="breadcrumb-item">Scenes</span>
+              <span class="breadcrumb-sep">&#8250;</span>
+              <span class="breadcrumb-item">Scenes</span>
+              <span class="breadcrumb-sep">&#8250;</span>
+              <span class="breadcrumb-item">Scenes</span>
+              <span class="breadcrumb-sep">&#8250;</span>
+              <span class="breadcrumb-item active" style="color:var(--neutral0)">Scenes</span>
+            </span>
+            <span class="rb-spacer"></span>
+            <input class="rb-search" placeholder="Filter/Search" />
+            <span style="display:flex;align-items:center;justify-content:center;color:var(--text-secondary);"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 3h10L6 9 1 3z" fill="currentColor" opacity=".6"/></svg></span>
+            <span class="rb-view-btn active"><img class="ui-icon icon-12" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAFVJREFUeAHtkbsKwCAMRZP+SNutaxf/f3VydNUfMb4QFEHBScUz5V7CIRCA5cE8cCEVIt4hECj2f2+r91yFLS1F9dPrK8EIhcAQ6TSTO7XXz8H5whZY2oQ0B99xx98AAAAASUVORK5CYII=" width="12" height="12" alt=""></span>
+            <span style="font-size:10px;color:var(--text-secondary);letter-spacing:1px;cursor:default">Scenes</span>
+            <span style="font-size:10px;color:var(--text-secondary);letter-spacing:1px;cursor:default">Timeline</span>
+          </div>
+          <div class="rb-content">
+            <div class="rb-grid">
+              <div class="rb-grid-item">
+                <div class="rb-grid-thumb" style="background:#3a5a3a;"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAV1JREFUeAG1UlFOwkAQnVlb8I96AsQP8K8tUeKfeANvYDwBcAL0BngDjqAnkF9KwoIhApoI3IAvocV23K22amlrYuJLNtmdeTN5M/sA/hP9/osuTj6Nw5ISFp/UXHQ6b8yZW8OnWhIPowHOuebAbgsRL8Szg4BLAjr3ANtZem2YprlMbCAlb9C+E8V5hqx+pBdvZLzHp01CugKCuUKZarl8sNgaIZAsegounQXFEsdm6VpRMoYHhNGRfAVdPm5/SgaVVntRmV/jjfc3iDN5lyOdGKVL5HymCdn3HgEyBL1iHCKkwBpMyCNaMMCcCqtCmOgNp02ZhF8gOZIbvJUkYrg4f1DWqujFRhwv1gcWHxlhsQR59f5jvKHijbSTzUVDrm0XUhuIzfib746mugeuFiUiY3nr4fl0Kx5c5G/YsB4wYSJIAQkzqd/M9OPLPmycrQr7akkNVFjfJvnkT3gHE62fs1LkmCkAAAAASUVORK5CYII=" width="20" height="20" alt=""></div>
+                <span class="rb-grid-label">Scenes</span>
+              </div>
+              <div class="rb-grid-item">
+                <div class="rb-grid-thumb" style="background:#3a5a3a;"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAV1JREFUeAG1UlFOwkAQnVlb8I96AsQP8K8tUeKfeANvYDwBcAL0BngDjqAnkF9KwoIhApoI3IAvocV23K22amlrYuJLNtmdeTN5M/sA/hP9/osuTj6Nw5ISFp/UXHQ6b8yZW8OnWhIPowHOuebAbgsRL8Szg4BLAjr3ANtZem2YprlMbCAlb9C+E8V5hqx+pBdvZLzHp01CugKCuUKZarl8sNgaIZAsegounQXFEsdm6VpRMoYHhNGRfAVdPm5/SgaVVntRmV/jjfc3iDN5lyOdGKVL5HymCdn3HgEyBL1iHCKkwBpMyCNaMMCcCqtCmOgNp02ZhF8gOZIbvJUkYrg4f1DWqujFRhwv1gcWHxlhsQR59f5jvKHijbSTzUVDrm0XUhuIzfib746mugeuFiUiY3nr4fl0Kx5c5G/YsB4wYSJIAQkzqd/M9OPLPmycrQr7akkNVFjfJvnkT3gHE62fs1LkmCkAAAAASUVORK5CYII=" width="20" height="20" alt=""></div>
+                <span class="rb-grid-label">Scenes</span>
+              </div>
+              <div class="rb-grid-item">
+                <div class="rb-grid-thumb" style="background:#3a5a3a;"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAV1JREFUeAG1UlFOwkAQnVlb8I96AsQP8K8tUeKfeANvYDwBcAL0BngDjqAnkF9KwoIhApoI3IAvocV23K22amlrYuJLNtmdeTN5M/sA/hP9/osuTj6Nw5ISFp/UXHQ6b8yZW8OnWhIPowHOuebAbgsRL8Szg4BLAjr3ANtZem2YprlMbCAlb9C+E8V5hqx+pBdvZLzHp01CugKCuUKZarl8sNgaIZAsegounQXFEsdm6VpRMoYHhNGRfAVdPm5/SgaVVntRmV/jjfc3iDN5lyOdGKVL5HymCdn3HgEyBL1iHCKkwBpMyCNaMMCcCqtCmOgNp02ZhF8gOZIbvJUkYrg4f1DWqujFRhwv1gcWHxlhsQR59f5jvKHijbSTzUVDrm0XUhuIzfib746mugeuFiUiY3nr4fl0Kx5c5G/YsB4wYSJIAQkzqd/M9OPLPmycrQr7akkNVFjfJvnkT3gHE62fs1LkmCkAAAAASUVORK5CYII=" width="20" height="20" alt=""></div>
+                <span class="rb-grid-label">Scenes</span>
+              </div>
+            </div>
+            <div class="rb-status-bar">3 items</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="bottom-footer" id="editor-footer">
+      <!-- Resource pipeline (left) -->
+      <div class="rp-indicator" id="rp-indicator">
+        <div class="rp-bar-track"><div class="rp-bar-fill"></div></div>
+        <span class="rp-label">Processing resources...</span>
+      </div>
+
+      <span class="footer-spacer"></span>
+
+      <!-- Build status (right) -->
+      <div id="footer-build-area"></div>
+
+      <!-- Warning/Error counts (far right) -->
+      <div class="footer-counters">
+        <div class="footer-counter-group">
+          <span class="footer-counter-icon" style="color:var(--warning)">
+            <span class="footer-warning-triangle"></span>
+          </span>
+          <span class="footer-counter-num">5</span>
+        </div>
+        <div class="footer-counter-group">
+          <span class="footer-counter-icon" style="color:#e05252;font-size:13px;font-weight:bold">&#10005;</span>
+          <span class="footer-counter-num">1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// States — simplified to binary: Ready vs Fallback
+// + optional "Requesting Build" transitional state
+// ============================================================
+const states = [
+  {
+    name: 'Ready',
+    dotColor: 'green-bright',
+    label: 'Ready',
+    fallback: false,
+    headerDot: 'green',
+    headerLabel: 'Ready'
+  },
+  {
+    name: 'Fallback',
+    dotColor: 'yellow',
+    label: 'Fallback mode',
+    fallback: true,
+    headerDot: 'yellow',
+    headerLabel: 'Fallback'
+  },
+  {
+    name: 'Requesting Build',
+    dotColor: 'yellow',
+    label: 'Fallback mode',
+    fallback: true,
+    requesting: true,
+    headerDot: 'spinner',
+    headerLabel: 'Requesting build...'
+  }
+];
+
+let currentState = 0;
+let currentConcept = 'A';
+let rpRunning = false;
+let autoLoadTimer = null;
+
+function setConcept(c) {
+  currentConcept = c;
+  const btns = document.querySelectorAll('.proto-concept-btn');
+  const map = { 'A': 0, 'B': 1, 'C': 2 };
+  btns.forEach((b, i) => b.classList.toggle('active', i === map[c]));
+  const descs = {
+    'A': 'Header widget — build status in header build widget only. No footer status. Fallback info on canvas overlay.',
+    'B': 'Toolbar chip — build status in viewport toolbar row. No footer status. Fallback info in toolbar + canvas overlay.',
+    'C': 'Footer only — build status as dot + label in footer only. No header/toolbar status. Fallback info on canvas overlay.'
+  };
+  document.getElementById('concept-desc').textContent = descs[c];
+  setState(currentState);
+}
+
+function setState(index) {
+  currentState = index;
+  const s = states[index];
+
+  // Update state buttons
+  document.querySelectorAll('.proto-state-btn').forEach((b, i) => b.classList.toggle('active', i === index));
+
+  // Header build widget status
+  const bwDot = document.getElementById('bw-dot');
+  const bwLabel = document.getElementById('bw-label');
+  const bwStatusArea = document.getElementById('bw-status-area');
+  const bwDivider = document.querySelector('.build-widget .bw-divider');
+
+  if (currentConcept === 'A') {
+    // Concept A: show status in header, no footer
+    bwStatusArea.style.display = '';
+    bwDivider.style.display = '';
+    bwDot.className = 'bw-status-dot ' + s.headerDot;
+    bwLabel.textContent = s.headerLabel;
+  } else if (currentConcept === 'B') {
+    // Concept B: hide status from header — it's shown in the toolbar instead
+    bwStatusArea.style.display = 'none';
+    bwDivider.style.display = 'none';
+  } else if (currentConcept === 'C') {
+    // Concept C: hide status from header — it's shown in the footer only
+    bwStatusArea.style.display = 'none';
+    bwDivider.style.display = 'none';
+  }
+
+  // Clear timers
+  if (autoLoadTimer) clearTimeout(autoLoadTimer);
+
+  // Clear toolbar-level indicators
+  const toolbarBuild = document.getElementById('toolbar-build-status');
+  const toolbarInfo = document.getElementById('toolbar-fallback-info');
+  const canvasInfo = document.getElementById('canvas-fallback-info');
+  toolbarBuild.style.display = 'none';
+  toolbarBuild.innerHTML = '';
+  toolbarInfo.classList.remove('visible');
+  canvasInfo.classList.remove('visible');
+
+  // Footer: only show for Concept C
+  const footerArea = document.getElementById('footer-build-area');
+  if (currentConcept === 'C') {
+    renderFooter(s, index);
+  } else {
+    footerArea.innerHTML = '';
+  }
+
+  // Concept B: show toolbar chip + toolbar info
+  if (currentConcept === 'B') renderToolbar(s, index);
+
+  // All concepts: show canvas overlay info when fallback/requesting
+  if (s.fallback) {
+    canvasInfo.classList.add('visible');
+  }
+
+  // State 2: Requesting Build — auto-transition to Ready after 3.5s (simulates build arriving)
+  if (index === 2) {
+    autoLoadTimer = setTimeout(() => {
+      if (currentState === 2) setState(0);
+    }, 3500);
+  }
+}
+
+function renderFooter(s, index) {
+  const area = document.getElementById('footer-build-area');
+  let html = '<div class="footer-build-status">';
+
+  if (index === 0) {
+    // Ready: green dot + label
+    html += '<span class="footer-build-dot green-bright" style="width:6px;height:6px;"></span>';
+    html += '<span class="footer-build-label">Ready</span>';
+  } else if (index === 1) {
+    // Fallback: yellow dot + label
+    html += '<span class="footer-build-dot yellow"></span>';
+    html += '<span class="footer-build-label">Fallback mode</span>';
+  } else if (index === 2) {
+    // Requesting: yellow dot + fallback + spinner
+    html += '<span class="footer-build-dot yellow"></span>';
+    html += '<span class="footer-build-label">Fallback mode</span>';
+    html += '<span style="margin:0 6px;color:#555;">&middot;</span>';
+    html += '<span class="inline-spinner"></span>';
+    html += '<span class="requesting-label" style="margin-left:4px;">Requesting build...</span>';
+  }
+
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+function renderToolbar(s, index) {
+  const chipEl = document.getElementById('toolbar-build-status');
+  const infoEl = document.getElementById('toolbar-fallback-info');
+
+  // Show chip
+  chipEl.style.display = '';
+
+  if (index === 0) {
+    // Ready: subtle chip
+    chipEl.innerHTML = '<span class="toolbar-build-chip success-state" style="opacity:0.5;"><span class="tbc-dot green-bright"></span>Ready</span>';
+  } else if (index === 1) {
+    // Fallback: warning chip + info message
+    chipEl.innerHTML = '<span class="toolbar-build-chip warning-state"><span class="tbc-dot yellow"></span>Fallback mode</span>';
+    // No toolbar info message
+  } else if (index === 2) {
+    // Requesting: warning chip with spinner, no toolbar info message
+    chipEl.innerHTML = '<span class="toolbar-build-chip requesting-state"><span class="tbc-dot yellow"></span>Fallback mode<span style="margin:0 4px;color:#555;">&middot;</span><span class="inline-spinner"></span><span class="requesting-label" style="margin-left:3px;">Requesting build</span></span>';
+  }
+}
+
+function setRP(running) {
+  rpRunning = running;
+  document.getElementById('rp-running-btn').classList.toggle('active', running);
+  document.getElementById('rp-idle-btn').classList.toggle('active', !running);
+  document.getElementById('rp-indicator').classList.toggle('visible', running);
+}
+
+// Preview widget toggle
+function togglePreview() {
+  const content = document.getElementById('preview-content');
+  const checkbox = document.getElementById('preview-checkbox');
+  if (content.classList.contains('collapsed')) {
+    content.classList.remove('collapsed');
+    content.style.height = '160px';
+    checkbox.classList.add('checked');
+    checkbox.textContent = '\u2713';
+  } else {
+    content.classList.add('collapsed');
+    checkbox.classList.remove('checked');
+    checkbox.textContent = '';
+  }
+}
+
+// Initialize
+setConcept('A');
+setState(0);
+</script>
+</body>
+</html>

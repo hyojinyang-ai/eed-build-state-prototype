@@ -616,6 +616,9 @@
   .open-docs-panel {
     display: flex;
     flex-direction: column;
+    flex: 0 0 70px;
+    min-height: 44px;
+    overflow: hidden;
   }
 
   .open-docs-content {
@@ -662,15 +665,25 @@
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    overflow-y: auto;
+    overflow: hidden;
   }
 
   .inspector-content {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
     padding: 0;
     font-size: 12px;
     font-family: 'Nunito Sans', sans-serif;
     background: #353535;
+  }
+
+  .inspector-properties {
+    flex: 1;
+    min-height: 90px;
+    overflow: auto;
   }
 
   .inspector-section-header {
@@ -725,6 +738,9 @@
   .preview-widget {
     display: flex;
     flex-direction: column;
+    flex: 0 0 202px;
+    min-height: 22px;
+    overflow: hidden;
     border-top: 1px solid var(--panel-border);
   }
 
@@ -789,11 +805,12 @@
     background: #2c2c2c;
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
-    transition: height 0.2s ease;
   }
 
-  .preview-content.collapsed { height: 0 !important; }
+  .preview-content.collapsed { display: none; }
 
   .preview-viewport {
     flex: 1;
@@ -1383,24 +1400,53 @@
   /* ============================================================
      RESIZABLE PANELS
      ============================================================ */
-  .left-panel,
-  .right-panel,
-  .bottom-left-panel {
-    resize: horizontal;
-    overflow: auto;
+  .resize-handle {
+    position: relative;
+    z-index: 5;
+    flex: 0 0 auto;
+    background: #292929;
+    touch-action: none;
   }
 
-  .editor-body-bottom {
-    resize: vertical;
-    overflow: auto;
-  }
-
-  /* Resize handle visual hint */
-  .left-panel::-webkit-resizer,
-  .right-panel::-webkit-resizer,
-  .bottom-left-panel::-webkit-resizer,
-  .editor-body-bottom::-webkit-resizer {
+  .resize-handle::after {
+    content: '';
+    position: absolute;
     background: #555;
+    transition: background 0.12s ease;
+  }
+
+  .resize-handle.column {
+    width: 5px;
+    cursor: col-resize;
+  }
+
+  .resize-handle.column::after {
+    top: 0;
+    bottom: 0;
+    left: 2px;
+    width: 1px;
+  }
+
+  .resize-handle.row {
+    height: 5px;
+    cursor: row-resize;
+  }
+
+  .resize-handle.row::after {
+    top: 2px;
+    right: 0;
+    left: 0;
+    height: 1px;
+  }
+
+  .resize-handle:hover::after,
+  .resize-handle.active::after {
+    background: #678db2;
+  }
+
+  body.is-resizing {
+    cursor: var(--resize-cursor);
+    user-select: none;
   }
 
   /* ============================================================
@@ -1495,6 +1541,10 @@
   }
 
   @media (max-width: 700px) {
+    .resize-handle {
+      display: none;
+    }
+
     .editor-body-top {
       flex-direction: column;
     }
@@ -1640,6 +1690,8 @@
           </div>
         </div>
 
+        <div class="resize-handle row" data-resize="open-docs" role="separator" aria-orientation="horizontal" aria-label="Resize Open Documents" title="Drag to resize Open Documents"></div>
+
         <!-- Hierarchy -->
         <div class="panel-tab-bar">
           <span class="panel-tab active">Hierarchy</span>
@@ -1667,6 +1719,8 @@
           <div class="tree-item" style="padding-left:60px"><span class="icon">&#9492;</span> Text: 1,000 Points <span style="margin-left:auto;font-size:9px;color:#777;letter-spacing:0">T <span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:1px;"></span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M1 6s2-3.5 5-3.5S11 6 11 6s-2 3.5-5 3.5S1 6 1 6z" stroke="currentColor" stroke-width=".8"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" stroke-width=".8"/></svg></span></div>
         </div>
       </div>
+
+      <div class="resize-handle column" data-resize="left-panel" role="separator" aria-orientation="vertical" aria-label="Resize Open Documents, Hierarchy, and Data Sources" title="Drag to resize the left widgets"></div>
 
       <!-- Viewport -->
       <div class="viewport-area">
@@ -1741,6 +1795,8 @@
         </div>
       </div>
 
+      <div class="resize-handle column" data-resize="right-panel" role="separator" aria-orientation="vertical" aria-label="Resize Inspector, History, and Preview" title="Drag to resize the right widgets"></div>
+
       <!-- Right panel -->
       <div class="right-panel">
         <div class="panel-tab-bar">
@@ -1749,6 +1805,7 @@
           <span class="hamburger"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAEtJREFUeAHt0KsNACAMRdFHwyxYHHOwCbOwCXNgsEzDRxIUKQaSHnlT0TxAPEftIZcaZvU4oSg5a+Ka9H5DROi9gfXNF2TDe7KhYBgmARgZ05l4fQAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
         </div>
         <div class="inspector-content">
+          <div class="inspector-properties">
           <!-- Node name header -->
           <div class="inspector-section-header" style="padding:3px 8px;gap:8px;">
             <span class="section-icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle"><path d="M7.5 1.5l3 3-2 2-.5 2.5L5.5 6.5 3 9" stroke="currentColor" stroke-width="1"/></svg></span>
@@ -1791,6 +1848,9 @@
             <div class="inspector-row"><span class="label" style="padding-left:12px">Original size</span><span><span class="value-field">W 0 px</span> <span class="value-field">H 0 px</span></span></div>
             <div class="inspector-row"><span class="label">Align</span><span><span style="font-size:9px;color:#777">Horizontal:</span> <span class="value-field">0%</span></span></div>
           </div>
+          </div>
+
+          <div class="resize-handle row" data-resize="preview" role="separator" aria-orientation="horizontal" aria-label="Resize Preview" title="Drag to resize Preview"></div>
 
           <!-- Preview Widget -->
           <div class="preview-widget">
@@ -1803,7 +1863,7 @@
                 <span class="preview-action-btn">&#9776;</span>
               </span>
             </div>
-            <div class="preview-content" id="preview-content" style="height:160px;">
+            <div class="preview-content" id="preview-content">
               <div class="preview-viewport">
                 <div class="preview-3d-content">
                   <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
@@ -1838,6 +1898,8 @@
       </div>
       </div><!-- /editor-body-top -->
 
+      <div class="resize-handle row" data-resize="bottom-panels" role="separator" aria-orientation="horizontal" aria-label="Resize Resource Browser and Log" title="Drag to resize the bottom widgets"></div>
+
       <!-- Bottom panels: Resource Browser -->
       <div class="editor-body-bottom">
         <div class="bottom-left-panel">
@@ -1855,6 +1917,8 @@
             <div class="tree-item selected" style="padding-left:60px"><span class="icon">&#9492;</span> Text: Title/Score</div>
           </div>
         </div>
+
+        <div class="resize-handle column" data-resize="bottom-left" role="separator" aria-orientation="vertical" aria-label="Resize Resource Browser and Log" title="Drag to resize Resource Browser and Log"></div>
 
         <div class="bottom-center-panel">
           <div class="rb-toolbar">
@@ -2101,23 +2165,129 @@ function setRP(running) {
   document.getElementById('rp-indicator').classList.toggle('visible', running);
 }
 
+function initResizablePanels() {
+  const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+  const leftPanel = document.querySelector('.left-panel');
+  const rightPanel = document.querySelector('.right-panel');
+  const openDocs = document.querySelector('.open-docs-panel');
+  const editorBody = document.querySelector('.editor-body');
+  const bottomPanels = document.querySelector('.editor-body-bottom');
+  const bottomLeft = document.querySelector('.bottom-left-panel');
+  const preview = document.querySelector('.preview-widget');
+
+  function resizePanel(name, deltaX, deltaY, startSize) {
+    if (name === 'left-panel') {
+      const size = clamp(startSize + deltaX, 80, 520);
+      leftPanel.style.width = size + 'px';
+      return;
+    }
+    if (name === 'right-panel') {
+      const size = clamp(startSize - deltaX, 80, 520);
+      rightPanel.style.width = size + 'px';
+      return;
+    }
+    if (name === 'bottom-left') {
+      const size = clamp(startSize + deltaX, 80, 520);
+      bottomLeft.style.width = size + 'px';
+      return;
+    }
+    if (name === 'bottom-panels') {
+      const maxHeight = Math.max(100, editorBody.clientHeight - 220);
+      bottomPanels.style.height = clamp(startSize - deltaY, 100, maxHeight) + 'px';
+      return;
+    }
+    if (name === 'open-docs') {
+      const maxHeight = Math.max(44, leftPanel.clientHeight - 110);
+      openDocs.style.flexBasis = clamp(startSize + deltaY, 44, maxHeight) + 'px';
+      return;
+    }
+    if (name === 'preview') {
+      const maxHeight = Math.max(78, rightPanel.clientHeight - 110);
+      const size = clamp(startSize - deltaY, 78, maxHeight);
+      preview.style.flexBasis = size + 'px';
+      preview.dataset.expandedHeight = String(size);
+    }
+  }
+
+  document.querySelectorAll('.resize-handle').forEach((handle) => {
+    handle.tabIndex = 0;
+
+    handle.addEventListener('pointerdown', (event) => {
+      if (window.innerWidth <= 700) return;
+      const name = handle.dataset.resize;
+      const target = name === 'left-panel' ? leftPanel
+        : name === 'right-panel' ? rightPanel
+        : name === 'bottom-left' ? bottomLeft
+        : name === 'bottom-panels' ? bottomPanels
+        : name === 'open-docs' ? openDocs
+        : preview;
+      const isColumn = handle.classList.contains('column');
+      const startSize = isColumn ? target.getBoundingClientRect().width : target.getBoundingClientRect().height;
+      const startX = event.clientX;
+      const startY = event.clientY;
+
+      handle.classList.add('active');
+      document.body.classList.add('is-resizing');
+      document.body.style.setProperty('--resize-cursor', isColumn ? 'col-resize' : 'row-resize');
+      handle.setPointerCapture(event.pointerId);
+
+      const onMove = (moveEvent) => {
+        resizePanel(name, moveEvent.clientX - startX, moveEvent.clientY - startY, startSize);
+      };
+      const onEnd = () => {
+        handle.classList.remove('active');
+        document.body.classList.remove('is-resizing');
+        handle.removeEventListener('pointermove', onMove);
+        handle.removeEventListener('pointerup', onEnd);
+        handle.removeEventListener('pointercancel', onEnd);
+      };
+
+      handle.addEventListener('pointermove', onMove);
+      handle.addEventListener('pointerup', onEnd);
+      handle.addEventListener('pointercancel', onEnd);
+    });
+
+    handle.addEventListener('keydown', (event) => {
+      const isColumn = handle.classList.contains('column');
+      const direction = isColumn
+        ? (event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0)
+        : (event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0);
+      if (!direction) return;
+      event.preventDefault();
+      const name = handle.dataset.resize;
+      const target = name === 'left-panel' ? leftPanel
+        : name === 'right-panel' ? rightPanel
+        : name === 'bottom-left' ? bottomLeft
+        : name === 'bottom-panels' ? bottomPanels
+        : name === 'open-docs' ? openDocs
+        : preview;
+      const startSize = isColumn ? target.getBoundingClientRect().width : target.getBoundingClientRect().height;
+      resizePanel(name, isColumn ? direction * 12 : 0, isColumn ? 0 : direction * 12, startSize);
+    });
+  });
+}
+
 // Preview widget toggle
 function togglePreview() {
   const content = document.getElementById('preview-content');
   const checkbox = document.getElementById('preview-checkbox');
+  const preview = document.querySelector('.preview-widget');
   if (content.classList.contains('collapsed')) {
     content.classList.remove('collapsed');
-    content.style.height = '160px';
+    preview.style.flexBasis = (preview.dataset.expandedHeight || '202') + 'px';
     checkbox.classList.add('checked');
     checkbox.textContent = '\u2713';
   } else {
+    preview.dataset.expandedHeight = String(Math.round(preview.getBoundingClientRect().height));
     content.classList.add('collapsed');
+    preview.style.flexBasis = '22px';
     checkbox.classList.remove('checked');
     checkbox.textContent = '';
   }
 }
 
 // Initialize
+initResizablePanels();
 setConcept('A');
 setState(0);
 </script>

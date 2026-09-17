@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Resources/Entity">
+<path id="Subtract" fill-rule="evenodd" clip-rule="evenodd" d="M11.2 4H4.8C4.58783 4 4.38436 4.0843 4.23433 4.23433C4.0843 4.38436 4 4.58783 4 4.8V11.2C4 11.4122 4.0843 11.6157 4.23433 11.7657C4.38436 11.9158 4.58783 12 4.8 12H8C8 9.79086 9.79086 8 12 8V4.8C12 4.58783 11.9157 4.38436 11.7657 4.23433C11.6156 4.0843 11.4122 4 11.2 4ZM5 5H7C7.55228 5 8 5.44772 8 6C8 6.55228 7.55228 7 7 7H5V5ZM5 8H6C6.55228 8 7 8.44772 7 9C7 9.55228 6.55228 10 6 10H5V8Z" fill="#C4C4C4"/>
+<rect id="Rectangle 120" x="10" y="10" width="5" height="5" rx="2.5" fill="#009DCE"/>
+<g id="Group 258">
+<path id="Union" fill-rule="evenodd" clip-rule="evenodd" d="M4 1H2H1V2V4H2L2 2H4V1Z" fill="#C4C4C4"/>
+<path id="Union_2" fill-rule="evenodd" clip-rule="evenodd" d="M15 4L15 2L15 1L14 1L12 1L12 2L14 2L14 4L15 4Z" fill="#C4C4C4"/>
+<path id="Union_3" fill-rule="evenodd" clip-rule="evenodd" d="M1 12L1 14L1 15L2 15L4 15L4 14L2 14L2 12L1 12Z" fill="#C4C4C4"/>
+</g>
+</g>
+</svg>

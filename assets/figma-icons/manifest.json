@@ -1,0 +1,1492 @@
+{
+  "source": {
+    "figmaFile": "FictionUI",
+    "fileKey": "NBIxN2orkOXwn7m3GszZMa",
+    "page": "Icons",
+    "pageNodeId": "70:3",
+    "url": "https://www.figma.com/design/NBIxN2orkOXwn7m3GszZMa/FictionUI?node-id=70-3&m=dev"
+  },
+  "exportedAt": "2026-08-26",
+  "format": "png",
+  "total": 211,
+  "notes": "Each entry is a reusable Figma component definition. Node IDs are retained because component names are not unique across variant groups.",
+  "icons": [
+    {
+      "name": "icon/large/settings",
+      "nodeId": "4727:16711",
+      "width": 20,
+      "height": 20,
+      "file": "001-icon-large-settings--4727-16711.png"
+    },
+    {
+      "name": "save-doc",
+      "nodeId": "173:23614",
+      "width": 16,
+      "height": 16,
+      "file": "002-save-doc--173-23614.png"
+    },
+    {
+      "name": "close-doc",
+      "nodeId": "173:23728",
+      "width": 16,
+      "height": 16,
+      "file": "003-close-doc--173-23728.png"
+    },
+    {
+      "name": "closeall",
+      "nodeId": "965:19488",
+      "width": 16,
+      "height": 16,
+      "file": "004-closeall--965-19488.png"
+    },
+    {
+      "name": "Size=left",
+      "nodeId": "170:13686",
+      "width": 16,
+      "height": 16,
+      "file": "005-size-left--170-13686.png"
+    },
+    {
+      "name": "Size=up",
+      "nodeId": "170:13690",
+      "width": 16,
+      "height": 16,
+      "file": "006-size-up--170-13690.png"
+    },
+    {
+      "name": "Size=down",
+      "nodeId": "170:13694",
+      "width": 16,
+      "height": 16,
+      "file": "007-size-down--170-13694.png"
+    },
+    {
+      "name": "Size=right",
+      "nodeId": "170:13698",
+      "width": 16,
+      "height": 16,
+      "file": "008-size-right--170-13698.png"
+    },
+    {
+      "name": "scene",
+      "nodeId": "170:14167",
+      "width": 16,
+      "height": 16,
+      "file": "009-scene--170-14167.png"
+    },
+    {
+      "name": "timeline-editor",
+      "nodeId": "1373:30684",
+      "width": 16,
+      "height": 16,
+      "file": "010-timeline-editor--1373-30684.png"
+    },
+    {
+      "name": "device-resolution-preview",
+      "nodeId": "1373:30679",
+      "width": 16,
+      "height": 16,
+      "file": "011-device-resolution-preview--1373-30679.png"
+    },
+    {
+      "name": "DataSources",
+      "nodeId": "1373:30697",
+      "width": 16,
+      "height": 16,
+      "file": "012-datasources--1373-30697.png"
+    },
+    {
+      "name": "Size=16",
+      "nodeId": "160:8668",
+      "width": 16,
+      "height": 16,
+      "file": "013-size-16--160-8668.png"
+    },
+    {
+      "name": "Size=20",
+      "nodeId": "160:8673",
+      "width": 20,
+      "height": 20,
+      "file": "014-size-20--160-8673.png"
+    },
+    {
+      "name": "Size=left",
+      "nodeId": "160:13451",
+      "width": 16,
+      "height": 16,
+      "file": "015-size-left--160-13451.png"
+    },
+    {
+      "name": "Size=up",
+      "nodeId": "160:13455",
+      "width": 16,
+      "height": 16,
+      "file": "016-size-up--160-13455.png"
+    },
+    {
+      "name": "Size=down",
+      "nodeId": "160:13459",
+      "width": 16,
+      "height": 16,
+      "file": "017-size-down--160-13459.png"
+    },
+    {
+      "name": "Size=right",
+      "nodeId": "160:13463",
+      "width": 16,
+      "height": 16,
+      "file": "018-size-right--160-13463.png"
+    },
+    {
+      "name": "Size=20",
+      "nodeId": "160:15090",
+      "width": 20,
+      "height": 20,
+      "file": "019-size-20--160-15090.png"
+    },
+    {
+      "name": "Type=always",
+      "nodeId": "160:15095",
+      "width": 16,
+      "height": 16,
+      "file": "020-type-always--160-15095.png"
+    },
+    {
+      "name": "Type=dynamic",
+      "nodeId": "160:15099",
+      "width": 16,
+      "height": 16,
+      "file": "021-type-dynamic--160-15099.png"
+    },
+    {
+      "name": "Type=inherit",
+      "nodeId": "160:15102",
+      "width": 16,
+      "height": 16,
+      "file": "022-type-inherit--160-15102.png"
+    },
+    {
+      "name": "Type=never",
+      "nodeId": "160:15107",
+      "width": 16,
+      "height": 16,
+      "file": "023-type-never--160-15107.png"
+    },
+    {
+      "name": "Size=16, Visibility=on",
+      "nodeId": "160:15111",
+      "width": 16,
+      "height": 16,
+      "file": "024-size-16-visibility-on--160-15111.png"
+    },
+    {
+      "name": "Size=16, Visibility=off",
+      "nodeId": "160:15116",
+      "width": 16,
+      "height": 16,
+      "file": "025-size-16-visibility-off--160-15116.png"
+    },
+    {
+      "name": "Size=20, Visibility=on",
+      "nodeId": "160:15120",
+      "width": 20,
+      "height": 20,
+      "file": "026-size-20-visibility-on--160-15120.png"
+    },
+    {
+      "name": "Type=always",
+      "nodeId": "160:11760",
+      "width": 16,
+      "height": 16,
+      "file": "027-type-always--160-11760.png"
+    },
+    {
+      "name": "Type=dynamic",
+      "nodeId": "160:11764",
+      "width": 16,
+      "height": 16,
+      "file": "028-type-dynamic--160-11764.png"
+    },
+    {
+      "name": "Type=inherit",
+      "nodeId": "160:11767",
+      "width": 16,
+      "height": 16,
+      "file": "029-type-inherit--160-11767.png"
+    },
+    {
+      "name": "Type=never",
+      "nodeId": "160:11772",
+      "width": 16,
+      "height": 16,
+      "file": "030-type-never--160-11772.png"
+    },
+    {
+      "name": "Size=16, Lock=unlocked",
+      "nodeId": "160:11776",
+      "width": 16,
+      "height": 16,
+      "file": "031-size-16-lock-unlocked--160-11776.png"
+    },
+    {
+      "name": "Size=16, Lock=locked",
+      "nodeId": "160:11779",
+      "width": 16,
+      "height": 16,
+      "file": "032-size-16-lock-locked--160-11779.png"
+    },
+    {
+      "name": "Size=16, Visibility=on",
+      "nodeId": "160:11784",
+      "width": 16,
+      "height": 16,
+      "file": "033-size-16-visibility-on--160-11784.png"
+    },
+    {
+      "name": "Size=16, Visibility=off",
+      "nodeId": "160:11789",
+      "width": 16,
+      "height": 16,
+      "file": "034-size-16-visibility-off--160-11789.png"
+    },
+    {
+      "name": "Size=20, Visibility=on",
+      "nodeId": "160:11793",
+      "width": 20,
+      "height": 20,
+      "file": "035-size-20-visibility-on--160-11793.png"
+    },
+    {
+      "name": "Size=16, Orientation=open",
+      "nodeId": "160:11799",
+      "width": 16,
+      "height": 16,
+      "file": "036-size-16-orientation-open--160-11799.png"
+    },
+    {
+      "name": "Size=16, Orientation=closed",
+      "nodeId": "160:11802",
+      "width": 16,
+      "height": 16,
+      "file": "037-size-16-orientation-closed--160-11802.png"
+    },
+    {
+      "name": "Size=16, Type=Bbracnhed",
+      "nodeId": "160:11806",
+      "width": 16,
+      "height": 16,
+      "file": "038-size-16-type-bbracnhed--160-11806.png"
+    },
+    {
+      "name": "Size=16, Type=branchmore",
+      "nodeId": "160:11810",
+      "width": 16,
+      "height": 16,
+      "file": "039-size-16-type-branchmore--160-11810.png"
+    },
+    {
+      "name": "Size=16, Type=vline",
+      "nodeId": "160:11815",
+      "width": 16,
+      "height": 16,
+      "file": "040-size-16-type-vline--160-11815.png"
+    },
+    {
+      "name": "open-documents-widget-icon/16",
+      "nodeId": "160:13427",
+      "width": 16,
+      "height": 16,
+      "file": "041-open-documents-widget-icon-16--160-13427.png"
+    },
+    {
+      "name": "resource-scene/16",
+      "nodeId": "160:13432",
+      "width": 16,
+      "height": 16,
+      "file": "042-resource-scene-16--160-13432.png"
+    },
+    {
+      "name": "close/16",
+      "nodeId": "160:13438",
+      "width": 16,
+      "height": 16,
+      "file": "043-close-16--160-13438.png"
+    },
+    {
+      "name": "closeall/16",
+      "nodeId": "160:13444",
+      "width": 16,
+      "height": 16,
+      "file": "044-closeall-16--160-13444.png"
+    },
+    {
+      "name": "menu-widget",
+      "nodeId": "160:13468",
+      "width": 20,
+      "height": 20,
+      "file": "045-menu-widget--160-13468.png"
+    },
+    {
+      "name": "Size=left",
+      "nodeId": "160:8716",
+      "width": 16,
+      "height": 16,
+      "file": "046-size-left--160-8716.png"
+    },
+    {
+      "name": "Size=up",
+      "nodeId": "160:8720",
+      "width": 16,
+      "height": 16,
+      "file": "047-size-up--160-8720.png"
+    },
+    {
+      "name": "Size=down",
+      "nodeId": "160:8724",
+      "width": 16,
+      "height": 16,
+      "file": "048-size-down--160-8724.png"
+    },
+    {
+      "name": "Size=right",
+      "nodeId": "160:8728",
+      "width": 16,
+      "height": 16,
+      "file": "049-size-right--160-8728.png"
+    },
+    {
+      "name": "Size=16",
+      "nodeId": "703:13688",
+      "width": 16,
+      "height": 16,
+      "file": "050-size-16--703-13688.png"
+    },
+    {
+      "name": "Size=16",
+      "nodeId": "703:13230",
+      "width": 16,
+      "height": 16,
+      "file": "051-size-16--703-13230.png"
+    },
+    {
+      "name": "Size=20",
+      "nodeId": "703:13229",
+      "width": 20,
+      "height": 20,
+      "file": "052-size-20--703-13229.png"
+    },
+    {
+      "name": "check",
+      "nodeId": "703:27064",
+      "width": 16,
+      "height": 16,
+      "file": "053-check--703-27064.png"
+    },
+    {
+      "name": "dash",
+      "nodeId": "1591:40864",
+      "width": 16,
+      "height": 16,
+      "file": "054-dash--1591-40864.png"
+    },
+    {
+      "name": "bullet",
+      "nodeId": "1046:41376",
+      "width": 16,
+      "height": 16,
+      "file": "055-bullet--1046-41376.png"
+    },
+    {
+      "name": "document",
+      "nodeId": "163:13450",
+      "width": 16,
+      "height": 16,
+      "file": "056-document--163-13450.png"
+    },
+    {
+      "name": "icon/select",
+      "nodeId": "1028:40629",
+      "width": 16,
+      "height": 16,
+      "file": "057-icon-select--1028-40629.png"
+    },
+    {
+      "name": "newfile",
+      "nodeId": "145:36276",
+      "width": 20,
+      "height": 20,
+      "file": "058-newfile--145-36276.png"
+    },
+    {
+      "name": "openfile",
+      "nodeId": "145:36326",
+      "width": 20,
+      "height": 20,
+      "file": "059-openfile--145-36326.png"
+    },
+    {
+      "name": "settings",
+      "nodeId": "159:7520",
+      "width": 20,
+      "height": 20,
+      "file": "060-settings--159-7520.png"
+    },
+    {
+      "name": "saveall",
+      "nodeId": "146:36390",
+      "width": 20,
+      "height": 20,
+      "file": "061-saveall--146-36390.png"
+    },
+    {
+      "name": "save",
+      "nodeId": "158:7605",
+      "width": 20,
+      "height": 20,
+      "file": "062-save--158-7605.png"
+    },
+    {
+      "name": "undo",
+      "nodeId": "158:7624",
+      "width": 20,
+      "height": 20,
+      "file": "063-undo--158-7624.png"
+    },
+    {
+      "name": "redo",
+      "nodeId": "158:7634",
+      "width": 20,
+      "height": 20,
+      "file": "064-redo--158-7634.png"
+    },
+    {
+      "name": "icon/player/play",
+      "nodeId": "1185:11343",
+      "width": 20,
+      "height": 20,
+      "file": "065-icon-player-play--1185-11343.png"
+    },
+    {
+      "name": "icon/player/stop",
+      "nodeId": "146:37454",
+      "width": 20,
+      "height": 20,
+      "file": "066-icon-player-stop--146-37454.png"
+    },
+    {
+      "name": "icon/player/pause",
+      "nodeId": "1185:11346",
+      "width": 20,
+      "height": 20,
+      "file": "067-icon-player-pause--1185-11346.png"
+    },
+    {
+      "name": "icon/player/loop-off",
+      "nodeId": "1185:11350",
+      "width": 20,
+      "height": 20,
+      "file": "068-icon-player-loop-off--1185-11350.png"
+    },
+    {
+      "name": "icon/player/next-key",
+      "nodeId": "1185:11355",
+      "width": 20,
+      "height": 20,
+      "file": "069-icon-player-next-key--1185-11355.png"
+    },
+    {
+      "name": "icon/player/end",
+      "nodeId": "1185:11359",
+      "width": 20,
+      "height": 20,
+      "file": "070-icon-player-end--1185-11359.png"
+    },
+    {
+      "name": "icon/player/start",
+      "nodeId": "1185:11362",
+      "width": 20,
+      "height": 20,
+      "file": "071-icon-player-start--1185-11362.png"
+    },
+    {
+      "name": "icon/player/record",
+      "nodeId": "1185:11365",
+      "width": 20,
+      "height": 20,
+      "file": "072-icon-player-record--1185-11365.png"
+    },
+    {
+      "name": "icon/player/prev-key",
+      "nodeId": "1185:11368",
+      "width": 20,
+      "height": 20,
+      "file": "073-icon-player-prev-key--1185-11368.png"
+    },
+    {
+      "name": "icon/player/loop-on",
+      "nodeId": "1185:11372",
+      "width": 20,
+      "height": 20,
+      "file": "074-icon-player-loop-on--1185-11372.png"
+    },
+    {
+      "name": "icon/player/sound-on",
+      "nodeId": "1185:11328",
+      "width": 20,
+      "height": 20,
+      "file": "075-icon-player-sound-on--1185-11328.png"
+    },
+    {
+      "name": "icon/player/sound-off",
+      "nodeId": "1185:11336",
+      "width": 20,
+      "height": 20,
+      "file": "076-icon-player-sound-off--1185-11336.png"
+    },
+    {
+      "name": "icon/search",
+      "nodeId": "1096:32882",
+      "width": 16,
+      "height": 16,
+      "file": "077-icon-search--1096-32882.png"
+    },
+    {
+      "name": "icon/track/visibility",
+      "nodeId": "1020:12369",
+      "width": 16,
+      "height": 16,
+      "file": "078-icon-track-visibility--1020-12369.png"
+    },
+    {
+      "name": "icon/track/scale",
+      "nodeId": "1020:12367",
+      "width": 16,
+      "height": 16,
+      "file": "079-icon-track-scale--1020-12367.png"
+    },
+    {
+      "name": "icon/track/rotation",
+      "nodeId": "1020:12368",
+      "width": 16,
+      "height": 16,
+      "file": "080-icon-track-rotation--1020-12368.png"
+    },
+    {
+      "name": "icon/track/translation",
+      "nodeId": "1020:12366",
+      "width": 16,
+      "height": 16,
+      "file": "081-icon-track-translation--1020-12366.png"
+    },
+    {
+      "name": "remove",
+      "nodeId": "1028:40173",
+      "width": 16,
+      "height": 16,
+      "file": "082-remove--1028-40173.png"
+    },
+    {
+      "name": "linear",
+      "nodeId": "1070:18462",
+      "width": 16,
+      "height": 16,
+      "file": "083-linear--1070-18462.png"
+    },
+    {
+      "name": "smooth",
+      "nodeId": "1070:18461",
+      "width": 16,
+      "height": 16,
+      "file": "084-smooth--1070-18461.png"
+    },
+    {
+      "name": "free",
+      "nodeId": "1070:18460",
+      "width": 16,
+      "height": 16,
+      "file": "085-free--1070-18460.png"
+    },
+    {
+      "name": "icon/large/screenshot",
+      "nodeId": "1111:11175",
+      "width": 20,
+      "height": 20,
+      "file": "086-icon-large-screenshot--1111-11175.png"
+    },
+    {
+      "name": "icon/large/screenshot-off",
+      "nodeId": "1307:81579",
+      "width": 20,
+      "height": 20,
+      "file": "087-icon-large-screenshot-off--1307-81579.png"
+    },
+    {
+      "name": "icon/large/fit",
+      "nodeId": "1111:11173",
+      "width": 20,
+      "height": 20,
+      "file": "088-icon-large-fit--1111-11173.png"
+    },
+    {
+      "name": "icon/large/snap",
+      "nodeId": "1111:11172",
+      "width": 20,
+      "height": 20,
+      "file": "089-icon-large-snap--1111-11172.png"
+    },
+    {
+      "name": "icon/large/open-file",
+      "nodeId": "1111:11174",
+      "width": 20,
+      "height": 20,
+      "file": "090-icon-large-open-file--1111-11174.png"
+    },
+    {
+      "name": "icon/widget/history",
+      "nodeId": "1140:25703",
+      "width": 16,
+      "height": 16,
+      "file": "091-icon-widget-history--1140-25703.png"
+    },
+    {
+      "name": "icon/widget/info",
+      "nodeId": "504:12766",
+      "width": 16,
+      "height": 16,
+      "file": "092-icon-widget-info--504-12766.png"
+    },
+    {
+      "name": "icon/template",
+      "nodeId": "1923:10617",
+      "width": 16,
+      "height": 16,
+      "file": "093-icon-template--1923-10617.png"
+    },
+    {
+      "name": "events",
+      "nodeId": "1373:30689",
+      "width": 16,
+      "height": 16,
+      "file": "094-events--1373-30689.png"
+    },
+    {
+      "name": "entity=true, nested=false, added=false, override=false, broken=false",
+      "nodeId": "1371:26194",
+      "width": 16,
+      "height": 16,
+      "file": "095-entity-true-nested-false-added-false-override-false-broken-false--1371-26194.png"
+    },
+    {
+      "name": "entity=true, nested=false, added=true, override=false, broken=false",
+      "nodeId": "1373:30791",
+      "width": 16,
+      "height": 16,
+      "file": "096-entity-true-nested-false-added-true-override-false-broken-false--1373-30791.png"
+    },
+    {
+      "name": "entity=true, nested=true, added=false, override=false, broken=false",
+      "nodeId": "1373:30802",
+      "width": 16,
+      "height": 16,
+      "file": "097-entity-true-nested-true-added-false-override-false-broken-false--1373-30802.png"
+    },
+    {
+      "name": "entity=true, nested=true, added=false, override=true, broken=false",
+      "nodeId": "1373:30828",
+      "width": 16,
+      "height": 16,
+      "file": "098-entity-true-nested-true-added-false-override-true-broken-false--1373-30828.png"
+    },
+    {
+      "name": "entity=true, nested=false, added=false, override=false, broken=true",
+      "nodeId": "1373:30852",
+      "width": 16,
+      "height": 16,
+      "file": "099-entity-true-nested-false-added-false-override-false-broken-true--1373-30852.png"
+    },
+    {
+      "name": "modelcontainer=true, nested=true, added=false, override=false, broken=false",
+      "nodeId": "1373:30889",
+      "width": 16,
+      "height": 16,
+      "file": "100-modelcontainer-true-nested-true-added-false-override-false-broken-false--1373-30889.png"
+    },
+    {
+      "name": "modelcontainer=true, nested=true, added=false, override=true, broken=false",
+      "nodeId": "1376:20254",
+      "width": 16,
+      "height": 16,
+      "file": "101-modelcontainer-true-nested-true-added-false-override-true-broken-false--1376-20254.png"
+    },
+    {
+      "name": "modelcontainer=true, nested=false, added=true, override=false, broken=false",
+      "nodeId": "1376:20289",
+      "width": 16,
+      "height": 16,
+      "file": "102-modelcontainer-true-nested-false-added-true-override-false-broken-false--1376-20289.png"
+    },
+    {
+      "name": "modelcontainer=true, nested=false, added=true, override=true, broken=false",
+      "nodeId": "1376:20316",
+      "width": 16,
+      "height": 16,
+      "file": "103-modelcontainer-true-nested-false-added-true-override-true-broken-false--1376-20316.png"
+    },
+    {
+      "name": "modelcontainer=true, nested=false, added=false, override=false, broken=false",
+      "nodeId": "1376:20343",
+      "width": 16,
+      "height": 16,
+      "file": "104-modelcontainer-true-nested-false-added-false-override-false-broken-false--1376-20343.png"
+    },
+    {
+      "name": "modelcontainer=true, nested=false, added=false, override=true, broken=false",
+      "nodeId": "1376:20368",
+      "width": 16,
+      "height": 16,
+      "file": "105-modelcontainer-true-nested-false-added-false-override-true-broken-false--1376-20368.png"
+    },
+    {
+      "name": "modelcontainer=true, nested=false, added=false, override=false, broken=true",
+      "nodeId": "1376:20416",
+      "width": 16,
+      "height": 16,
+      "file": "106-modelcontainer-true-nested-false-added-false-override-false-broken-true--1376-20416.png"
+    },
+    {
+      "name": "prefab=true, nested=false, added=false, override=false, broken=false",
+      "nodeId": "1373:30706",
+      "width": 16,
+      "height": 16,
+      "file": "107-prefab-true-nested-false-added-false-override-false-broken-false--1373-30706.png"
+    },
+    {
+      "name": "prefab=true, nested=true, added=false, override=false, broken=false",
+      "nodeId": "1376:20557",
+      "width": 16,
+      "height": 16,
+      "file": "108-prefab-true-nested-true-added-false-override-false-broken-false--1376-20557.png"
+    },
+    {
+      "name": "prefab=true, nested=true, added=false, override=true, broken=false",
+      "nodeId": "1376:20579",
+      "width": 16,
+      "height": 16,
+      "file": "109-prefab-true-nested-true-added-false-override-true-broken-false--1376-20579.png"
+    },
+    {
+      "name": "prefab=true, nested=false, added=false, override=true, broken=false",
+      "nodeId": "1376:20603",
+      "width": 16,
+      "height": 16,
+      "file": "110-prefab-true-nested-false-added-false-override-true-broken-false--1376-20603.png"
+    },
+    {
+      "name": "prefab=true, nested=false, added=true, override=false, broken=false",
+      "nodeId": "1376:20623",
+      "width": 16,
+      "height": 16,
+      "file": "111-prefab-true-nested-false-added-true-override-false-broken-false--1376-20623.png"
+    },
+    {
+      "name": "prefab=true, nested=false, added=true, override=true, broken=false",
+      "nodeId": "1376:20653",
+      "width": 16,
+      "height": 16,
+      "file": "112-prefab-true-nested-false-added-true-override-true-broken-false--1376-20653.png"
+    },
+    {
+      "name": "prefab=true, nested=false, added=false, override=false, broken=true",
+      "nodeId": "1376:20675",
+      "width": 16,
+      "height": 16,
+      "file": "113-prefab-true-nested-false-added-false-override-false-broken-true--1376-20675.png"
+    },
+    {
+      "name": "timeline-resource",
+      "nodeId": "1376:30216",
+      "width": 16,
+      "height": 16,
+      "file": "114-timeline-resource--1376-30216.png"
+    },
+    {
+      "name": "Type=list",
+      "nodeId": "614:24211",
+      "width": 16,
+      "height": 16,
+      "file": "115-type-list--614-24211.png"
+    },
+    {
+      "name": "Type=window",
+      "nodeId": "614:24220",
+      "width": 16,
+      "height": 16,
+      "file": "116-type-window--614-24220.png"
+    },
+    {
+      "name": "Type=details",
+      "nodeId": "615:27424",
+      "width": 16,
+      "height": 16,
+      "file": "117-type-details--615-27424.png"
+    },
+    {
+      "name": "Type=thumbnails",
+      "nodeId": "615:27429",
+      "width": 16,
+      "height": 16,
+      "file": "118-type-thumbnails--615-27429.png"
+    },
+    {
+      "name": "arrow-down-to-block",
+      "nodeId": "709:29514",
+      "width": 16,
+      "height": 16,
+      "file": "119-arrow-down-to-block--709-29514.png"
+    },
+    {
+      "name": "info",
+      "nodeId": "709:29400",
+      "width": 16,
+      "height": 16,
+      "file": "120-info--709-29400.png"
+    },
+    {
+      "name": "warning",
+      "nodeId": "709:29286",
+      "width": 16,
+      "height": 16,
+      "file": "121-warning--709-29286.png"
+    },
+    {
+      "name": "error",
+      "nodeId": "709:29172",
+      "width": 16,
+      "height": 16,
+      "file": "122-error--709-29172.png"
+    },
+    {
+      "name": "console-widget-icon",
+      "nodeId": "709:29058",
+      "width": 16,
+      "height": 16,
+      "file": "123-console-widget-icon--709-29058.png"
+    },
+    {
+      "name": "modelcontainer-resource",
+      "nodeId": "4864:368270",
+      "width": 16,
+      "height": 16,
+      "file": "124-modelcontainer-resource--4864-368270.png"
+    },
+    {
+      "name": "prefab-resource",
+      "nodeId": "1373:30725",
+      "width": 16,
+      "height": 16,
+      "file": "125-prefab-resource--1373-30725.png"
+    },
+    {
+      "name": "nodegraph-resource",
+      "nodeId": "4864:368269",
+      "width": 16,
+      "height": 16,
+      "file": "126-nodegraph-resource--4864-368269.png"
+    },
+    {
+      "name": "scene-resource",
+      "nodeId": "1376:30125",
+      "width": 16,
+      "height": 16,
+      "file": "127-scene-resource--1376-30125.png"
+    },
+    {
+      "name": "spine-resource",
+      "nodeId": "1376:30148",
+      "width": 16,
+      "height": 16,
+      "file": "128-spine-resource--1376-30148.png"
+    },
+    {
+      "name": "sprite-resource",
+      "nodeId": "1376:30204",
+      "width": 16,
+      "height": 16,
+      "file": "129-sprite-resource--1376-30204.png"
+    },
+    {
+      "name": "animation-resource",
+      "nodeId": "1376:30400",
+      "width": 16,
+      "height": 16,
+      "file": "130-animation-resource--1376-30400.png"
+    },
+    {
+      "name": "shader-resource",
+      "nodeId": "4864:368273",
+      "width": 16,
+      "height": 16,
+      "file": "131-shader-resource--4864-368273.png"
+    },
+    {
+      "name": "shader-resource",
+      "nodeId": "4864:368272",
+      "width": 16,
+      "height": 16,
+      "file": "132-shader-resource--4864-368272.png"
+    },
+    {
+      "name": "material-resource",
+      "nodeId": "4864:368271",
+      "width": 16,
+      "height": 16,
+      "file": "133-material-resource--4864-368271.png"
+    },
+    {
+      "name": "camera-resource",
+      "nodeId": "1376:30399",
+      "width": 16,
+      "height": 16,
+      "file": "134-camera-resource--1376-30399.png"
+    },
+    {
+      "name": "translation-resource",
+      "nodeId": "1376:30426",
+      "width": 16,
+      "height": 16,
+      "file": "135-translation-resource--1376-30426.png"
+    },
+    {
+      "name": "textstyle-resource",
+      "nodeId": "1376:30482",
+      "width": 16,
+      "height": 16,
+      "file": "136-textstyle-resource--1376-30482.png"
+    },
+    {
+      "name": "icon/back",
+      "nodeId": "1452:33390",
+      "width": 20,
+      "height": 20,
+      "file": "137-icon-back--1452-33390.png"
+    },
+    {
+      "name": "icon/forward",
+      "nodeId": "1452:33389",
+      "width": 20,
+      "height": 20,
+      "file": "138-icon-forward--1452-33389.png"
+    },
+    {
+      "name": "icon/filter",
+      "nodeId": "1452:34411",
+      "width": 20,
+      "height": 20,
+      "file": "139-icon-filter--1452-34411.png"
+    },
+    {
+      "name": "Show=Yes",
+      "nodeId": "1452:34055",
+      "width": 20,
+      "height": 20,
+      "file": "140-show-yes--1452-34055.png"
+    },
+    {
+      "name": "Show=No",
+      "nodeId": "1452:34060",
+      "width": 20,
+      "height": 20,
+      "file": "141-show-no--1452-34060.png"
+    },
+    {
+      "name": "Size=20",
+      "nodeId": "1449:36451",
+      "width": 20,
+      "height": 20,
+      "file": "142-size-20--1449-36451.png"
+    },
+    {
+      "name": "Size=16",
+      "nodeId": "4359:4616",
+      "width": 16,
+      "height": 16,
+      "file": "143-size-16--4359-4616.png"
+    },
+    {
+      "name": "effect-resource",
+      "nodeId": "233:12794",
+      "width": 16,
+      "height": 16,
+      "file": "144-effect-resource--233-12794.png"
+    },
+    {
+      "name": "caret",
+      "nodeId": "1935:4206",
+      "width": 16,
+      "height": 16,
+      "file": "145-caret--1935-4206.png"
+    },
+    {
+      "name": "edit",
+      "nodeId": "4270:3481",
+      "width": 20,
+      "height": 20,
+      "file": "146-edit--4270-3481.png"
+    },
+    {
+      "name": "Property 1=backTemp",
+      "nodeId": "4610:3160",
+      "width": 16,
+      "height": 16,
+      "file": "147-property-1-backtemp--4610-3160.png"
+    },
+    {
+      "name": "Property 1=forwardTemp",
+      "nodeId": "4610:3308",
+      "width": 16,
+      "height": 16,
+      "file": "148-property-1-forwardtemp--4610-3308.png"
+    },
+    {
+      "name": "bugs",
+      "nodeId": "4760:104246",
+      "width": 20,
+      "height": 20,
+      "file": "149-bugs--4760-104246.png"
+    },
+    {
+      "name": "request",
+      "nodeId": "4760:104247",
+      "width": 20,
+      "height": 20,
+      "file": "150-request--4760-104247.png"
+    },
+    {
+      "name": "faq",
+      "nodeId": "4760:104248",
+      "width": 20,
+      "height": 20,
+      "file": "151-faq--4760-104248.png"
+    },
+    {
+      "name": "docs",
+      "nodeId": "4760:104249",
+      "width": 20,
+      "height": 20,
+      "file": "152-docs--4760-104249.png"
+    },
+    {
+      "name": "tutorial",
+      "nodeId": "4760:104250",
+      "width": 20,
+      "height": 20,
+      "file": "153-tutorial--4760-104250.png"
+    },
+    {
+      "name": "release_notes",
+      "nodeId": "4760:104251",
+      "width": 20,
+      "height": 20,
+      "file": "154-release-notes--4760-104251.png"
+    },
+    {
+      "name": "roadmap",
+      "nodeId": "4760:104252",
+      "width": 20,
+      "height": 20,
+      "file": "155-roadmap--4760-104252.png"
+    },
+    {
+      "name": "slack",
+      "nodeId": "4760:104253",
+      "width": 20,
+      "height": 20,
+      "file": "156-slack--4760-104253.png"
+    },
+    {
+      "name": "menu",
+      "nodeId": "4760:104254",
+      "width": 20,
+      "height": 20,
+      "file": "157-menu--4760-104254.png"
+    },
+    {
+      "name": "icon/component/ar-light",
+      "nodeId": "953:9673",
+      "width": 16,
+      "height": 16,
+      "file": "158-icon-component-ar-light--953-9673.png"
+    },
+    {
+      "name": "icon/component/effect",
+      "nodeId": "953:9768",
+      "width": 16,
+      "height": 16,
+      "file": "159-icon-component-effect--953-9768.png"
+    },
+    {
+      "name": "icon/component/globallight",
+      "nodeId": "954:10022",
+      "width": 16,
+      "height": 16,
+      "file": "160-icon-component-globallight--954-10022.png"
+    },
+    {
+      "name": "icon/component/animation",
+      "nodeId": "953:9543",
+      "width": 16,
+      "height": 16,
+      "file": "161-icon-component-animation--953-9543.png"
+    },
+    {
+      "name": "icon/component/ar-camera",
+      "nodeId": "953:9694",
+      "width": 16,
+      "height": 16,
+      "file": "162-icon-component-ar-camera--953-9694.png"
+    },
+    {
+      "name": "icon/component/ar-viewfinder",
+      "nodeId": "953:9654",
+      "width": 16,
+      "height": 16,
+      "file": "163-icon-component-ar-viewfinder--953-9654.png"
+    },
+    {
+      "name": "icon/component/music",
+      "nodeId": "953:9564",
+      "width": 16,
+      "height": 16,
+      "file": "164-icon-component-music--953-9564.png"
+    },
+    {
+      "name": "icon/component/sound",
+      "nodeId": "953:9581",
+      "width": 16,
+      "height": 16,
+      "file": "165-icon-component-sound--953-9581.png"
+    },
+    {
+      "name": "icon/component/camera",
+      "nodeId": "953:9735",
+      "width": 16,
+      "height": 16,
+      "file": "166-icon-component-camera--953-9735.png"
+    },
+    {
+      "name": "icon/component/box-layout",
+      "nodeId": "953:9740",
+      "width": 16,
+      "height": 16,
+      "file": "167-icon-component-box-layout--953-9740.png"
+    },
+    {
+      "name": "icon/component/bonetoshader",
+      "nodeId": "953:9600",
+      "width": 16,
+      "height": 16,
+      "file": "168-icon-component-bonetoshader--953-9600.png"
+    },
+    {
+      "name": "icon/component/import",
+      "nodeId": "953:9789",
+      "width": 16,
+      "height": 16,
+      "file": "169-icon-component-import--953-9789.png"
+    },
+    {
+      "name": "icon/component/material",
+      "nodeId": "954:9481",
+      "width": 16,
+      "height": 16,
+      "file": "170-icon-component-material--954-9481.png"
+    },
+    {
+      "name": "icon/component/AR",
+      "nodeId": "145:31666",
+      "width": 16,
+      "height": 16,
+      "file": "171-icon-component-ar--145-31666.png"
+    },
+    {
+      "name": "icon/component/audio",
+      "nodeId": "145:31675",
+      "width": 16,
+      "height": 16,
+      "file": "172-icon-component-audio--145-31675.png"
+    },
+    {
+      "name": "icon/component/music",
+      "nodeId": "4865:396081",
+      "width": 16,
+      "height": 16,
+      "file": "173-icon-component-music--4865-396081.png"
+    },
+    {
+      "name": "icon/component/effect",
+      "nodeId": "214:8730",
+      "width": 16,
+      "height": 16,
+      "file": "174-icon-component-effect--214-8730.png"
+    },
+    {
+      "name": "sprite-node",
+      "nodeId": "4868:2135",
+      "width": 16,
+      "height": 16,
+      "file": "175-sprite-node--4868-2135.png"
+    },
+    {
+      "name": "spine",
+      "nodeId": "145:31810",
+      "width": 16,
+      "height": 16,
+      "file": "176-spine--145-31810.png"
+    },
+    {
+      "name": "icon/component/spine",
+      "nodeId": "954:12241",
+      "width": 16,
+      "height": 16,
+      "file": "177-icon-component-spine--954-12241.png"
+    },
+    {
+      "name": "icon/component/text",
+      "nodeId": "954:12271",
+      "width": 16,
+      "height": 16,
+      "file": "178-icon-component-text--954-12271.png"
+    },
+    {
+      "name": "icon/component/wrap",
+      "nodeId": "954:12286",
+      "width": 16,
+      "height": 16,
+      "file": "179-icon-component-wrap--954-12286.png"
+    },
+    {
+      "name": "icon/component/trail",
+      "nodeId": "954:14577",
+      "width": 16,
+      "height": 16,
+      "file": "180-icon-component-trail--954-14577.png"
+    },
+    {
+      "name": "icon/component/round",
+      "nodeId": "954:12180",
+      "width": 16,
+      "height": 16,
+      "file": "181-icon-component-round--954-12180.png"
+    },
+    {
+      "name": "icon/component/scissors",
+      "nodeId": "954:12181",
+      "width": 16,
+      "height": 16,
+      "file": "182-icon-component-scissors--954-12181.png"
+    },
+    {
+      "name": "icon/component/screen-save",
+      "nodeId": "954:12236",
+      "width": 16,
+      "height": 16,
+      "file": "183-icon-component-screen-save--954-12236.png"
+    },
+    {
+      "name": "icon/component/timeline",
+      "nodeId": "954:14559",
+      "width": 16,
+      "height": 16,
+      "file": "184-icon-component-timeline--954-14559.png"
+    },
+    {
+      "name": "icon/component/node-graph",
+      "nodeId": "145:32196",
+      "width": 16,
+      "height": 16,
+      "file": "185-icon-component-node-graph--145-32196.png"
+    },
+    {
+      "name": "icon/component/input-blocker",
+      "nodeId": "4865:396084",
+      "width": 16,
+      "height": 16,
+      "file": "186-icon-component-input-blocker--4865-396084.png"
+    },
+    {
+      "name": "icon/component/copy-location",
+      "nodeId": "954:9722",
+      "width": 16,
+      "height": 16,
+      "file": "187-icon-component-copy-location--954-9722.png"
+    },
+    {
+      "name": "icon/component/limit-location",
+      "nodeId": "145:32265",
+      "width": 16,
+      "height": 16,
+      "file": "188-icon-component-limit-location--145-32265.png"
+    },
+    {
+      "name": "icon/component/copy-rotation",
+      "nodeId": "145:32273",
+      "width": 16,
+      "height": 16,
+      "file": "189-icon-component-copy-rotation--145-32273.png"
+    },
+    {
+      "name": "icon/component/limit-rotation",
+      "nodeId": "145:32280",
+      "width": 16,
+      "height": 16,
+      "file": "190-icon-component-limit-rotation--145-32280.png"
+    },
+    {
+      "name": "icon/component/copy-scale",
+      "nodeId": "145:32287",
+      "width": 16,
+      "height": 16,
+      "file": "191-icon-component-copy-scale--145-32287.png"
+    },
+    {
+      "name": "icon/component/limit-scale",
+      "nodeId": "145:32293",
+      "width": 16,
+      "height": 16,
+      "file": "192-icon-component-limit-scale--145-32293.png"
+    },
+    {
+      "name": "icon/component/look",
+      "nodeId": "145:32300",
+      "width": 16,
+      "height": 16,
+      "file": "193-icon-component-look--145-32300.png"
+    },
+    {
+      "name": "icon/component/custom",
+      "nodeId": "213:8806",
+      "width": 16,
+      "height": 16,
+      "file": "194-icon-component-custom--213-8806.png"
+    },
+    {
+      "name": "icon/component/audio-container",
+      "nodeId": "213:8826",
+      "width": 16,
+      "height": 16,
+      "file": "195-icon-component-audio-container--213-8826.png"
+    },
+    {
+      "name": "icon/component/propagate",
+      "nodeId": "1134:11176",
+      "width": 16,
+      "height": 16,
+      "file": "196-icon-component-propagate--1134-11176.png"
+    },
+    {
+      "name": "icon/component/animation-model-container",
+      "nodeId": "1024:10998",
+      "width": 16,
+      "height": 16,
+      "file": "197-icon-component-animation-model-container--1024-10998.png"
+    },
+    {
+      "name": "icon/component/constraints/Default",
+      "nodeId": "145:32253",
+      "width": 16,
+      "height": 16,
+      "file": "198-icon-component-constraints-default--145-32253.png"
+    },
+    {
+      "name": "sprite",
+      "nodeId": "4868:2145",
+      "width": 16,
+      "height": 16,
+      "file": "199-sprite--4868-2145.png"
+    },
+    {
+      "name": "icon/component/lua-logic",
+      "nodeId": "4865:396086",
+      "width": 16,
+      "height": 16,
+      "file": "200-icon-component-lua-logic--4865-396086.png"
+    },
+    {
+      "name": "icon/component/pedometer",
+      "nodeId": "4865:396088",
+      "width": 16,
+      "height": 16,
+      "file": "201-icon-component-pedometer--4865-396088.png"
+    },
+    {
+      "name": "icon/component/text-node",
+      "nodeId": "4865:396091",
+      "width": 16,
+      "height": 16,
+      "file": "202-icon-component-text-node--4865-396091.png"
+    },
+    {
+      "name": "icon/component/timeline-node",
+      "nodeId": "4865:396093",
+      "width": 16,
+      "height": 16,
+      "file": "203-icon-component-timeline-node--4865-396093.png"
+    },
+    {
+      "name": "icon/component/timer-node",
+      "nodeId": "4865:396095",
+      "width": 16,
+      "height": 16,
+      "file": "204-icon-component-timer-node--4865-396095.png"
+    },
+    {
+      "name": "Monocolor=false",
+      "nodeId": "954:9486",
+      "width": 16,
+      "height": 16,
+      "file": "205-monocolor-false--954-9486.png"
+    },
+    {
+      "name": "Monocolor=true",
+      "nodeId": "4873:35473",
+      "width": 16,
+      "height": 16,
+      "file": "206-monocolor-true--4873-35473.png"
+    },
+    {
+      "name": "orientation_Landscape",
+      "nodeId": "4791:178787",
+      "width": 16,
+      "height": 16,
+      "file": "207-orientation-landscape--4791-178787.png"
+    },
+    {
+      "name": "orientation_Portrait",
+      "nodeId": "4791:178788",
+      "width": 16,
+      "height": 16,
+      "file": "208-orientation-portrait--4791-178788.png"
+    },
+    {
+      "name": "externalLink",
+      "nodeId": "4841:754",
+      "width": 16,
+      "height": 16,
+      "file": "209-externallink--4841-754.png"
+    },
+    {
+      "name": "icon/time-mode",
+      "nodeId": "4865:395975",
+      "width": 16,
+      "height": 16,
+      "file": "210-icon-time-mode--4865-395975.png"
+    },
+    {
+      "name": "icon/key-mode",
+      "nodeId": "4865:395978",
+      "width": 16,
+      "height": 16,
+      "file": "211-icon-key-mode--4865-395978.png"
+    }
+  ]
+}

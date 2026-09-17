@@ -533,7 +533,11 @@
 </main>
 
 <script>
-const prototypeFile = 'build-state-prototype-v4.html';
+// When opened directly from file://, use the published prototype so relative
+// icon assets remain available. On the hosted study, keep the same-origin copy.
+const prototypeFile = window.location.protocol === 'file:'
+  ? 'https://hyojinyang-ai.github.io/eed-build-state-prototype/build-state-prototype-v4.html'
+  : 'build-state-prototype-v4.html';
 const minimumExposureMs = 7000;
 // Deployed Google Apps Script receiver for study responses.
 const submissionEndpoint = 'https://script.google.com/a/macros/king.com/s/AKfycbyAF755mO6wIO5a4p0AzJG0fOmiZ4v954QXS6VeJrsAqSJmBcx96j_qNGYY-Rj6Zg41/exec';

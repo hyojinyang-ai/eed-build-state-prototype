@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor workflow study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #111315;
+    --surface: #1b1e21;
+    --surface-raised: #25292d;
+    --border: #3d4349;
+    --text: #f1f4f6;
+    --muted: #a8b0b8;
+    --accent: #1479b8;
+    --accent-hover: #176fa5;
+    --accent-text: #7fc5f6;
+    --focus: #8bcbf8;
+    --success: #17c281;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, system-ui, sans-serif;
+    overflow: hidden;
+  }
+  button, input, select, textarea { font: inherit; }
+  button { cursor: pointer; }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .screen { display: none; width: 100%; height: 100%; }
+  .screen.active { display: flex; }
+  .center-screen { align-items: center; justify-content: center; overflow-y: auto; padding: 32px; }
+  .card {
+    width: min(680px, 100%);
+    padding: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.35);
+  }
+  .eyebrow {
+    margin: 0 0 12px;
+    color: var(--accent-text);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  h1, h2 { margin: 0; letter-spacing: -.02em; }
+  h1 { font-size: clamp(28px, 4vw, 42px); line-height: 1.1; }
+  h2 { font-size: 24px; line-height: 1.25; }
+  p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+  .intro-list { margin: 22px 0; padding-left: 20px; color: var(--muted); line-height: 1.7; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+  label.field { display: grid; gap: 7px; color: var(--text); font-size: 13px; font-weight: 600; }
+  .field.full { grid-column: 1 / -1; }
+  input, select, textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: #101214;
+    color: var(--text);
+    padding: 11px 12px;
+  }
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 36px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='m3 4.5 3 3 3-3' stroke='%23a8b0b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px 12px;
+  }
+  textarea { min-height: 118px; resize: vertical; line-height: 1.5; }
+  .consent { display: flex; align-items: flex-start; gap: 10px; margin: 22px 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .consent input { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--accent); }
+  .consent label { cursor: pointer; }
+  .primary, .secondary {
+    min-height: 42px;
+    padding: 10px 18px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    font-weight: 700;
+  }
+  .primary { background: var(--accent); color: #fff; }
+  .primary:hover { background: var(--accent-hover); }
+  .primary:disabled { cursor: not-allowed; opacity: .45; }
+  .secondary { background: transparent; color: var(--text); border-color: var(--border); }
+  .link-button {
+    min-height: 42px;
+    padding: 10px 0;
+    border: 0;
+    background: transparent;
+    color: #7fc5f6;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .link-button:hover { color: #b3ddfa; }
+  .button-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+  .button-row.split { justify-content: space-between; }
+  .error { min-height: 20px; margin: 10px 0 0; color: #ff9b9b; font-size: 13px; }
+
+  #study-screen { flex-direction: column; }
+  .study-header {
+    height: 54px;
+    flex: 0 0 54px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 18px;
+    background: #171a1d;
+    border-bottom: 1px solid var(--border);
+  }
+  .study-name { font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .progress-track { flex: 1; height: 5px; overflow: hidden; border-radius: 99px; background: #32373c; }
+  .progress-fill { height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+  .progress-copy { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .prototype-stage { position: relative; flex: 1; min-height: 0; background: #303030; }
+  #prototype-frame { display: block; width: 100%; height: 100%; border: 0; background: #303030; }
+  .task-overlay, .question-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    background: rgba(8,10,12,.82);
+    backdrop-filter: blur(5px);
+  }
+  .task-overlay.hidden, .question-overlay.hidden { display: none; }
+  .task-card { width: min(620px, 100%); }
+  .task-card .scenario-number { color: #7fc5f6; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+  .task-card h2 { margin-top: 9px; }
+  .task-card p { margin: 12px 0 0; }
+  .stimulus-controls {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    z-index: 7;
+    display: none;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: rgba(20,23,26,.94);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.4);
+  }
+  .stimulus-controls.visible { display: flex; }
+  .observation-note { color: var(--muted); font-size: 12px; }
+  .stimulus-controls .primary { min-height: 34px; padding: 6px 12px; font-size: 13px; }
+  .question-card { width: min(620px, 100%); max-height: calc(100vh - 110px); overflow-y: auto; }
+  .question-step { display: none; }
+  .question-step.active { display: block; }
+  .question-step > h2 { max-width: 760px; }
+  .question-helper { max-width: 720px; margin: 10px 0 0; font-size: 14px; }
+  .review-scenario-button { margin-top: 12px; }
+  .requirement { color: var(--accent-text); font-size: .85em; font-weight: 700; white-space: nowrap; }
+  h2 .requirement { font-size: 14px; }
+  .field-helper { color: var(--muted); font-size: 12px; font-weight: 400; line-height: 1.45; }
+  #final-form > .field > span:first-child {
+    display: block;
+    max-width: 68ch;
+    font-size: clamp(16px, 1.5vw, 19px);
+    line-height: 1.42;
+    font-weight: 700;
+  }
+  #final-form > .field > span:first-child .requirement { font-size: .78em; }
+  .question-emphasis {
+    text-decoration-line: underline;
+    text-decoration-thickness: .1em;
+    text-underline-offset: .16em;
+  }
+  .open-response-field { gap: 12px !important; margin-top: 24px; }
+  fieldset { margin: 22px 0 0; padding: 0; border: 0; }
+  legend { margin-bottom: 10px; color: var(--text); font-size: 14px; font-weight: 700; line-height: 1.4; }
+  .choices { display: grid; gap: 8px; }
+  .choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.4;
+    cursor: pointer;
+  }
+  .choice:hover { border-color: #68727c; background: rgba(255,255,255,.025); }
+  .choice input,
+  .scale input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .choice:has(input:focus-visible),
+  .scale label:has(input:focus-visible) {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .choice:has(input:checked) {
+    border-color: var(--accent);
+    background: rgba(20,121,184,.16);
+    color: var(--text);
+  }
+  .question-card .choices {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 4px 0 8px;
+  }
+  .question-card .choice {
+    min-width: 0;
+    min-height: 60px;
+    padding: 14px 16px;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    border-color: #4a525a;
+    border-radius: 10px;
+    background: #15181b;
+    color: #c4cbd2;
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.45;
+    letter-spacing: .15px;
+  }
+  .question-card .choice:hover { border-color: #71808d; background: #1b2024; }
+  .question-card .choice:has(input:checked) {
+    border-color: var(--accent);
+    background: rgba(20,121,184,.16);
+    color: var(--text);
+  }
+  .unsure-detail { margin-top: 16px; }
+  .unsure-detail.hidden { display: none; }
+  .unsure-detail input { font-weight: 400; }
+  #open-response, #final-form textarea { min-height: 96px; }
+  .scale { display: grid; grid-template-columns: repeat(5, minmax(42px, 1fr)); gap: 8px; }
+  .scale label { display: grid; min-height: 62px; place-items: center; padding: 10px 4px; border: 1px solid var(--border); border-radius: 9px; color: var(--muted); font-size: 22px; font-weight: 700; cursor: pointer; }
+  .scale label:has(input:checked) { border-color: var(--accent); background: rgba(20,121,184,.16); color: var(--text); }
+  .scale-labels { display: flex; justify-content: space-between; margin-top: 8px; color: #8f98a1; font-size: 12px; }
+  .question-error { min-height: 18px; margin-top: 10px; color: #ff9b9b; font-size: 12px; }
+  .complete-mark { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; background: rgba(23,194,129,.13); color: var(--success); font-size: 25px; }
+  .submission-help.hidden { display: none; }
+  .hidden { display: none !important; }
+  #final-screen .card { display: flex; max-height: calc(100dvh - 32px); flex-direction: column; }
+  #final-form { min-height: 0; overflow-y: auto; padding-right: 4px; }
+  #final-screen .button-row { flex: 0 0 auto; padding-top: 4px; background: var(--surface); }
+
+  @media (max-width: 980px) {
+    .question-card { width: min(620px, 100%); }
+    .question-card .choices {
+      display: grid;
+      grid-template-columns: 1fr;
+      padding-inline: 0;
+    }
+    .question-card .choice {
+      min-width: 0;
+      min-height: 60px;
+      padding: 14px;
+    }
+  }
+
+  @media (max-width: 680px) {
+    .center-screen { padding: 16px; }
+    .card { padding: clamp(18px, 5vw, 24px); }
+    .form-grid { grid-template-columns: 1fr; }
+    .field.full { grid-column: auto; }
+    .study-name { display: none; }
+    .study-header { gap: 10px; padding-inline: 12px; }
+    .progress-copy { font-size: 11px; }
+    .task-overlay, .question-overlay { align-items: flex-start; padding: 12px; overflow-y: auto; }
+    .task-card, .question-card { margin-block: auto; }
+    .question-step > h2 { font-size: clamp(20px, 6vw, 24px); }
+    .question-card .choices { grid-template-columns: 1fr; gap: 8px; }
+    .question-card .choice { min-height: 58px; }
+    .button-row.split { align-items: stretch; }
+    .button-row.split button { flex: 1 1 0; min-width: 0; padding-inline: 10px; }
+    .button-row.split .link-button { flex: 0 1 auto; padding-inline: 0; }
+    .stimulus-controls {
+      right: 10px;
+      bottom: max(10px, env(safe-area-inset-bottom));
+      left: 10px;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 12px;
+    }
+    .observation-note { flex: 1 1 180px; }
+    .stimulus-controls .primary { flex: 0 1 auto; min-height: 44px; }
+  }
+
+  @media (max-width: 420px) {
+    .center-screen { padding: 10px; }
+    .task-overlay, .question-overlay { padding: 8px; }
+    .question-card { border-radius: 9px; }
+    .question-card .choices { grid-template-columns: 1fr; }
+    .question-card .choice { min-height: 58px; text-align: left; align-items: flex-start; }
+    .button-row { flex-wrap: wrap; }
+    .button-row:not(.split) button { width: 100%; }
+    .scale { grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 5px; }
+    .scale label { min-width: 0; }
+    .stimulus-controls .primary { width: 100%; }
+  }
+
+  @media (max-height: 700px) {
+    .center-screen { align-items: flex-start; }
+    .card { margin-block: auto; }
+    .question-card .choice { min-height: 72px; }
+  }
+</style>
+</head>
+<body>
+<main id="start-screen" class="screen center-screen active">
+  <section class="card" aria-labelledby="study-title">
+    <p class="eyebrow">Remote study · about 4–6 minutes</p>
+    <h1 id="study-title">Editor workflow study</h1>
+    <p>You’ll work through three short situations in an Editor prototype and answer a few questions afterward. This is a test of the interface, not of you.</p>
+    <ul class="intro-list">
+      <li>Use a desktop or laptop in a quiet place.</li>
+      <li>Follow each task as you normally would.</li>
+      <li>There are no trick questions or wrong answers.</li>
+    </ul>
+    <div class="form-grid">
+      <label class="field"><span>Participant name <span class="requirement">(Required)</span></span>
+        <input id="participant-name" autocomplete="name" placeholder="Enter your name" required>
+      </label>
+      <label class="field"><span>Your team <span class="requirement">(Required)</span></span>
+        <select id="participant-team" required>
+          <option value="">Select a team</option>
+          <option>Candy</option>
+          <option>Soda</option>
+          <option>Farm</option>
+          <option>Catalog</option>
+          <option>Game Production</option>
+          <option>Other</option>
+        </select>
+      </label>
+      <label class="field"><span>Your primary role <span class="requirement">(Required)</span></span>
+        <select id="participant-role" required>
+          <option value="">Select a role</option>
+          <option>UI designer/artist</option>
+          <option>UX Designer</option>
+          <option>Game Developer</option>
+          <option>Technical Artist</option>
+          <option>VFX artist</option>
+          <option>Game Designer</option>
+          <option>Tool Developer</option>
+          <option>Other</option>
+        </select>
+      </label>
+      <label id="participant-role-other-field" class="field hidden" for="participant-role-other">
+        <span>Specify your role <span class="requirement">(Required)</span></span>
+        <input id="participant-role-other" autocomplete="organization-title" placeholder="Enter your role">
+      </label>
+      <label class="field"><span>Experience with the Editor <span class="requirement">(Required)</span></span>
+        <select id="participant-experience" required>
+          <option value="">Select experience</option>
+          <option>Less than 3 months</option>
+          <option>3–12 months</option>
+          <option>1–3 years</option>
+          <option>More than 3 years</option>
+        </select>
+      </label>
+    </div>
+    <div class="consent"><input id="consent" type="checkbox" required><label for="consent">I agree to take part and understand that my name, answers, and interactions will be sent to the researcher’s Google Drive folder. If sending fails, a backup file may be downloaded. <span class="requirement">(Required)</span></label></div>
+    <div class="button-row"><button id="start-button" class="primary" type="button">Start study</button></div>
+    <p id="start-error" class="error" role="alert"></p>
+  </section>
+</main>
+
+<main id="goal-screen" class="screen center-screen">
+  <section class="card" aria-labelledby="goal-title">
+    <p class="eyebrow">Before you begin</p>
+    <h1 id="goal-title">We’re evaluating an Editor workflow. Work as you normally would.</h1>
+    <p>You’ll complete three short scenarios. After each one, answer based on what you remember.</p>
+    <div class="button-row"><button id="begin-scenarios-button" class="primary" type="button">Begin scenarios</button></div>
+  </section>
+</main>
+
+<main id="study-screen" class="screen">
+  <header class="study-header">
+    <span class="study-name">Editor workflow study</span>
+    <div class="progress-track" aria-hidden="true"><div id="progress-fill" class="progress-fill"></div></div>
+    <span id="progress-copy" class="progress-copy">Scenario 1 of 3</span>
+  </header>
+  <section class="prototype-stage">
+    <iframe id="prototype-frame" title="Editor prototype"></iframe>
+    <div id="task-overlay" class="task-overlay">
+      <section class="card task-card" aria-labelledby="task-title">
+        <div id="scenario-number" class="scenario-number">Scenario 1 of 3</div>
+        <h2 id="task-title">Reviewing the Editor</h2>
+        <p id="task-copy"></p>
+        <div class="button-row"><button id="open-editor-button" class="primary" type="button">Open Editor</button></div>
+      </section>
+    </div>
+    <div id="stimulus-controls" class="stimulus-controls">
+      <span id="observation-note" class="observation-note">Take a moment to review the Editor</span>
+      <button id="answer-button" class="primary" type="button" disabled>Answer the questions</button>
+    </div>
+    <div id="question-overlay" class="question-overlay hidden">
+      <section class="card question-card" aria-live="polite">
+        <div id="open-question-step" class="question-step active">
+          <p class="eyebrow">Question 1 of 4 · Answer from memory</p>
+          <h2 id="question-title">What stood out to you, if anything?</h2>
+          <p>The prototype is hidden. Describe anything you remember noticing, or review it again if you need to.</p>
+          <button id="review-scenario-button" class="link-button review-scenario-button" type="button">Review the scenario</button>
+          <label class="field open-response-field">Your answer <span style="color:var(--muted);font-weight:400">Optional</span>
+            <textarea id="open-response" placeholder="Write what stood out to you"></textarea>
+          </label>
+          <p id="open-error" class="question-error" role="alert"></p>
+          <div class="button-row"><button id="open-response-button" class="primary" type="button">Continue</button></div>
+        </div>
+        <form id="scenario-form">
+          <div id="status-question-step" class="question-step">
+            <p class="eyebrow">Question 2 of 4</p>
+            <h2>Which statement best describes the viewport? <span class="requirement">(Required)</span></h2>
+            <p class="question-helper">Choose the closest match.</p>
+            <fieldset>
+              <legend class="sr-only">Select the viewport status</legend>
+              <div id="status-choices" class="choices"></div>
+            </fieldset>
+            <label id="status-unsure-field" class="field unsure-detail hidden">What made you unsure? <span style="color:var(--muted);font-weight:400">Optional</span>
+              <input id="status-unsure-detail" autocomplete="off" placeholder="Tell us what was unclear">
+            </label>
+            <p id="status-error" class="question-error" role="alert"></p>
+            <div class="button-row split"><button id="status-previous-button" class="link-button" type="button">Previous question</button><button id="status-question-button" class="primary" type="button">Continue</button></div>
+          </div>
+          <div id="action-question-step" class="question-step">
+            <p class="eyebrow">Question 3 of 4</p>
+            <h2>What would you do next? <span class="requirement">(Required)</span></h2>
+            <p class="question-helper">Choose all actions you would take in your normal workflow.</p>
+            <fieldset>
+              <legend class="sr-only">Select all next actions you would take</legend>
+              <div id="action-choices" class="choices"></div>
+            </fieldset>
+            <label id="action-unsure-field" class="field unsure-detail hidden">What made you unsure? <span style="color:var(--muted);font-weight:400">Optional</span>
+              <input id="action-unsure-detail" autocomplete="off" placeholder="Tell us what was unclear">
+            </label>
+            <p id="action-error" class="question-error" role="alert"></p>
+            <div class="button-row split"><button id="action-previous-button" class="link-button" type="button">Previous question</button><button id="action-question-button" class="primary" type="button">Continue</button></div>
+          </div>
+          <div id="intrusion-question-step" class="question-step">
+            <p class="eyebrow">Question 4 of 4</p>
+            <h2>How intrusive did the communication feel? <span class="requirement">(Required)</span></h2>
+            <p class="question-helper">Rate the communication you saw in this scenario.</p>
+            <fieldset>
+              <legend class="sr-only">Select how intrusive the communication felt from one to five</legend>
+              <div id="scenario-intrusion-scale" class="scale"></div>
+              <div class="scale-labels"><span>Not intrusive</span><span>Very intrusive</span></div>
+            </fieldset>
+            <label id="intrusion-detail-field" class="field unsure-detail hidden">How would you prefer to see this communication? <span style="color:var(--muted);font-weight:400">Optional</span>
+              <input id="intrusion-detail" autocomplete="off" placeholder="Describe what would feel less intrusive">
+            </label>
+            <p id="intrusion-error" class="question-error" role="alert"></p>
+            <div class="button-row split"><button id="intrusion-previous-button" class="link-button" type="button">Previous question</button><button id="save-scenario-button" class="primary" type="button">Next scenario</button></div>
+          </div>
+          <div id="reflection-question-step" class="question-step">
+            <p class="eyebrow">Fallback reflection · 2 questions</p>
+            <h2>Help us understand what the message meant to you.</h2>
+            <label class="field" style="margin-top:22px"><span>What is the difference between a <span class="question-emphasis">fallback preview</span> and a <span class="question-emphasis">game-build preview</span>? <span class="requirement">(Required)</span></span>
+              <span class="field-helper">Answer in your own words. You can review the scenario first.</span>
+              <textarea id="scenario-difference-response" required></textarea>
+            </label>
+            <label class="field" style="margin-top:22px"><span>What do you expect to happen to your open scene, selection, and unsaved changes <span class="question-emphasis">when the runtime switches</span>? <span class="requirement">(Required)</span></span>
+              <span class="field-helper">If you’re not sure, say so.</span>
+              <textarea id="scenario-runtime-switch-response" placeholder="Describe what you would expect" required></textarea>
+            </label>
+            <p id="reflection-error" class="question-error" role="alert"></p>
+            <div class="button-row split"><button id="reflection-previous-button" class="link-button" type="button">Previous question</button><button id="save-reflection-button" class="primary" type="button">Continue</button></div>
+          </div>
+        </form>
+      </section>
+    </div>
+  </section>
+</main>
+
+<main id="final-screen" class="screen center-screen">
+  <section class="card" aria-labelledby="final-title">
+    <p class="eyebrow">Final reflection</p>
+    <h1 id="final-title">Almost finished</h1>
+    <form id="final-form">
+      <label class="field" style="margin-top:22px"><span>Was anything unclear or concerning? <span class="requirement">(Optional)</span></span>
+        <span class="field-helper">Tell us what, if anything, was confusing or made you hesitate.</span>
+        <textarea id="concerns-response"></textarea>
+      </label>
+    </form>
+    <p id="final-error" class="question-error" role="alert"></p>
+    <div class="button-row"><button id="finish-button" class="primary" type="button">Submit responses to researcher</button></div>
+  </section>
+</main>
+
+<main id="complete-screen" class="screen center-screen">
+  <section class="card" aria-labelledby="complete-title">
+    <div class="complete-mark" aria-hidden="true">✓</div>
+    <p class="eyebrow" style="margin-top:20px">Study complete</p>
+    <h1 id="complete-title">Thank you</h1>
+    <p id="submission-status" role="status">Submitting your responses…</p>
+    <p id="submission-detail">Keep this page open while the submission finishes.</p>
+    <div id="submission-help" class="submission-help hidden">
+      <p>We could not confirm automatic submission. Download a backup copy and send it through the research channel provided by your researcher.</p>
+    </div>
+    <div class="button-row split"><button id="download-again" class="secondary" type="button">Download backup copy</button><button id="retry-submit" class="primary hidden" type="button">Try submitting again</button><button id="close-study" class="secondary" type="button" disabled>Close</button></div>
+  </section>
+</main>
+
+<script>
+const prototypeFile = 'build-state-prototype-v4.html';
+const minimumExposureMs = 7000;
+// Deployed Google Apps Script receiver for study responses.
+const submissionEndpoint = 'https://script.google.com/a/macros/king.com/s/AKfycbyAF755mO6wIO5a4p0AzJG0fOmiZ4v954QXS6VeJrsAqSJmBcx96j_qNGYY-Rj6Zg41/exec';
+
+const scenarios = [
+  {
+    id: 'game-build-out-of-sync', state: 3,
+    title: 'Check recent visual changes',
+    task: 'You recently committed changes and now need to inspect them in the viewport before approving the visuals.',
+    expected: { status: 'game-outdated', action: 'request-before-validation' }
+  },
+  {
+    id: 'fallback-limited', state: 1,
+    title: 'Review the current scene',
+    task: 'You opened a scene containing a game-specific component. Something looks different from what you remember in the live game.',
+    expected: { status: 'fallback-limited', action: 'continue' }
+  },
+  {
+    id: 'game-build-unavailable', state: 4,
+    title: 'Continue editing the scene',
+    task: 'You opened this scene to continue working. Review what happens in the viewport and decide how you would proceed.',
+    expected: { status: 'runtime-unavailable', action: 'restart' }
+  }
+];
+
+const options = {
+  status: [
+    ['game-current', 'The viewport showed the current game build'],
+    ['game-outdated', 'The viewport showed a game build without the latest changes'],
+    ['fallback-limited', 'The viewport showed a fallback preview, so some game visuals might differ'],
+    ['runtime-unavailable', 'The viewport was unavailable because its runtime could not start'],
+    ['unsure', 'I’m not sure']
+  ],
+  action: [
+    ['validate', 'Use this preview to check visuals'],
+    ['continue', 'Keep editing; no action needed'],
+    ['request-before-validation', 'Keep editing; request a new build before checking visuals'],
+    ['restart', 'Restart the runtime'],
+    ['report-content-error', 'Report a visual difference'],
+    ['unsure', 'I’m not sure']
+  ]
+};
+
+const screens = [...document.querySelectorAll('.screen')];
+const frame = document.getElementById('prototype-frame');
+const taskOverlay = document.getElementById('task-overlay');
+const questionOverlay = document.getElementById('question-overlay');
+const stimulusControls = document.getElementById('stimulus-controls');
+let study = null;
+let scenarioIndex = 0;
+let scenarioStartedAt = 0;
+let answerStartedAt = 0;
+let currentClicks = [];
+let exposureTimer = null;
+let prototypeFrameLoaded = false;
+let pendingStimulusStart = false;
+let reviewingScenario = false;
+
+frame.addEventListener('load', () => {
+  prototypeFrameLoaded = true;
+  if (!pendingStimulusStart) return;
+  pendingStimulusStart = false;
+  frame.contentWindow?.postMessage({ type: 'eed-research-start' }, '*');
+});
+
+function showScreen(id) {
+  screens.forEach((screen) => screen.classList.toggle('active', screen.id === id));
+}
+
+function shuffle(items) {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const random = crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296;
+    const j = Math.floor(random * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function renderChoices(containerId, name, choiceList, multiple = false) {
+  const inputType = multiple ? 'checkbox' : 'radio';
+  document.getElementById(containerId).innerHTML = choiceList.map(([value, label]) => (
+    `<label class="choice"><input type="${inputType}" name="${name}" value="${value}"><span>${label}</span></label>`
+  )).join('');
+}
+
+function renderScale(containerId, name) {
+  document.getElementById(containerId).innerHTML = [1,2,3,4,5].map((value) => (
+    `<label><input type="radio" name="${name}" value="${value}" required><span>${value}</span></label>`
+  )).join('');
+}
+
+renderChoices('status-choices', 'status', options.status);
+renderChoices('action-choices', 'action', options.action, true);
+renderScale('scenario-intrusion-scale', 'scenario-intrusion');
+
+function toggleUnsureField(name) {
+  const field = document.getElementById(`${name}-unsure-field`);
+  const form = document.getElementById('scenario-form');
+  const isUnsure = name === 'action'
+    ? valuesFor(name, form).includes('unsure')
+    : valueFor(name, form) === 'unsure';
+  field.classList.toggle('hidden', !isUnsure);
+}
+
+function toggleIntrusionDetail() {
+  const rating = Number(valueFor('scenario-intrusion', document.getElementById('scenario-form')));
+  document.getElementById('intrusion-detail-field').classList.toggle('hidden', rating < 4);
+}
+
+document.getElementById('scenario-form').addEventListener('change', (event) => {
+  if (event.target.matches('input[name="action"]')) {
+    const actionInputs = [...document.querySelectorAll('input[name="action"]')];
+    if (event.target.checked && event.target.value === 'unsure') {
+      actionInputs.forEach((input) => { if (input !== event.target) input.checked = false; });
+    } else if (event.target.checked) {
+      actionInputs.find((input) => input.value === 'unsure').checked = false;
+    }
+    toggleUnsureField(event.target.name);
+  } else if (event.target.matches('input[name="status"]')) {
+    toggleUnsureField(event.target.name);
+  } else if (event.target.matches('input[name="scenario-intrusion"]')) {
+    toggleIntrusionDetail();
+  }
+});
+
+function valueFor(name, form = document) {
+  return form.querySelector(`[name="${name}"]:checked`)?.value || '';
+}
+
+function valuesFor(name, form = document) {
+  return [...form.querySelectorAll(`[name="${name}"]:checked`)].map((input) => input.value);
+}
+
+function saveDraft() {
+  if (!study) return;
+  localStorage.setItem(`eed-study-${study.sessionId}`, JSON.stringify(study));
+}
+
+window.addEventListener('beforeunload', () => {
+  if (!study || study.completedAt) return;
+  study.metrics = study.metrics || {};
+  study.metrics.abandonedAt = new Date().toISOString();
+  study.metrics.abandonedAfterScenario = study.responses?.length || 0;
+  saveDraft();
+});
+
+function startStudy() {
+  const name = document.getElementById('participant-name').value.trim();
+  const team = document.getElementById('participant-team').value;
+  const roleSelection = document.getElementById('participant-role').value;
+  const roleOther = document.getElementById('participant-role-other').value.trim();
+  const role = roleSelection === 'Other' ? roleOther : roleSelection;
+  const experience = document.getElementById('participant-experience').value;
+  const consent = document.getElementById('consent').checked;
+  const error = document.getElementById('start-error');
+  if (!name || !team || !roleSelection || !role || !experience || !consent) {
+    error.textContent = 'Please complete the participant details and agreement before continuing.';
+    return;
+  }
+  const randomId = crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+  const sessionId = `participant-${Date.now().toString(36)}-${randomId}`;
+  study = {
+    study: 'eed-build-state-comprehension',
+    version: 5,
+    sessionId,
+    participant: { name, team, role, experience },
+    startedAt: new Date().toISOString(),
+    scenarioOrder: shuffle(scenarios.map((scenario) => scenario.id)),
+    responses: [],
+    final: null,
+    metrics: { questionsSkipped: 0, reviewClicks: 0, answerButtonClicks: 0, statusIncorrect: 0, scenariosCompleted: 0 }
+  };
+  saveDraft();
+  showScreen('goal-screen');
+}
+
+function beginScenarios() {
+  showScreen('study-screen');
+  loadScenario();
+}
+
+function currentScenario() {
+  return scenarios.find((scenario) => scenario.id === study.scenarioOrder[scenarioIndex]);
+}
+
+function loadScenario() {
+  const scenario = currentScenario();
+  currentClicks = [];
+  clearTimeout(exposureTimer);
+  document.getElementById('progress-copy').textContent = `Scenario ${scenarioIndex + 1} of ${study.scenarioOrder.length}`;
+  document.getElementById('progress-fill').style.width = `${(scenarioIndex / study.scenarioOrder.length) * 100}%`;
+  document.getElementById('scenario-number').textContent = `Scenario ${scenarioIndex + 1} of ${study.scenarioOrder.length}`;
+  document.getElementById('task-title').textContent = scenario.title;
+  document.getElementById('task-copy').textContent = scenario.task;
+  document.getElementById('save-scenario-button').textContent = scenarioIndex === study.scenarioOrder.length - 1
+    ? 'Continue'
+    : 'Next scenario';
+  document.getElementById('open-response').value = '';
+  document.getElementById('scenario-difference-response').value = '';
+  document.getElementById('scenario-runtime-switch-response').value = '';
+  document.getElementById('scenario-form').reset();
+  ['status', 'action'].forEach((name) => {
+    document.getElementById(`${name}-unsure-detail`).value = '';
+    toggleUnsureField(name);
+  });
+  document.getElementById('intrusion-detail').value = '';
+  toggleIntrusionDetail();
+  document.querySelectorAll('.question-error').forEach((error) => { error.textContent = ''; });
+  showQuestionStep('open-question-step');
+  questionOverlay.classList.add('hidden');
+  reviewingScenario = false;
+  taskOverlay.classList.remove('hidden');
+  stimulusControls.classList.remove('visible');
+  prototypeFrameLoaded = false;
+  pendingStimulusStart = false;
+  const prototypeParams = new URLSearchParams({
+    research: '1',
+    concept: 'A',
+    state: String(scenario.state),
+    static: scenario.id === 'fallback-limited' ? '0' : '1',
+    session: study.sessionId,
+    participant: study.participant.name,
+    defer: '1'
+  });
+  frame.src = `${prototypeFile}?${prototypeParams.toString()}`;
+}
+
+function openEditor() {
+  taskOverlay.classList.add('hidden');
+  stimulusControls.classList.add('visible');
+  if (prototypeFrameLoaded) {
+    frame.contentWindow?.postMessage({ type: 'eed-research-start' }, '*');
+  } else {
+    pendingStimulusStart = true;
+  }
+  scenarioStartedAt = performance.now();
+  const answerButton = document.getElementById('answer-button');
+  const note = document.getElementById('observation-note');
+  answerButton.disabled = true;
+  note.textContent = 'Take a moment to review the Editor';
+  exposureTimer = setTimeout(() => {
+    answerButton.disabled = false;
+    note.textContent = 'Press “Answer the questions” when you feel ready to answer';
+  }, minimumExposureMs);
+}
+
+function openQuestions() {
+  if (reviewingScenario) {
+    reviewingScenario = false;
+    stimulusControls.classList.remove('visible');
+    questionOverlay.classList.remove('hidden');
+    document.getElementById('answer-button').textContent = 'Answer the questions';
+    document.getElementById('open-response').focus();
+    return;
+  }
+  study.metrics.answerButtonClicks += 1;
+  answerStartedAt = performance.now();
+  stimulusControls.classList.remove('visible');
+  questionOverlay.classList.remove('hidden');
+  document.getElementById('open-response').focus();
+}
+
+function reviewScenario() {
+  reviewingScenario = true;
+  study.metrics.reviewClicks += 1;
+  saveDraft();
+  questionOverlay.classList.add('hidden');
+  stimulusControls.classList.add('visible');
+  document.getElementById('observation-note').textContent = 'Review the viewport, then return to the questions';
+  document.getElementById('answer-button').disabled = false;
+  document.getElementById('answer-button').textContent = 'Back to questions';
+}
+
+function continueToClosedQuestions() {
+  document.getElementById('open-error').textContent = '';
+  showQuestionStep('status-question-step');
+}
+
+function showQuestionStep(id) {
+  document.querySelectorAll('.question-step').forEach((step) => step.classList.toggle('active', step.id === id));
+  const step = document.getElementById(id);
+  const focusTarget = step.querySelector('textarea, input, button');
+  if (focusTarget) focusTarget.focus();
+}
+
+function continueQuestion(name, nextStepId, errorId) {
+  const form = document.getElementById('scenario-form');
+  const hasResponse = name === 'action' ? valuesFor(name, form).length > 0 : Boolean(valueFor(name, form));
+  if (!hasResponse) {
+    study.metrics.questionsSkipped += 1;
+    document.getElementById(errorId).textContent = name === 'action'
+      ? 'Please select at least one response before continuing.'
+      : 'Please select one response before continuing.';
+    return;
+  }
+  document.getElementById(errorId).textContent = '';
+  showQuestionStep(nextStepId);
+}
+
+function saveScenario() {
+  const form = document.getElementById('scenario-form');
+  const status = valueFor('status', form);
+  const action = valuesFor('action', form);
+  const intrusion = valueFor('scenario-intrusion', form);
+  if (!status || action.length === 0 || !intrusion) {
+    study.metrics.questionsSkipped += 1;
+    document.getElementById('intrusion-error').textContent = 'Please rate how intrusive the communication felt before continuing.';
+    return;
+  }
+  const scenario = currentScenario();
+  study.responses.push({
+    scenarioId: scenario.id,
+    scenarioPosition: scenarioIndex + 1,
+    stateIndex: scenario.state,
+    openResponse: document.getElementById('open-response').value.trim(),
+    status,
+    action,
+    unsureDetails: {
+      status: status === 'unsure' ? document.getElementById('status-unsure-detail').value.trim() : '',
+      action: action.includes('unsure') ? document.getElementById('action-unsure-detail').value.trim() : ''
+    },
+    intrusion: Number(intrusion),
+    intrusionPreference: Number(intrusion) >= 4 ? document.getElementById('intrusion-detail').value.trim() : '',
+    exposureMs: Math.round(answerStartedAt - scenarioStartedAt),
+    answerMs: Math.round(performance.now() - answerStartedAt),
+    clicks: currentClicks,
+    scores: {
+      statusCorrect: status === scenario.expected.status,
+      actionContainsExpected: action.includes(scenario.expected.action),
+      actionExactMatch: action.length === 1 && action.includes(scenario.expected.action)
+    }
+  });
+  study.metrics.scenariosCompleted = study.responses.length;
+  if (status !== scenario.expected.status) study.metrics.statusIncorrect += 1;
+  if (scenario.id === 'fallback-limited') {
+    study.final = {
+      fallbackDifference: document.getElementById('scenario-difference-response').value.trim(),
+      runtimeSwitchExpectation: document.getElementById('scenario-runtime-switch-response').value.trim(),
+      concerns: study.final?.concerns || ''
+    };
+  }
+  saveDraft();
+  scenarioIndex += 1;
+  if (scenarioIndex >= study.scenarioOrder.length) {
+    document.getElementById('progress-fill').style.width = '100%';
+    showScreen('final-screen');
+    return;
+  }
+  loadScenario();
+}
+
+async function finishStudy() {
+  study.final = { ...(study.final || {}), concerns: document.getElementById('concerns-response').value.trim() };
+  study.completedAt = new Date().toISOString();
+  study.durationMs = new Date(study.completedAt) - new Date(study.startedAt);
+  study.submission = { status: 'submitting', attemptedAt: new Date().toISOString() };
+  saveDraft();
+  const finishButton = document.getElementById('finish-button');
+  finishButton.disabled = true;
+  finishButton.textContent = 'Submitting…';
+  showScreen('complete-screen');
+  const submitted = await submitResults();
+  showSubmissionResult(submitted, true);
+}
+
+function showSubmissionResult(submitted, downloadOnFailure) {
+  const closeButton = document.getElementById('close-study');
+  const retryButton = document.getElementById('retry-submit');
+  // Closing is available only after the service explicitly confirms receipt.
+  closeButton.disabled = !submitted;
+  if (submitted) {
+    study.submission = { status: 'confirmed', submittedAt: new Date().toISOString() };
+    document.getElementById('submission-status').textContent = 'Responses submitted';
+    document.getElementById('submission-detail').textContent = 'Your researcher received your responses. You can close this study or download a copy for your records.';
+    document.getElementById('download-again').textContent = 'Download response file';
+    document.getElementById('submission-help').classList.add('hidden');
+    retryButton.classList.add('hidden');
+  } else {
+    study.submission = { status: 'unconfirmed', attemptedAt: new Date().toISOString() };
+    document.getElementById('submission-status').textContent = 'Submission could not be confirmed';
+    document.getElementById('submission-detail').textContent = downloadOnFailure
+      ? 'A backup response file has been downloaded. Try submitting again or share the backup with your researcher. Close will be available after confirmation.'
+      : 'The submission still could not be confirmed. Try again or share your backup copy with your researcher. Close will be available after confirmation.';
+    document.getElementById('submission-help').classList.remove('hidden');
+    document.getElementById('download-again').textContent = 'Download backup copy';
+    retryButton.classList.remove('hidden');
+    retryButton.disabled = false;
+    retryButton.textContent = 'Try submitting again';
+    if (downloadOnFailure) downloadResults();
+  }
+  saveDraft();
+}
+
+async function retrySubmission() {
+  const retryButton = document.getElementById('retry-submit');
+  const closeButton = document.getElementById('close-study');
+  retryButton.disabled = true;
+  retryButton.textContent = 'Submitting…';
+  closeButton.disabled = true;
+  document.getElementById('submission-help').classList.add('hidden');
+  document.getElementById('submission-status').textContent = 'Submitting your responses…';
+  document.getElementById('submission-detail').textContent = 'Keep this page open while the submission finishes.';
+  const submitted = await submitResults();
+  showSubmissionResult(submitted, false);
+}
+
+async function submitResults() {
+  if (!submissionEndpoint) return false;
+  return new Promise((resolve) => {
+    const receiptToken = `${study.sessionId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const frameName = `eed-submission-${Date.now()}`;
+    const iframe = document.createElement('iframe');
+    const form = document.createElement('form');
+    let settled = false;
+
+    iframe.name = frameName;
+    iframe.hidden = true;
+    form.method = 'POST';
+    form.action = submissionEndpoint;
+    form.target = frameName;
+    form.hidden = true;
+
+    const payloadInput = document.createElement('input');
+    payloadInput.type = 'hidden';
+    payloadInput.name = 'payload';
+    payloadInput.value = JSON.stringify(study);
+    form.appendChild(payloadInput);
+
+    const receiptInput = document.createElement('input');
+    receiptInput.type = 'hidden';
+    receiptInput.name = 'receiptToken';
+    receiptInput.value = receiptToken;
+    form.appendChild(receiptInput);
+
+    const finish = (confirmed) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      window.removeEventListener('message', handleReceipt);
+      form.remove();
+      iframe.remove();
+      resolve(confirmed);
+    };
+    const handleReceipt = (event) => {
+      const receipt = event.data;
+      if (receipt?.source !== 'eed-build-state-study'
+        || receipt?.type !== 'submission-receipt'
+        || receipt?.receiptToken !== receiptToken
+        || receipt?.sessionId !== study.sessionId) return;
+      finish(Boolean(receipt.ok));
+    };
+    const timeout = setTimeout(() => finish(false), 15000);
+    window.addEventListener('message', handleReceipt);
+    document.body.append(iframe, form);
+    form.submit();
+  });
+}
+
+function downloadResults() {
+  study.downloadAttempts = (study.downloadAttempts || 0) + 1;
+  saveDraft();
+  download(`${study.sessionId}.json`, JSON.stringify(study, null, 2), 'application/json');
+  if (study.downloadAttempts > 1) {
+    document.getElementById('submission-detail').textContent = 'A new backup copy was requested. Check your Downloads folder.';
+  }
+}
+
+function download(filename, content, mimeType) {
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(link.href), 500);
+}
+
+function closeStudy() {
+  if (window.opener) {
+    window.close();
+  } else {
+    window.location.replace('about:blank');
+  }
+}
+
+window.addEventListener('message', (event) => {
+  if (event.source !== frame.contentWindow || event.data?.type !== 'eed-research-click' || !scenarioStartedAt) return;
+  currentClicks.push({
+    atMs: Math.round(performance.now() - scenarioStartedAt),
+    state: event.data.state,
+    target: event.data.target
+  });
+});
+
+document.getElementById('start-button').addEventListener('click', startStudy);
+document.getElementById('participant-role').addEventListener('change', (event) => {
+  const otherField = document.getElementById('participant-role-other-field');
+  const otherInput = document.getElementById('participant-role-other');
+  const isOther = event.target.value === 'Other';
+  otherField.classList.toggle('hidden', !isOther);
+  otherInput.required = isOther;
+  if (isOther) otherInput.focus();
+});
+document.getElementById('begin-scenarios-button').addEventListener('click', beginScenarios);
+document.getElementById('open-editor-button').addEventListener('click', openEditor);
+document.getElementById('answer-button').addEventListener('click', openQuestions);
+document.getElementById('review-scenario-button').addEventListener('click', reviewScenario);
+document.getElementById('open-response-button').addEventListener('click', continueToClosedQuestions);
+document.getElementById('status-previous-button').addEventListener('click', () => showQuestionStep('open-question-step'));
+document.getElementById('status-question-button').addEventListener('click', () => continueQuestion('status', 'action-question-step', 'status-error'));
+document.getElementById('action-previous-button').addEventListener('click', () => showQuestionStep('status-question-step'));
+document.getElementById('action-question-button').addEventListener('click', () => continueQuestion('action', 'intrusion-question-step', 'action-error'));
+document.getElementById('intrusion-previous-button').addEventListener('click', () => showQuestionStep('action-question-step'));
+document.getElementById('save-scenario-button').addEventListener('click', () => {
+  if (currentScenario().id === 'fallback-limited') {
+    showQuestionStep('reflection-question-step');
+  } else {
+    saveScenario();
+  }
+});
+document.getElementById('reflection-previous-button').addEventListener('click', () => showQuestionStep('intrusion-question-step'));
+document.getElementById('save-reflection-button').addEventListener('click', () => {
+  const difference = document.getElementById('scenario-difference-response').value.trim();
+  const runtimeSwitch = document.getElementById('scenario-runtime-switch-response').value.trim();
+  if (!difference || !runtimeSwitch) {
+    document.getElementById('reflection-error').textContent = 'Please answer both reflection questions. If you’re not sure, say so.';
+    study.metrics.questionsSkipped += 1;
+    return;
+  }
+  document.getElementById('reflection-error').textContent = '';
+  saveScenario();
+});
+document.getElementById('finish-button').addEventListener('click', finishStudy);
+document.getElementById('retry-submit').addEventListener('click', retrySubmission);
+document.getElementById('download-again').addEventListener('click', downloadResults);
+document.getElementById('close-study').addEventListener('click', closeStudy);
+</script>
+</body>
+</html>

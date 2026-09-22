@@ -990,10 +990,37 @@ async function submitResults() {
         || receipt?.sessionId !== study.sessionId) return;
       finish(Boolean(receipt.ok));
     };
-    const timeout = setTimeout(() => finish(false), 15000);
+    // Apps Script can store the response successfully while its HTML receipt
+    // is delayed or swallowed by a redirect. Verify storage before declaring
+    // the submission failed so participants do not see a false error state.
+    const timeout = setTimeout(async () => {
+      const stored = await verifyStoredResponse(study.sessionId);
+      finish(stored);
+    }, 15000);
     window.addEventListener('message', handleReceipt);
     document.body.append(iframe, form);
     form.submit();
+  });
+}
+
+function verifyStoredResponse(sessionId) {
+  return new Promise((resolve) => {
+    const callbackName = `eedStorageCheck_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const script = document.createElement('script');
+    let settled = false;
+    const cleanup = (stored) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      delete window[callbackName];
+      script.remove();
+      resolve(Boolean(stored));
+    };
+    const timeout = setTimeout(() => cleanup(false), 10000);
+    window[callbackName] = (result) => cleanup(result?.ok);
+    script.onerror = () => cleanup(false);
+    script.src = `${submissionEndpoint}?sessionId=${encodeURIComponent(sessionId)}&callback=${callbackName}&_=${Date.now()}`;
+    document.body.appendChild(script);
   });
 }
 

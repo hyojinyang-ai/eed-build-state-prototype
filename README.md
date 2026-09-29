@@ -8,7 +8,35 @@ The scene-editor viewport can render two realities — the **real game build** (
 
 ## Prototypes
 
-### `build-state-prototype-v2.html` (current)
+### [`build-state-prototype-v5.html`](./build-state-prototype-v5.html) — current
+
+The latest interactive prototype incorporates the usability-study findings:
+
+- persistent runtime and reliability communication above the viewport
+- automatic fallback-build preparation and explicit build-ready switching
+- manual rebuild requests for stale game builds
+- context-preserving save-and-switch behavior
+- Figma-aligned warning, information, and fallback-engine recovery states
+- resizable Editor panels and reusable exported FictionUI assets
+
+**[Open the live Version 5 prototype](https://hyojinyang-ai.github.io/eed-build-state-prototype/build-state-prototype-v5.html)**
+
+### `build-state-unmoderated-test.html`
+
+Self-guided remote comprehension study built around the current V4 prototype. It:
+
+- hides the prototype controls and runs the unavailable-build scenario first, followed by two randomized build-state scenarios
+- presents each specific follow-up question on its own screen
+- presents neutral tasks before each Editor state
+- collects unaided understanding before showing closed response choices
+- records exposure time and meaningful prototype clicks
+- submits participant responses to the configured Google Drive receiver and downloads a backup JSON file when submission cannot be confirmed
+
+Open it through the GitHub Pages URL or a local web server. Participants submit responses from the final screen. If automatic submission cannot be confirmed, the study downloads a backup JSON file that they can return through your approved research channel.
+
+See `UNMODERATED_TEST_GUIDE.md` for recruitment, sharing, pass criteria, and evidence guidance.
+
+### `build-state-prototype-v2.html`
 
 Full Fiction Factory editor layout with two concept options:
 

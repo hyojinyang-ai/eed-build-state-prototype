@@ -1,0 +1,62 @@
+/*
+ * FictionUI Design Tokens
+ * Synced from Figma: https://www.figma.com/design/NBIxN2orkOXwn7m3GszZMa/FictionUI
+ *
+ * Usage: copy these :root vars into your prototype's <style> block,
+ * or <link rel="stylesheet" href="design-tokens.css"> if serving locally.
+ */
+
+:root {
+  /* ── FictionUI Core Tokens ── */
+  --neutral0: #e9f1f5;
+  --neutral400: #484b50;
+  --neutral500: #37383a;
+
+  --text-emphasis: #e9f1f5;
+  --text-secondary: #9ea5ae;
+  --bg-accent-primary: #1d7bbf;
+  --border-primary: #222325;
+
+  /* ── Semantic Colors ── */
+  --warning: #f1b41b;        /* Warning400 — fallback/degraded states */
+  --warning-bg: #2e2510;
+  --success: #17c281;        /* Success400 — ready/healthy states */
+  --success-bg: #0e2e22;
+  --processing: #309ae8;     /* Spinner/requesting states */
+  --error: #e05252;          /* Crash/error states */
+
+  /* ── Spacing ── */
+  --spacing-s: 4px;
+  --spacing-l: 8px;
+  --corner-radius-m: 4px;
+  --border-size-xs: 1px;
+
+  /* ── Dark Mode Surface Colors ── */
+  --panel-bg: #303030;
+  --panel-header: #303030;
+  --panel-border: #3f3f3f;
+  --viewport-bg: #4c4c4c;
+  --footer-bg: #353535;
+  --toolbar-bg: #353535;
+
+  /* ── Text ── */
+  --text-primary: var(--text-emphasis);
+  --text-tertiary: #777;
+  --text-disabled: #555;
+
+  /* ── Misc ── */
+  --track: var(--neutral400);
+  --selected-blue: #678db2;
+
+  /* ── Status Dot Colors ── */
+  /* Use these for build-state indicator dots */
+  --dot-green: #71efb2;      /* Ready */
+  --dot-yellow: #f1b41b;     /* Fallback / Out of sync */
+  --dot-red: #e05252;        /* Crash */
+
+  /* ── Chip Colors ── */
+  --chip-bg: #37383a;
+  --chip-border: #484b50;
+  --chip-radius: 3px;
+  --chip-text: #a5a5a5;
+}

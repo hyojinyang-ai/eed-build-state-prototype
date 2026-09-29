@@ -39,7 +39,7 @@
 
 - Current game build: no runtime-status text is shown; the cloud details control remains available.
 - Fallback preview: header reads `Fallback Preview`; the viewport warning explains that game-specific visuals may differ, these differences are not content errors, and no action is needed.
-- Build ready: the viewport information message shows `Build ready · Switch required`, the automatic-build explanation, context-preservation guidance, and `Save and switch to game build`. The action saves unsaved work and begins switching directly; the redundant save-confirmation dialog has been removed.
+- Build ready: the viewport information message shows `Build ready · Switch required`, the automatic-build explanation, context-preservation guidance, and `Save and switch`. The action saves unsaved work and begins switching directly; the redundant save-confirmation dialog has been removed.
 - Stale: header shows `Stale` and `20 commits behind`; the details popup contains `Does not include latest changes`, its reliability guidance, and `Request new build`.
 - Unavailable: the viewport first shows `Connecting`, then the recovery dialog with `Retry fallback engine`.
 - Unavailable-dialog geometry was verified at the Figma reference size of 519 × 260 px, with the 30 px white title bar, `#403e40` body, structured error and resolution copy, and compact right-aligned actions.

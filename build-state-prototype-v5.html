@@ -4239,7 +4239,7 @@
                 <span id="canvas-confirmation-text" class="canvas-confirmation-message"></span>
                 <span id="canvas-confirmation-instruction" class="canvas-confirmation-instruction"></span>
               </span>
-              <button id="canvas-confirmation-action" class="canvas-confirmation-action" type="button">Save and switch to game build</button>
+              <button id="canvas-confirmation-action" class="canvas-confirmation-action" type="button">Save and switch</button>
             </span>
             <!-- Fallback info on canvas overlay (left of Default) -->
             <span id="canvas-fallback-info" class="canvas-fallback-info" role="status" aria-live="polite">
@@ -4701,7 +4701,7 @@ const v5RuntimeStates = {
   1: {
     tone: 'fallback', icon: '▧', runtime: 'Fallback preview',
     reliability: 'Limited for game-specific validation',
-    message: 'Game-specific visuals may be missing or different. This is a fallback-runtime limitation, not necessarily a content error.',
+    message: 'Some game-specific visuals may be missing or different. This is a limitation of the fallback runtime, not necessarily a content error. You can continue editing, no action is needed',
     instruction: 'A game build was requested automatically. You can continue editing.',
     progress: 'Requesting game build automatically…', secondary: 'View progress', secondaryAction: 'progress'
   },
@@ -4751,7 +4751,7 @@ const v5RuntimeStates = {
     reliability: 'Build ready · Switch required',
     message: 'The automatically requested game build is ready.',
     instruction: 'Switch when you are ready; your Editor context will be preserved.',
-    primary: 'Save and switch to game build', primaryAction: 'switch'
+    primary: 'Save and switch', primaryAction: 'switch'
   },
   9: {
     tone: 'switching', icon: '↻', runtime: 'Switching runtime',
@@ -4783,7 +4783,7 @@ const v5RuntimeStates = {
   }
 };
 
-const fallbackGuidance = 'Game-specific visuals may be missing or look different. These preview differences aren’t content errors. You can keep editing—no action is needed.';
+const fallbackGuidance = 'Some game-specific visuals may be missing or different. This is a limitation of the fallback runtime, not necessarily a content error. You can continue editing, no action is needed';
 const switchedGuidance = 'Game build active. The preview is now up to date.';
 
 const viewportWarnings = {
@@ -5255,7 +5255,7 @@ function setState(index) {
     canvasConfirmationTitle.textContent = readyConfig.reliability;
     canvasConfirmationText.textContent = readyConfig.message;
     canvasConfirmationInstruction.textContent = readyConfig.instruction;
-    canvasConfirmationAction.textContent = index === 11 ? 'Save and switch to updated build' : 'Save and switch to game build';
+    canvasConfirmationAction.textContent = index === 11 ? 'Save and switch to updated build' : 'Save and switch';
     canvasConfirmationAction.onclick = () => {
       markStatusInteraction('runtime_switch_action_clicked');
       saveAndSwitchToGameBuild();

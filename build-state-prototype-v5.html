@@ -946,6 +946,7 @@
     flex: 1;
     background: #4c4c4c;
     position: relative;
+    container-type: inline-size;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1276,14 +1277,18 @@
   .canvas-overlay-controls {
     position: absolute;
     top: 8px;
+    bottom: 8px;
     left: 52px;
     right: 12px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: flex-end;
     gap: 6px;
     z-index: 10;
+    pointer-events: none;
   }
+
+  .canvas-overlay-controls > * { pointer-events: auto; }
 
   /* Left tool palette -- floating on canvas */
   .canvas-tool-palette {
@@ -3203,6 +3208,17 @@
     display: inline-flex;
     flex: 1 1 420px;
   }
+
+  /* Runtime guidance stays attached to the viewport edge, like a footer. */
+  .canvas-fallback-info.visible:not(.error-state),
+  .canvas-confirmation-info.visible {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: -44px;
+    width: auto;
+    max-width: none;
+  }
   .canvas-warning-content {
     display: flex;
     align-items: center;
@@ -3331,7 +3347,8 @@
     letter-spacing: 0.48px;
   }
   .canvas-confirmation-info.visible {
-    display: inline-flex;
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
     flex: 1 1 420px;
   }
   .canvas-confirmation-copy {
@@ -3369,6 +3386,25 @@
   .canvas-confirmation-action:focus-visible {
     outline: 2px solid #fff;
     outline-offset: 2px;
+  }
+
+  @container (max-width: 700px) {
+    .canvas-confirmation-info.visible {
+      grid-template-columns: 16px minmax(0, 1fr);
+      row-gap: 8px;
+    }
+
+    .canvas-confirmation-action {
+      grid-column: 2;
+      justify-self: start;
+      min-height: 32px;
+    }
+  }
+
+  @container (max-width: 420px) {
+    .canvas-confirmation-action {
+      width: 100%;
+    }
   }
   .canvas-info-icon {
     position: relative;

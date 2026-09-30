@@ -946,6 +946,7 @@
     flex: 1;
     background: #4c4c4c;
     position: relative;
+    container-type: inline-size;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3331,7 +3332,8 @@
     letter-spacing: 0.48px;
   }
   .canvas-confirmation-info.visible {
-    display: inline-flex;
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
     flex: 1 1 420px;
   }
   .canvas-confirmation-copy {
@@ -3369,6 +3371,18 @@
   .canvas-confirmation-action:focus-visible {
     outline: 2px solid #fff;
     outline-offset: 2px;
+  }
+
+  @container (max-width: 700px) {
+    .canvas-confirmation-info.visible {
+      grid-template-columns: 16px minmax(0, 1fr);
+      row-gap: 8px;
+    }
+
+    .canvas-confirmation-action {
+      grid-column: 2;
+      justify-self: start;
+    }
   }
   .canvas-info-icon {
     position: relative;

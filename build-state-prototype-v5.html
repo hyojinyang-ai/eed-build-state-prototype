@@ -3336,6 +3336,14 @@
     grid-template-columns: 16px minmax(0, 1fr) auto;
     flex: 1 1 420px;
   }
+  /* Option 1 keeps the ready notification visible while the safe automatic
+     handoff completes; it deliberately has no blocking confirmation action. */
+  .canvas-confirmation-info.auto-switching .canvas-confirmation-action {
+    display: none;
+  }
+  .canvas-confirmation-info.auto-switching .canvas-confirmation-copy {
+    max-width: none;
+  }
   .canvas-confirmation-copy {
     min-width: 0;
     display: flex;
@@ -3899,7 +3907,8 @@
     <span class="proto-state-label">Scenario</span>
     <div class="proto-states">
       <button class="proto-state-btn active" data-state="0" onclick="setState(0)">Current (no status)</button>
-      <button class="proto-state-btn" data-state="1" onclick="setState(1)">Fallback preview</button>
+      <button class="proto-state-btn" data-state="1" data-fallback-option="auto" title="Option 1: switch automatically when the build is ready" onclick="selectFallbackOption('auto')">Fallback preview (1)</button>
+      <button class="proto-state-btn" data-state="1" data-fallback-option="manual" title="Option 2: keep editing and switch from the inline action" onclick="selectFallbackOption('manual')">Fallback preview (2)</button>
       <button class="proto-state-btn" data-state="3" onclick="setState(3)">Out of sync</button>
       <button class="proto-state-btn" data-state="4" onclick="setState(4)">Game build unavailable</button>
     </div>
@@ -3925,7 +3934,7 @@
         <div class="error-collector-content">
           <div class="error-collector-table" role="table" aria-label="Diagnostic collectors">
             <div class="error-collector-table-head" role="row"><span role="columnheader">Status</span><span role="columnheader">Name</span></div>
-            <button class="error-collector-row selected" type="button" data-description="Collects the Editor log containing information about the current session and the failed subprocess." onclick="selectErrorCollectorRow(this)"><span class="collector-status">Waiting</span><span>Editor log</span></button>
+            <button class="error-collector-row selected" type="button" data-description="Collects the Editor log containing information about the current session and the preview startup failure." onclick="selectErrorCollectorRow(this)"><span class="collector-status">Waiting</span><span>Editor log</span></button>
             <button class="error-collector-row" type="button" data-description="Collects the output available through Tools → Show process output." onclick="selectErrorCollectorRow(this)"><span class="collector-status">Waiting</span><span>Process output</span></button>
             <button class="error-collector-row" type="button" data-description="Collects Editor configuration values that may affect runtime startup." onclick="selectErrorCollectorRow(this)"><span class="collector-status">Waiting</span><span>Editor settings</span></button>
             <button class="error-collector-row" type="button" data-description="Collects project state, including the documents that were open when the issue occurred." onclick="selectErrorCollectorRow(this)"><span class="collector-status">Waiting</span><span>Project settings</span></button>
@@ -3935,7 +3944,7 @@
           </div>
           <div class="error-collector-details">
             <h3>Description</h3>
-            <p id="error-collector-description">Collects the Editor log containing information about the current session and the failed subprocess.</p>
+            <p id="error-collector-description">Collects the Editor log containing information about the current session and the preview startup failure.</p>
             <p id="error-collector-detail-status" class="error-collector-detail-status" role="status">Preparing collectors…</p>
           </div>
         </div>
@@ -4237,7 +4246,7 @@
         <div class="viewport-canvas">
           <div class="viewport-connecting-state" role="status" aria-live="polite">
             <span class="connecting-spinner-bar" aria-hidden="true"></span>
-            <span>Connecting</span>
+            <span>Starting preview…</span>
           </div>
           <!-- Canvas overlay controls -->
           <div class="canvas-overlay-controls">
@@ -4259,7 +4268,7 @@
             <span id="canvas-fallback-info" class="canvas-fallback-info" role="status" aria-live="polite">
               <span class="canvas-error-modal-titlebar" aria-hidden="true" data-dialog-drag-target="#canvas-fallback-info" title="Drag to move">
                 <span class="modal-title-icon"><img src="assets/figma-icons/v5-dialog-window-ribbon.svg" alt=""></span>
-                <span>Failed to start fallback engine</span>
+                <span>Preview unavailable</span>
                 <span class="modal-title-spacer"></span>
                 <span class="modal-title-controls">
                   <span class="modal-title-control"><img src="assets/figma-icons/v5-dialog-question-info.svg" alt=""></span>
@@ -4802,11 +4811,14 @@ const switchedGuidance = 'Game build active. The preview is now up to date.';
 
 const viewportWarnings = {
   3: 'This build doesn’t include your latest changes. Keep editing, but request a new game build before validating visuals.',
-  4: 'We couldn’t start the fallback engine because of a subprocess issue. Retry the fallback engine to try again.'
+  4: 'We couldn’t start the preview. Your work is safe, but the viewport won’t update until the preview is available.'
 };
 
 let currentState = 0;
 let currentConcept = 'A';
+// Fallback preview (1) = automatic safe handoff; fallback preview (2) =
+// keep editing and let the user trigger the inline switch action.
+let fallbackSwitchMode = 'manual';
 let rpRunning = false;
 let autoLoadTimer = null;
 let unavailableRestartFailed = false;
@@ -4818,7 +4830,19 @@ const prototypeStartedAt = performance.now();
 const prototypeEvents = [];
 
 const copyIconMarkup = '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="5.25" y="2.25" width="8.5" height="9.5" rx="1.25" stroke="currentColor" stroke-width="1.5"/><path d="M10.75 11.75v.5a1.5 1.5 0 0 1-1.5 1.5h-6a1.5 1.5 0 0 1-1.5-1.5v-7a1.5 1.5 0 0 1 1.5-1.5h.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
-const unavailableSupportMessage = 'The fallback engine still couldn’t start because of a subprocess issue. You can try restarting again or contact <a href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">#help-fictionfactory-editor</a> for support.';
+const unavailableSupportMessage = 'We still couldn’t start the preview. Your work is safe, but the viewport won’t update.';
+
+function selectFallbackOption(mode) {
+  fallbackSwitchMode = mode === 'auto' ? 'auto' : 'manual';
+  markStatusInteraction('fallback_switch_option_selected_' + fallbackSwitchMode);
+  const description = document.getElementById('concept-desc');
+  if (description) {
+    description.textContent = fallbackSwitchMode === 'auto'
+      ? 'Option 1 — switch automatically at a safe moment; Editor context is preserved.'
+      : 'Option 2 — keep editing, then switch from the inline build-ready action.';
+  }
+  setState(1);
+}
 
 function mountUnavailableDialog(showAtEditorLevel) {
   const dialog = document.getElementById('canvas-fallback-info');
@@ -4907,7 +4931,23 @@ function clearEventLog() {
 }
 
 function renderV5RuntimeStatus(index) {
-  const config = v5RuntimeStates[index] || v5RuntimeStates[0];
+  const config = { ...(v5RuntimeStates[index] || v5RuntimeStates[0]) };
+  if (fallbackSwitchMode === 'auto' && index === 1) {
+    config.reliability = 'Limited · Automatic switch enabled';
+    config.message = 'A game build is being prepared and will switch automatically when it is safe.';
+    config.instruction = 'Your scene, selection, viewport position, and unsaved changes will be preserved.';
+    config.progress = 'Preparing game build automatically…';
+    config.secondary = 'Stay in fallback';
+    config.secondaryAction = 'stay';
+  }
+  if (fallbackSwitchMode === 'auto' && index === 8) {
+    config.reliability = 'Build ready · Switching automatically';
+    config.message = 'The automatically requested game build is ready.';
+    config.instruction = 'Switching at a safe moment; your Editor context will be preserved.';
+    config.progress = 'Switching to game build…';
+    config.primary = '';
+    config.primaryAction = null;
+  }
   const status = document.getElementById('runtime-status');
   const progress = document.getElementById('runtime-progress');
   const primary = document.getElementById('runtime-primary-action');
@@ -4936,6 +4976,8 @@ function renderV5RuntimeStatus(index) {
     ? () => { markStatusInteraction('logs_opened'); openErrorCollectorDialog(); }
     : config.secondaryAction === 'progress'
       ? () => { markStatusInteraction('build_progress_opened'); toggleEventLog(); }
+      : config.secondaryAction === 'stay'
+        ? () => { markStatusInteraction('fallback_auto_switch_paused'); selectFallbackOption('manual'); }
       : null;
 
   status.setAttribute('aria-label', config.runtime + '. ' + config.reliability + '. ' + config.message + ' ' + config.instruction);
@@ -4958,10 +5000,10 @@ function renderUnavailableFailure(hasRetried) {
   const copyLogAction = document.getElementById('canvas-copy-log-action');
 
   canvasInfoText.innerHTML = hasRetried
-    ? '<span class="unavailable-heading">Fallback engine still couldn’t start</span><span class="unavailable-error-code">Subprocess start error</span><span class="unavailable-description">' + unavailableSupportMessage + '</span><span class="unavailable-resolution"><strong>Resolution</strong><span>You can keep trying, or copy the log and share it with support.</span></span>'
-    : '<span class="unavailable-heading">Fallback engine failed to start</span><span class="unavailable-error-code">Subprocess start error</span><span class="unavailable-description">We couldn’t start the fallback engine because of a subprocess issue.</span><span class="unavailable-resolution"><strong>Resolution</strong><span>Retry the fallback engine to try again.</span></span>';
-  restartAction.textContent = 'Retry fallback engine';
-  restartAction.setAttribute('aria-label', 'Retry fallback engine');
+    ? '<span class="unavailable-heading">Preview still unavailable</span><span class="unavailable-error-code">Startup error</span><span class="unavailable-description">' + unavailableSupportMessage + '</span><span class="unavailable-resolution"><strong>Get help</strong><span>Collect the diagnostic report and share it with <a href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">#help-fictionfactory-editor</a>.</span></span>'
+    : '<span class="unavailable-heading">Preview couldn’t start</span><span class="unavailable-error-code">Startup error</span><span class="unavailable-description">We couldn’t start the preview. Your work is safe, but the viewport won’t update until the preview is available.</span><span class="unavailable-resolution"><strong>What you can do</strong><span>Try starting the preview again. You can continue editing without the preview.</span></span>';
+  restartAction.textContent = 'Try again';
+  restartAction.setAttribute('aria-label', 'Try starting the preview again');
   restartAction.onclick = () => {
     unavailableRestartFailed = true;
     unavailableConnecting = true;
@@ -4969,13 +5011,14 @@ function renderUnavailableFailure(hasRetried) {
   };
   restartAction.classList.add('visible');
 
-  cancelAction.textContent = 'Cancel';
+  cancelAction.textContent = 'Close';
   cancelAction.onclick = () => {
     document.getElementById('editor-unavailable-overlay').classList.remove('visible');
   };
   cancelAction.classList.add('visible');
 
-  copyLogAction.innerHTML = copyIconMarkup + '<span>Copy the log</span>';
+  copyLogAction.innerHTML = copyIconMarkup + '<span>Collect diagnostics</span>';
+  copyLogAction.setAttribute('aria-label', 'Collect diagnostics');
   copyLogAction.classList.toggle('visible', hasRetried);
   copyLogAction.onclick = hasRetried ? openErrorCollectorDialog : null;
 }
@@ -5153,7 +5196,11 @@ function setState(index) {
     : index === 9 ? 0
     : index;
   document.querySelectorAll('.proto-state-btn').forEach((b) => {
-    b.classList.toggle('active', Number(b.dataset.state) === controlState);
+    const fallbackOption = b.dataset.fallbackOption;
+    const isFallbackOption = fallbackOption && [1, 2, 5, 6, 8, 12].includes(index);
+    b.classList.toggle('active', isFallbackOption
+      ? fallbackOption === fallbackSwitchMode
+      : !fallbackOption && Number(b.dataset.state) === controlState);
   });
 
   renderV5RuntimeStatus(index);
@@ -5246,7 +5293,7 @@ function setState(index) {
   const canvasCancelAction = document.getElementById('canvas-cancel-action');
   const canvasCopyLogAction = document.getElementById('canvas-copy-log-action');
   canvasInfo.classList.remove('visible', 'error-state', 'retry-failed');
-  canvasConfirmation.classList.remove('visible');
+  canvasConfirmation.classList.remove('visible', 'auto-switching');
   canvasConfirmationAction.onclick = null;
   canvasAction.classList.remove('visible');
   canvasAction.onclick = null;
@@ -5266,14 +5313,22 @@ function setState(index) {
   // Ready builds require a deliberate switch; routine fallback work stays non-blocking.
   if (s.readyToSwitch) {
     const readyConfig = v5RuntimeStates[index];
-    canvasConfirmationTitle.textContent = readyConfig.reliability;
-    canvasConfirmationText.textContent = readyConfig.message;
-    canvasConfirmationInstruction.textContent = readyConfig.instruction;
+    const isAutomaticFallbackHandoff = fallbackSwitchMode === 'auto' && index === 8;
+    canvasConfirmationTitle.textContent = isAutomaticFallbackHandoff
+      ? 'Game build ready · Switching automatically'
+      : readyConfig.reliability;
+    canvasConfirmationText.textContent = isAutomaticFallbackHandoff
+      ? 'The automatically requested game build is ready.'
+      : readyConfig.message;
+    canvasConfirmationInstruction.textContent = isAutomaticFallbackHandoff
+      ? 'Switching at a safe moment; your Editor context will be preserved.'
+      : readyConfig.instruction;
     canvasConfirmationAction.textContent = index === 11 ? 'Save and switch to updated build' : 'Save and switch';
-    canvasConfirmationAction.onclick = () => {
+    canvasConfirmationAction.onclick = isAutomaticFallbackHandoff ? null : () => {
       markStatusInteraction('runtime_switch_action_clicked');
       saveAndSwitchToGameBuild();
     };
+    canvasConfirmation.classList.toggle('auto-switching', isAutomaticFallbackHandoff);
     canvasConfirmation.classList.add('visible');
   } else if ([1, 2, 5, 6, 12].includes(index)) {
     canvasInfoText.textContent = fallbackGuidance;
@@ -5309,13 +5364,19 @@ function setState(index) {
     5: { next: 8, delay: 3500 },
     9: { next: 0, delay: 2200 },
     10: { next: 11, delay: 4200 },
-    12: { next: 8, delay: 3600 }
+    12: { next: 8, delay: 3600 },
+    8: { next: 9, delay: 1600 }
   };
   const transition = timedTransitions[index];
   if (transition) {
     const sourceState = index;
     autoLoadTimer = setTimeout(() => {
-      if (currentState === sourceState) setState(transition.next);
+      if (currentState !== sourceState) return;
+      if (sourceState === 8 && fallbackSwitchMode === 'auto') {
+        saveAndSwitchToGameBuild();
+      } else if (sourceState !== 8) {
+        setState(transition.next);
+      }
     }, transition.delay);
   }
   if (index === 4 && unavailableConnecting && !s.nonBlockingUnavailable) {
@@ -5401,8 +5462,8 @@ function toggleBuildDetails(triggerEl) {
 
   if (isUnavailable) {
     html += '<div class="unavailable-details-header" data-dialog-drag-target="#build-details-panel" title="Drag to move">';
-    html += '  <div class="unavailable-details-summary"><img src="assets/figma-icons/277-unavailable--1366-6918.svg" alt=""><span class="unavailable-details-copy"><strong class="unavailable-details-title">Local process fail</strong><span class="unavailable-details-subtitle">Failed to run game</span></span></div>';
-    html += '  <button class="unavailable-details-error" type="button">Error code 11</button>';
+    html += '  <div class="unavailable-details-summary"><img src="assets/figma-icons/277-unavailable--1366-6918.svg" alt=""><span class="unavailable-details-copy"><strong class="unavailable-details-title">Preview unavailable</strong><span class="unavailable-details-subtitle">Preview couldn’t start</span></span></div>';
+    html += '  <button class="unavailable-details-error" type="button">Startup error</button>';
     html += '</div>';
     html += '<div class="unavailable-details-body">';
     html += '  <div class="unavailable-details-toggle-row"><span>Use remote build</span><button class="unavailable-details-toggle" type="button" role="switch" aria-checked="true" aria-label="Use remote build"><img class="track" src="assets/figma-icons/278-toggle-track--1366-6918.svg" alt=""><img class="knob" src="assets/figma-icons/279-toggle-knob--1366-6918.svg" alt=""></button></div>';

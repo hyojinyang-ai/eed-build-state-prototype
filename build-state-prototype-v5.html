@@ -3914,8 +3914,6 @@
       <button class="proto-state-btn" data-state="3" onclick="setState(3)">Out of sync</button>
       <button class="proto-state-btn" data-state="4" onclick="setState(4)">Game build unavailable</button>
     </div>
-    <span class="proto-rp-label">Unsaved work</span>
-    <button class="proto-rp-btn active" id="unsaved-toggle" type="button" aria-pressed="true" onclick="toggleUnsavedWork()">Yes</button>
   </div>
 </div>
 
@@ -4874,9 +4872,11 @@ function saveAndSwitchToGameBuild() {
   if (saveRequired) {
     hasUnsavedWork = false;
     const unsavedButton = document.getElementById('unsaved-toggle');
-    unsavedButton.textContent = 'No';
-    unsavedButton.classList.remove('active');
-    unsavedButton.setAttribute('aria-pressed', 'false');
+    if (unsavedButton) {
+      unsavedButton.textContent = 'No';
+      unsavedButton.classList.remove('active');
+      unsavedButton.setAttribute('aria-pressed', 'false');
+    }
   }
   setState(9);
 }
@@ -4884,6 +4884,7 @@ function saveAndSwitchToGameBuild() {
 function toggleUnsavedWork() {
   hasUnsavedWork = !hasUnsavedWork;
   const button = document.getElementById('unsaved-toggle');
+  if (!button) return;
   button.textContent = hasUnsavedWork ? 'Yes' : 'No';
   button.classList.toggle('active', hasUnsavedWork);
   button.setAttribute('aria-pressed', String(hasUnsavedWork));

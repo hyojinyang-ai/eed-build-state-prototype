@@ -4039,6 +4039,7 @@
   .v6-detail-head strong { font-size:13px; }
   .v6-detail-body { padding:14px; }
   .v6-detail-body p { margin:0 0 9px; color:#c8cdd2; }
+  .v6-detail-body .v6-detail-emphasis { margin:12px 0 2px; color:#e9f1f5; line-height:19px; }
   .v6-detail-note { padding:9px 10px; border-left:3px solid #309ae8; background:#2a3035; color:#d9dde1; }
   .v6-detail-actions { display:flex; align-items:center; justify-content:flex-end; gap:12px; padding:11px 14px; border-top:1px solid #4b4d50; }
   .v6-detail-actions .v6-text-action:first-child { margin-right:auto; }
@@ -4068,7 +4069,7 @@
     <div class="proto-states">
       <button class="proto-state-btn active" data-state="0" data-ready-source="Bazel" onclick="selectReadySource('Bazel')">Ready · Bazel</button>
       <button class="proto-state-btn" data-state="7" data-ready-source="Local" onclick="selectReadySource('Local')">Ready · Local</button>
-      <button class="proto-state-btn" data-state="1" onclick="setState(1)">No game build</button>
+      <button class="proto-state-btn" data-state="1" onclick="setState(1)">Fallback</button>
       <button class="proto-state-btn" data-state="3" onclick="setState(3)">Build update failed</button>
       <button class="proto-state-btn" data-state="4" onclick="setState(4)">Preview unavailable</button>
       <button class="proto-state-btn v6-cache-scenario" type="button" onclick="v6OpenClearCache()">Clear build cache</button>
@@ -5992,6 +5993,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   var v6WarningDismissed = false;
   var v6ManualSwitching = false;
   var v6ClearTimer = null;
+  var v6DetailsTrigger = null;
 
   readyBuildSource = 'Bazel';
   fallbackSwitchMode = 'auto';
@@ -6019,7 +6021,6 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       '<button class="v6-notice-close" type="button" aria-label="Dismiss message" onclick="v6DismissNotice()">×</button>' +
       '<strong>No game build</strong>' +
       '<p>We couldn’t get a game build. What you see may differ from the game.</p>' +
-      '<div class="v6-notice-actions"><button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button></div>' +
     '</aside>' +
     '<div id="v6-switching-overlay" class="v6-switching-overlay" role="status" aria-live="polite">' +
       '<div id="v6-switching-label">Switching to game build</div>' +
@@ -6212,10 +6213,9 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   window.toggleBuildDetails = function (triggerEl) {
     var panel = document.getElementById('build-details-panel');
     if (panel.classList.contains('visible')) {
-      closeBuildDetails();
       return;
     }
-    var progressStates = [2, 5, 6, 12];
+    v6DetailsTrigger = triggerEl;
     var noBuildStates = [1, 2, 5, 6, 8, 12];
     var head = '';
     var body = '';
@@ -6223,15 +6223,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
 
     if (noBuildStates.includes(currentState)) {
       head = '<span class="v6-detail-dot yellow"></span><strong>Not ready</strong>';
-      body = '<p>No game build is available yet. What you see may differ from the game.</p>';
-      if (progressStates.includes(currentState)) {
-        body += '<div class="v6-detail-note">A game build is being prepared automatically.</div><div class="v6-mini-progress"></div>';
-      } else if (currentState === 8) {
-        body += '<div class="v6-detail-note">The game build is ready and will switch automatically. Your edits and Editor context are saved.</div><div class="v6-mini-progress"></div>';
-      } else {
-        body += '<div class="v6-detail-note">A game build will be requested automatically. You can continue editing.</div>';
-      }
-      actions = '<button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button>';
+      body = '<p>No game build is available yet.</p><p class="v6-detail-emphasis"><strong>Some game-specific visuals may be missing or different. Continue editing, or request a game build when you are ready to validate the final appearance.</strong></p>';
     } else if (currentState === 3) {
       head = '<span class="v6-detail-dot green"></span><strong>Ready · Bazel</strong>';
       body = '<p><strong>Build update failed</strong></p><p>The previous successful game build is still active. The viewport has not changed, so you can continue editing.</p>';
@@ -6251,7 +6243,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     }
 
     panel.className = 'build-details-panel v6-details visible';
-    panel.innerHTML = '<header class="v6-detail-head">' + head + '</header><div class="v6-detail-body">' + body + '</div><footer class="v6-detail-actions">' + actions + '</footer>';
+    panel.innerHTML = '<header class="v6-detail-head">' + head + '</header><div class="v6-detail-body">' + body + '</div>' + (noBuildStates.includes(currentState) ? '' : '<footer class="v6-detail-actions">' + actions + '</footer>');
     var rect = triggerEl.getBoundingClientRect();
     panel.style.position = 'fixed';
     panel.style.top = Math.min(window.innerHeight - panel.offsetHeight - 12, rect.bottom + 7) + 'px';
@@ -6271,8 +6263,15 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
 
   setState = function (index) {
     var previous = currentState;
+    var detailsPanel = document.getElementById('build-details-panel');
+    var detailsWereOpen = detailsPanel.classList.contains('visible') && detailsPanel.classList.contains('v6-details');
+    var detailsTrigger = v6DetailsTrigger;
     v6BaseSetState(index);
     v6ApplyState(index, previous);
+    if (detailsWereOpen && detailsTrigger) {
+      closeBuildDetails();
+      toggleBuildDetails(detailsTrigger);
+    }
   };
 
   // The automatic handoff is the only path after a build becomes ready.

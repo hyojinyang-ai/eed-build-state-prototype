@@ -6618,13 +6618,22 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
 
     var status = v6StatusFor(index);
     var bazelErrorState = index === 3;
+    var statusArea = document.getElementById('bw-status-area');
     var dot = document.getElementById('bw-dot');
+    var label = document.getElementById('bw-label');
+    if (!dot || !label) {
+      statusArea.innerHTML =
+        '<span class="bw-status-dot" id="bw-dot"></span>' +
+        '<span class="bw-status-label" id="bw-label"></span>';
+      v6EnsureBuildProgress();
+      dot = document.getElementById('bw-dot');
+      label = document.getElementById('bw-label');
+    }
     dot.className = bazelErrorState ? 'v6-bazel-error-icon' : 'bw-status-dot ' + status.dot;
     dot.innerHTML = bazelErrorState
       ? '<img src="assets/figma-icons/v6-bazel-error-status.svg" width="16" height="16" alt="">'
       : '';
-    document.getElementById('bw-label').textContent = status.label;
-    var statusArea = document.getElementById('bw-status-area');
+    label.textContent = status.label;
     var progressInline = document.getElementById('v6-build-progress-inline');
     statusArea.classList.toggle('v6-progress-active', index === 10);
     statusArea.classList.toggle('v6-bazel-error-status', bazelErrorState);
@@ -6633,6 +6642,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     var source = document.querySelector('#bw-cloud-btn .bw-source-label');
     if (source) source.textContent = status.source;
     var cloud = document.getElementById('bw-cloud-btn');
+    cloud.classList.remove('figma-oos-cloud');
     var requestRefreshState = index === 0 || index === 1 || index === 3 || index === 7;
     var hideSourceDuringBuild = index === 10 || index === 9 || index === 11;
     cloud.classList.toggle('v6-ready-refresh', requestRefreshState);
@@ -6746,7 +6756,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
           actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Request Bazel build</button>';
         }
       } else if (currentState === 3) {
-        head = '<span class="v6-detail-dot green"></span><strong>Ready · Bazel</strong>';
+        head = '<span class="v6-detail-dot yellow"></span><strong>Bazel error</strong>';
         body = '<p><strong>Build update failed</strong></p><p>The previous successful game build is still active. The viewport has not changed, so you can continue editing.</p>';
         actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Build with Bazel</button>';
       } else if (currentState === 4) {

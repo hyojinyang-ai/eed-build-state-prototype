@@ -4218,6 +4218,7 @@
     transition: width .18s linear;
   }
   #v6-build-progress-percent { min-width: 31px; text-align: right; }
+  #bw-cloud-btn.v6-building-cloud svg rect:first-child { fill: #1d7bbf; }
   #v6-switching-saved {
     display: none;
     margin-top: -7px;
@@ -6362,6 +6363,19 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     return { dot: 'yellow', label: 'Not ready', source: 'No build' };
   }
 
+  function v6EnsureBuildProgress() {
+    var statusArea = document.getElementById('bw-status-area');
+    if (!document.getElementById('v6-build-progress-inline')) {
+      statusArea.insertAdjacentHTML('beforeend',
+        '<span id="v6-build-progress-inline" class="v6-build-progress-inline" aria-live="polite">' +
+          '<img src="assets/figma-icons/v6-build-progress.svg" width="16" height="16" alt="">' +
+          '<span class="v6-build-progress-track" aria-hidden="true"><i id="v6-build-progress-fill"></i></span>' +
+          '<span id="v6-build-progress-percent">0%</span>' +
+        '</span>'
+      );
+    }
+  }
+
   function v6ApplyState(index, previous) {
     var noBuildStates = [1, 2, 5, 6, 12];
     if (!noBuildStates.includes(index) && noBuildStates.includes(previous)) v6WarningDismissed = false;
@@ -6383,6 +6397,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     if (source) source.textContent = status.source;
     var cloud = document.getElementById('bw-cloud-btn');
     cloud.classList.toggle('v6-build-failed', index === 3);
+    cloud.classList.toggle('v6-building-cloud', index === 10);
     cloud.setAttribute('aria-label', index === 3
       ? 'Build update failed. Previous Bazel build is ready. Show details'
       : 'Show ' + status.label + ' details');
@@ -6513,6 +6528,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     var detailsTrigger = v6DetailsTrigger;
     window.clearTimeout(v6SwitchTimer);
     v6BaseSetState(index);
+    v6EnsureBuildProgress();
     v6ApplyState(index, previous);
 
     if (index === 10) {
@@ -6534,16 +6550,6 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       closeBuildDetails();
     }
   };
-
-  // Add the Figma-referenced progress treatment beside Stale.
-  var statusArea = document.getElementById('bw-status-area');
-  statusArea.insertAdjacentHTML('beforeend',
-    '<span id="v6-build-progress-inline" class="v6-build-progress-inline" aria-live="polite">' +
-      '<img src="assets/figma-icons/v6-build-progress.svg" width="16" height="16" alt="">' +
-      '<span class="v6-build-progress-track" aria-hidden="true"><i id="v6-build-progress-fill"></i></span>' +
-      '<span id="v6-build-progress-percent">0%</span>' +
-    '</span>'
-  );
 
   // The automatic handoff is the only path after a build becomes ready.
   fallbackSwitchMode = 'auto';

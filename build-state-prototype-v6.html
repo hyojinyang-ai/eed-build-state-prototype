@@ -4375,6 +4375,19 @@
     text-underline-offset: 2px;
   }
 
+  /* Ready states use a compact refresh control; the adjacent arrow owns details. */
+  #bw-cloud-btn.v6-ready-refresh {
+    width: 20px;
+    min-width: 20px;
+    padding: 0;
+    margin-right: 0;
+    color: #cad0d8;
+  }
+  #bw-cloud-btn.v6-ready-refresh .v6-ready-refresh-icon {
+    display: block;
+    width: 16px;
+    height: 16px;
+  }
 </style>
 </head>
 <body>
@@ -6516,6 +6529,14 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     log.onclick = openBuildLogWidget;
   };
 
+  function v6ReadyRefreshIcon() {
+    return '<span class="figma-reload-icon v6-ready-refresh-icon" aria-hidden="true">' +
+      '<img class="figma-reload-ring" src="assets/figma-icons/217-reload-ring--4727-16705.svg" width="12" height="12" alt="">' +
+      '<img class="figma-reload-arrow-a" src="assets/figma-icons/218-reload-arrow-a--4727-16705.svg" width="5" height="4" alt="">' +
+      '<img class="figma-reload-arrow-b" src="assets/figma-icons/219-reload-arrow-b--4727-16705.svg" width="5" height="4" alt="">' +
+    '</span>';
+  }
+
   function v6StatusFor(index) {
     if (index === 0) return { dot: 'green', label: 'Ready · Bazel', source: 'Bazel' };
     if (index === 7) return { dot: 'green', label: 'Ready · Local', source: 'Local' };
@@ -6560,6 +6581,10 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     var source = document.querySelector('#bw-cloud-btn .bw-source-label');
     if (source) source.textContent = status.source;
     var cloud = document.getElementById('bw-cloud-btn');
+    var readyRefreshState = index === 0 || index === 7;
+    cloud.classList.toggle('v6-ready-refresh', readyRefreshState);
+    cloud.classList.toggle('icon-only', readyRefreshState);
+    if (readyRefreshState) cloud.innerHTML = v6ReadyRefreshIcon();
     cloud.classList.toggle('v6-build-failed', index === 3);
     cloud.classList.toggle('v6-building-cloud', index === 10);
     cloud.setAttribute('aria-label', index === 3

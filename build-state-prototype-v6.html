@@ -4360,6 +4360,21 @@
     .v6-clear-figma-dialog { transform: scale(.82); }
   }
 
+
+  /* Game build crash: make the error reference a real link from the first failure. */
+  .editor-unavailable-overlay #canvas-fallback-text a.unavailable-error-code {
+    display: inline-block;
+    width: fit-content;
+    color: #1cbbff;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .editor-unavailable-overlay #canvas-fallback-text .unavailable-resolution a {
+    color: #1cbbff;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
 </style>
 </head>
 <body>
@@ -4379,7 +4394,7 @@
       <button class="proto-state-btn" data-state="1" onclick="setState(1)">Fallback</button>
       <button class="proto-state-btn" data-state="10" data-build-outcome="success" onclick="v6StartBazelBuild('success')">Build with Bazel – success</button>
       <button class="proto-state-btn" data-state="10" data-build-outcome="fail" onclick="v6StartBazelBuild('fail')">Build with Bazel – fail</button>
-      <button class="proto-state-btn" data-state="4" onclick="setState(4)">Preview unavailable</button>
+      <button class="proto-state-btn" data-state="4" onclick="setState(4)">Game build Crash</button>
     </div>
   </div>
 </div>
@@ -4735,7 +4750,7 @@
             <span id="canvas-fallback-info" class="canvas-fallback-info" role="status" aria-live="polite">
               <span class="canvas-error-modal-titlebar" aria-hidden="true" data-dialog-drag-target="#canvas-fallback-info" title="Drag to move">
                 <span class="modal-title-icon"><img src="assets/figma-icons/v5-dialog-window-ribbon.svg" alt=""></span>
-                <span>Preview unavailable</span>
+                <span>Game build Crash</span>
                 <span class="modal-title-spacer"></span>
                 <span class="modal-title-controls">
                   <span class="modal-title-control"><img src="assets/figma-icons/v5-dialog-question-info.svg" alt=""></span>
@@ -6468,27 +6483,33 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   window.renderUnavailableFailure = function (hasRetried) {
     unavailableRestartFailed = hasRetried;
     var dialog = document.getElementById('canvas-fallback-info');
-    dialog.classList.toggle('retry-failed', hasRetried);
+    dialog.classList.remove('retry-failed');
     var textEl = document.getElementById('canvas-fallback-text');
     var retry = document.getElementById('canvas-warning-action');
     var close = document.getElementById('canvas-cancel-action');
     var log = document.getElementById('canvas-copy-log-action');
-    textEl.innerHTML = hasRetried
-      ? '<span class="unavailable-heading">Preview still unavailable</span><span class="unavailable-error-code">Startup error</span><span class="unavailable-description">The preview still won’t start. Your work is safe, but the viewport won’t update.</span><span class="unavailable-resolution"><strong>What you can do</strong><span>View the log and share it with a developer or support.</span></span>'
-      : '<span class="unavailable-heading">Preview couldn’t start</span><span class="unavailable-error-code">Startup error</span><span class="unavailable-description">We couldn’t start the preview. Your work is safe, but the viewport won’t update until it is available.</span><span class="unavailable-resolution"><strong>What you can do</strong><span>Try starting the preview again. You can continue editing without it.</span></span>';
-    retry.textContent = 'Try again';
-    retry.setAttribute('aria-label', 'Try starting the preview again');
+
+    textEl.innerHTML =
+      '<span class="unavailable-heading">Game build couldn’t get started.</span>' +
+      '<a class="unavailable-error-code" href="#" onclick="event.preventDefault(); openBuildLogWidget()">Startup error</a>' +
+      '<span class="unavailable-description">We couldn’t get the game build started. Your work is safe, but the viewport won’t update until the game build is available.</span>' +
+      '<span class="unavailable-resolution"><strong>What you can do</strong><span>Try getting the build again. You can also view the log and share it with the <a href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">support channel</a>.</span></span>';
+
+    retry.textContent = 'Try getting build again';
+    retry.setAttribute('aria-label', 'Try getting the game build again');
     retry.onclick = function () {
       unavailableRestartFailed = true;
       unavailableConnecting = true;
       setState(4);
     };
     retry.classList.add('visible');
+
     close.textContent = 'Close';
     close.onclick = function () {
       document.getElementById('editor-unavailable-overlay').classList.remove('visible');
     };
     close.classList.add('visible');
+
     log.innerHTML = '<span>View log</span>';
     log.setAttribute('aria-label', 'View build log');
     log.classList.add('visible');
@@ -6501,7 +6522,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     if (index === 3) return { dot: 'green', label: 'Ready · Bazel', source: 'Bazel' };
     if (index === 10) return { dot: 'yellow', label: 'Stale', source: 'Bazel' };
     if (index === 9 || index === 11) return { dot: 'spinner', label: 'Switching', source: 'Bazel' };
-    if (index === 4) return { dot: 'red', label: 'Preview unavailable', source: 'View log' };
+    if (index === 4) return { dot: 'red', label: 'Game build Crash', source: 'View log' };
     if ([1, 2, 5, 6, 8, 12].includes(index)) return { dot: 'yellow', label: 'Not ready', source: 'No build' };
     return { dot: 'yellow', label: 'Not ready', source: 'No build' };
   }
@@ -6635,9 +6656,9 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
         body = '<p><strong>Build update failed</strong></p><p>The previous successful game build is still active. The viewport has not changed, so you can continue editing.</p>';
         actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Build with Bazel</button>';
       } else if (currentState === 4) {
-        head = '<span class="v6-detail-dot red"></span><strong>Preview unavailable</strong>';
-        body = '<p>The preview could not start. Your work is safe, but the viewport will not update.</p>';
-        actions = '<button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button><button class="v6-btn quiet" type="button" onclick="retryGameBuild()">Try again</button>';
+        head = '<span class="v6-detail-dot red"></span><strong>Game build Crash</strong>';
+        body = '<p><strong>Game build couldn’t get started.</strong></p><p>We couldn’t get the game build started. Your work is safe, but the viewport won’t update until the game build is available.</p><p><strong>What you can do</strong><br>Try getting the build again. You can also view the log and share it with the support channel.</p>';
+        actions = '<button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button><button class="v6-btn quiet" type="button" onclick="retryGameBuild()">Try getting build again</button>';
       } else {
         head = '<span class="v6-detail-dot green"></span><strong>Ready · Bazel</strong>';
         body = '<p>The current game build is active and ready for visual validation.</p>';

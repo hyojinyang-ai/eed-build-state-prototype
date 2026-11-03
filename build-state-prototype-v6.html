@@ -4388,6 +4388,9 @@
     width: 16px;
     height: 16px;
   }
+  #bw-cloud-btn.v6-source-hidden {
+    display: none;
+  }
 </style>
 </head>
 <body>
@@ -6581,10 +6584,12 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     var source = document.querySelector('#bw-cloud-btn .bw-source-label');
     if (source) source.textContent = status.source;
     var cloud = document.getElementById('bw-cloud-btn');
-    var readyRefreshState = index === 0 || index === 7;
-    cloud.classList.toggle('v6-ready-refresh', readyRefreshState);
-    cloud.classList.toggle('icon-only', readyRefreshState);
-    if (readyRefreshState) cloud.innerHTML = v6ReadyRefreshIcon();
+    var refreshState = index === 0 || index === 1 || index === 7;
+    var hideSourceDuringBuild = index === 10;
+    cloud.classList.toggle('v6-ready-refresh', refreshState);
+    cloud.classList.toggle('icon-only', refreshState);
+    cloud.classList.toggle('v6-source-hidden', hideSourceDuringBuild);
+    if (refreshState) cloud.innerHTML = v6ReadyRefreshIcon();
     cloud.classList.toggle('v6-build-failed', index === 3);
     cloud.classList.toggle('v6-building-cloud', index === 10);
     cloud.setAttribute('aria-label', index === 3

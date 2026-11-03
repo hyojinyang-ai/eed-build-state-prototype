@@ -4272,7 +4272,7 @@
     position: absolute;
     left: 171px;
     top: 4px;
-    width: 126px;
+    width: 295px;
     height: 19px;
     background: #373838;
   }
@@ -6406,6 +6406,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   };
 
   window.v6OpenClearCache = function () {
+    closeBuildDetails();
     document.getElementById('v6-clear-layer').classList.add('visible');
     trackPrototypeEvent('clear_build_cache_confirmation_opened');
   };

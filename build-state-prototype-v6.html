@@ -6655,6 +6655,9 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       if (noBuildStates.includes(currentState)) {
         head = '<span class="v6-detail-dot yellow"></span><strong>Game build not ready</strong>';
         body = '<p>No game build is available yet.</p><p class="v6-detail-emphasis">Some game-specific visuals may be missing or different. Continue editing, or request a game build when you are ready to validate the final appearance.</p>';
+        if (currentState === 1) {
+          actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Request Bazel build</button>';
+        }
       } else if (currentState === 3) {
         head = '<span class="v6-detail-dot green"></span><strong>Ready · Bazel</strong>';
         body = '<p><strong>Build update failed</strong></p><p>The previous successful game build is still active. The viewport has not changed, so you can continue editing.</p>';
@@ -6668,7 +6671,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
         body = '<p>The current game build is active and ready for visual validation.</p>';
       }
       panel.className = 'build-details-panel v6-details visible';
-      panel.innerHTML = '<header class="v6-detail-head">' + head + '</header><div class="v6-detail-body">' + body + '</div>' + (noBuildStates.includes(currentState) ? '' : '<footer class="v6-detail-actions">' + actions + '</footer>');
+      panel.innerHTML = '<header class="v6-detail-head">' + head + '</header><div class="v6-detail-body">' + body + '</div>' + (noBuildStates.includes(currentState) && currentState !== 1 ? '' : '<footer class="v6-detail-actions">' + actions + '</footer>');
     }
 
     var rect = triggerEl.getBoundingClientRect();
@@ -6699,7 +6702,12 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     v6EnsureBuildProgress();
     v6ApplyState(index, previous);
 
-    if (index === 10) {
+    if (index === 1) {
+      if (autoLoadTimer) window.clearTimeout(autoLoadTimer);
+      autoLoadTimer = null;
+      window.clearInterval(v6ProgressTimer);
+      v6ProgressTimer = null;
+    } else if (index === 10) {
       if (autoLoadTimer) window.clearTimeout(autoLoadTimer);
       autoLoadTimer = null;
       v6RunBuildProgress();

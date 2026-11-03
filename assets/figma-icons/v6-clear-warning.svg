@@ -1,0 +1,22 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="warning-modal">
+<g id="Rectangle 779">
+<use xlink:href="#stroke0_0_36" fill="#4BF1D2"/>
+<mask id="stroke1_0_36" fill="white">
+<use xlink:href="#stroke0_0_36"/>
+</mask>
+<path d="M7 39.3548V16.1579C7 12.757 9.75698 10 13.1579 10H35.8421C39.243 10 42 12.757 42 16.1579V33.1969C42 36.5979 39.243 39.3548 35.8421 39.3548H17.2522C16.0251 39.3548 14.8261 39.7214 13.8088 40.4076L11.6801 41.8433C9.68646 43.188 7 41.7596 7 39.3548Z" stroke-width="6.15789" stroke="#146F4F" mask="url(#stroke1_0_36)"/>
+</g>
+<circle id="Ellipse 198" cx="39.6414" cy="13.0856" r="6.15789" fill="#146F4F"/>
+<circle id="Ellipse 200" cx="39.5" cy="15.5" r="0.75" fill="white"/>
+<g id="Group 453">
+<path id="Vector 644" d="M20.5 21.2637V23.2637" stroke-width="2.30921" stroke-linecap="round" stroke-linejoin="round" stroke="#393A3A"/>
+<path id="Vector 645" d="M27.5 21.2637V23.2637" stroke-width="2.30921" stroke-linecap="round" stroke-linejoin="round" stroke="#393A3A"/>
+<path id="Vector 767" d="M22 27.5C23.1046 28.6046 24.8954 28.6046 26 27.5" stroke-width="2" stroke-linecap="round" stroke="#393A3A"/>
+</g>
+<path id="Vector 766" d="M38.5 11L38.6778 10.6443C39.0823 9.83539 40.1604 9.66043 40.8 10.3C41.4095 10.9095 41.2839 11.9296 40.5447 12.3732L39.9287 12.7428C39.6628 12.9023 39.5 13.1898 39.5 13.5" stroke-width="1.5" stroke-linecap="round" stroke="white"/>
+</g>
+<defs>
+<path id="stroke0_0_36" d="M7 16.1579C7 12.757 9.75698 10 13.1579 10H35.8421C39.243 10 42 12.757 42 16.1579V33.1969C42 36.5979 39.243 39.3548 35.8421 39.3548H17.2522C16.0251 39.3548 14.8261 39.7214 13.8088 40.4076L11.6801 41.8433C9.68646 43.188 7 41.7596 7 39.3548V16.1579Z"/>
+</defs>
+</svg>

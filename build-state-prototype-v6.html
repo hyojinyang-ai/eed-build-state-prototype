@@ -4228,6 +4228,138 @@
   }
   #v6-switching-saved.visible { display: block; }
 
+
+  /* Figma node 5908:1450 — clear build cache confirmation */
+  .v6-clear-figma-dialog {
+    position: relative;
+    width: 466px;
+    height: 171px;
+    overflow: visible;
+    color: #cad0d8;
+    font-family: 'Nunito Sans', sans-serif;
+  }
+  .v6-clear-background {
+    position: absolute;
+    z-index: 0;
+    left: -20px;
+    top: 9px;
+    display: block;
+  }
+  .v6-clear-titlebar {
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    top: 0;
+    width: 466px;
+    height: 26px;
+    overflow: hidden;
+    border-radius: 8px 8px 0 0;
+  }
+  .v6-clear-titlebar-crop {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: hidden;
+    border-radius: inherit;
+  }
+  .v6-clear-titlebar-crop img {
+    position: absolute;
+    left: -2px;
+    top: -3px;
+    display: block;
+  }
+  .v6-clear-titlebar-mask {
+    position: absolute;
+    left: 171px;
+    top: 4px;
+    width: 126px;
+    height: 19px;
+    background: #373838;
+  }
+  .v6-clear-titlebar strong {
+    position: absolute;
+    left: 76px;
+    top: 5px;
+    width: 155px;
+    height: 19px;
+    color: #cad0d8;
+    font-size: 12px;
+    line-height: normal;
+    font-weight: 700;
+    letter-spacing: .48px;
+  }
+  .v6-clear-divider {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    top: 26px;
+    display: block;
+  }
+  .v6-clear-illustration {
+    position: absolute;
+    z-index: 2;
+    left: 12px;
+    top: 38px;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #323232;
+  }
+  .v6-clear-illustration img {
+    position: absolute;
+    left: 8px;
+    top: 7px;
+    display: block;
+  }
+  .v6-clear-copy {
+    position: absolute;
+    z-index: 2;
+    left: 100px;
+    right: 12px;
+    top: 37px;
+  }
+  .v6-clear-copy h2 {
+    margin: 0 0 8px;
+    color: #fff;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+    letter-spacing: .48px;
+  }
+  .v6-clear-copy p {
+    margin: 0;
+    color: #aaa;
+    font-size: 12px;
+    line-height: normal;
+    font-weight: 400;
+    letter-spacing: .48px;
+  }
+  .v6-clear-copy p + p { margin-top: 15px; }
+  .v6-clear-actions {
+    position: absolute;
+    z-index: 2;
+    right: 12px;
+    top: 139px;
+    display: flex;
+    gap: 8px;
+  }
+  .v6-clear-actions button {
+    min-width: 64px;
+    height: 24px;
+    padding: 3px 12px;
+    border: 1px solid #222325;
+    border-radius: 4px;
+    background: #484b50;
+    color: #cad0d8;
+    font: 700 12px/16px 'Nunito Sans', sans-serif;
+    letter-spacing: .48px;
+    cursor: pointer;
+  }
+  .v6-clear-actions button:hover { background: #55575b; }
+  @media (max-width: 520px) {
+    .v6-clear-figma-dialog { transform: scale(.82); }
+  }
+
 </style>
 </head>
 <body>
@@ -4248,7 +4380,6 @@
       <button class="proto-state-btn" data-state="10" data-build-outcome="success" onclick="v6StartBazelBuild('success')">Build with Bazel – success</button>
       <button class="proto-state-btn" data-state="10" data-build-outcome="fail" onclick="v6StartBazelBuild('fail')">Build with Bazel – fail</button>
       <button class="proto-state-btn" data-state="4" onclick="setState(4)">Preview unavailable</button>
-      <button class="proto-state-btn v6-cache-scenario" type="button" onclick="v6OpenClearCache()">Clear build cache</button>
     </div>
   </div>
 </div>
@@ -6210,10 +6341,21 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       '<footer class="v6-log-actions"><button id="v6-copy-log" class="v6-btn quiet" type="button" onclick="v6CopyLog()">Copy log</button></footer>' +
     '</section>' +
     '<div id="v6-clear-layer" class="v6-modal-layer" role="dialog" aria-modal="true" aria-labelledby="v6-clear-title">' +
-      '<section class="v6-confirm-dialog">' +
-        '<header id="v6-clear-title" class="v6-confirm-title">Clear build cache?</header>' +
-        '<div class="v6-confirm-body"><strong>Remove the current game build?</strong><p>The viewport will switch while a new game build is requested. Your edits and Editor context are saved automatically.</p></div>' +
-        '<footer class="v6-confirm-actions"><button class="v6-btn quiet" type="button" onclick="v6CloseClearCache()">Cancel</button><button class="v6-btn primary" type="button" onclick="v6ConfirmClearCache()">Clear cache</button></footer>' +
+      '<section class="v6-clear-figma-dialog" data-node-id="5908:1450">' +
+        '<img class="v6-clear-background" src="assets/figma-icons/v6-clear-background.svg" width="506" height="186" alt="">' +
+        '<header class="v6-clear-titlebar">' +
+          '<span class="v6-clear-titlebar-crop"><img src="assets/figma-icons/v6-clear-titlebar.png" width="576" height="278" alt=""></span>' +
+          '<span class="v6-clear-titlebar-mask" aria-hidden="true"></span>' +
+          '<strong>Fiction Editor</strong>' +
+        '</header>' +
+        '<img class="v6-clear-divider" src="assets/figma-icons/v6-clear-divider.svg" width="466" height="1" alt="">' +
+        '<span class="v6-clear-illustration"><img src="assets/figma-icons/v6-clear-warning.svg" width="48" height="48" alt=""></span>' +
+        '<div class="v6-clear-copy">' +
+          '<h2 id="v6-clear-title">Clear build cache</h2>' +
+          '<p>This will clear the entire build cache by deleting the local build folder.</p>' +
+          '<p>Are you sure you want to proceed?</p>' +
+        '</div>' +
+        '<footer class="v6-clear-actions"><button type="button" onclick="v6CloseClearCache()">No</button><button type="button" onclick="v6ConfirmClearCache()">Yes</button></footer>' +
       '</section>' +
     '</div>'
   );
@@ -6449,7 +6591,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     return '<section class="v6-figma-component" data-node-id="5191:90717">' +
       v6BranchHeader('5191:90718') +
       '<div class="v6-figma-content">' +
-        '<div class="v6-figma-toggle-row"><span>Use Bazel build</span><button class="v6-figma-toggle-on" type="button" role="switch" aria-checked="true" aria-label="Use Bazel build" onclick="event.stopPropagation()"><img class="track" src="assets/figma-icons/v6-toggle-track.svg" width="18" height="10" alt=""><img class="knob" src="assets/figma-icons/v6-toggle-knob.svg" width="6" height="6" alt=""></button></div>' +
+        '<div class="v6-figma-toggle-row"><span>Use Bazel build</span><button class="v6-figma-toggle-on" type="button" role="switch" aria-checked="true" aria-label="Use Bazel build" onclick="selectReadySource(\'Local\')"><img class="track" src="assets/figma-icons/v6-toggle-track.svg" width="18" height="10" alt=""><img class="knob" src="assets/figma-icons/v6-toggle-knob.svg" width="6" height="6" alt=""></button></div>' +
         '<div class="v6-figma-build-card"><div><span>Build commit</span><span>a8g9m1</span></div><div><span>Your commit</span><span>a8g9m1</span></div></div>' +
         '<div class="v6-figma-link-row"><span class="label">Downloaded build:</span><a href="#" onclick="event.preventDefault()">https://app-store-ksd.king.com/api/pasdasdr...</a><img src="assets/figma-icons/v6-open.svg" width="12" height="12" alt=""></div>' +
         '<div class="v6-figma-link-row"><span class="label">Remote job:</span><a href="#" onclick="event.preventDefault()">https://app-store-ksd.king.com/api/prasdasddd2dadsda...</a><img src="assets/figma-icons/v6-open.svg" width="12" height="12" alt=""></div>' +

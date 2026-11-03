@@ -4053,6 +4053,132 @@
     .v6-runtime-notice { right:8px; bottom:8px; width:calc(100% - 16px); }
   }
 
+
+  /* Figma-matched Ready · Bazel and Ready · Local popovers */
+  #build-details-panel.v6-figma-build-details {
+    width: 404px;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #222325;
+    border-radius: 2px;
+    background: #2b2c2e;
+    color: #b3b3b3;
+    box-shadow: 0 12px 28px rgba(0,0,0,.42);
+    font: 500 12px/16px 'Nunito Sans', sans-serif;
+    letter-spacing: .48px;
+  }
+  .v6-figma-component { width: 100%; background: #2b2c2e; }
+  .v6-figma-branch {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+    padding: 4px 12px 8px;
+    color: #b3b3b3;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .v6-figma-branch-value { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .v6-figma-branch-value img { display: block; flex: 0 0 20px; }
+  .v6-figma-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    padding: 8px 12px;
+    background: #37383a;
+  }
+  .v6-figma-content.local { gap: 12px; }
+  .v6-figma-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 20px;
+    padding: 0 4px;
+    color: #fff;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1px;
+  }
+  .v6-figma-toggle-on,
+  .v6-figma-toggle-off {
+    position: relative;
+    flex: 0 0 auto;
+    width: 30px;
+    height: 16px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  .v6-figma-toggle-on { width: 24px; }
+  .v6-figma-toggle-on .track { position: absolute; left: 3px; top: 3px; }
+  .v6-figma-toggle-on .knob { position: absolute; left: 13px; top: 5px; }
+  .v6-figma-toggle-off img { display: block; }
+  .v6-figma-build-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    background: #2b2c2e;
+    color: #9ea5ae;
+    white-space: nowrap;
+  }
+  .v6-figma-build-card > div { display:flex; align-items:center; justify-content:space-between; }
+  .v6-figma-link-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 20px;
+    padding: 0 4px;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .v6-figma-link-row .label { flex: 0 0 auto; color: #b0b0b0; letter-spacing: 1px; }
+  .v6-figma-link-row a {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: #5eb1ed;
+    text-overflow: ellipsis;
+    text-decoration: underline;
+    text-underline-position: from-font;
+  }
+  .v6-figma-link-row > img { flex: 0 0 12px; display:block; }
+  .v6-figma-link-row.location { gap: 4px; }
+  .v6-folder-icon { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; flex:0 0 16px; }
+  .v6-folder-icon img { display:block; }
+  .v6-copy-icon { position:relative; width:16px; height:16px; flex:0 0 16px; }
+  .v6-copy-icon i,
+  .v6-copy-icon b { position:absolute; width:8px; height:9px; border:1px solid #d9d9d9; border-radius:1px; background:#37383a; }
+  .v6-copy-icon i { left:3px; top:4px; }
+  .v6-copy-icon b { left:6px; top:1px; }
+  .v6-figma-actions {
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    min-height:26px;
+    padding-top:4px;
+  }
+  .v6-figma-ghost,
+  .v6-figma-primary {
+    min-width:60px;
+    min-height:24px;
+    max-height:24px;
+    padding:4px 12px;
+    border-radius:4px;
+    color:#cad0d8;
+    font:500 12px/16px 'Nunito Sans',sans-serif;
+    letter-spacing:.48px;
+    white-space:nowrap;
+    cursor:pointer;
+  }
+  .v6-figma-ghost { border:0; background:transparent; }
+  .v6-figma-primary { border:1px solid #64676c; background:#484b50; }
+  .v6-figma-ghost:hover { background:#414244; }
+  .v6-figma-primary:hover { background:#55575b; }
+
 </style>
 </head>
 <body>
@@ -6016,12 +6142,6 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
 
   var viewportCanvas = document.querySelector('.viewport-canvas');
   viewportCanvas.insertAdjacentHTML('beforeend',
-    '<aside id="v6-runtime-notice" class="v6-runtime-notice" role="status" aria-live="polite">' +
-      '<span class="v6-notice-icon" aria-hidden="true">▲</span>' +
-      '<button class="v6-notice-close" type="button" aria-label="Dismiss message" onclick="v6DismissNotice()">×</button>' +
-      '<strong>No game build</strong>' +
-      '<p>We couldn’t get a game build. What you see may differ from the game.</p>' +
-    '</aside>' +
     '<div id="v6-switching-overlay" class="v6-switching-overlay" role="status" aria-live="polite">' +
       '<div id="v6-switching-label">Switching to game build</div>' +
       '<div class="v6-infinite-track" aria-hidden="true"></div>' +
@@ -6179,9 +6299,6 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       ? 'Build update failed. Previous Bazel build is ready. Show details'
       : 'Show ' + status.label + ' details');
 
-    var notice = document.getElementById('v6-runtime-notice');
-    notice.classList.toggle('visible', noBuildStates.includes(index) && !v6WarningDismissed);
-
     var switching = document.getElementById('v6-switching-overlay');
     if (!v6ManualSwitching) {
       var gameSwitch = index === 8 || index === 9 || index === 11;
@@ -6209,44 +6326,76 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     });
   };
 
+  function v6BranchHeader(nodeId) {
+    return '<header class="v6-figma-branch" data-node-id="' + nodeId + '">' +
+      '<span>Current branch</span>' +
+      '<span class="v6-figma-branch-value"><img src="assets/figma-icons/v6-branch.svg" width="20" height="20" alt="">origin/1.181</span>' +
+    '</header>';
+  }
+
+  function v6BazelDetails() {
+    return '<section class="v6-figma-component" data-node-id="5191:90717">' +
+      v6BranchHeader('5191:90718') +
+      '<div class="v6-figma-content">' +
+        '<div class="v6-figma-toggle-row"><span>Use Bazel build</span><button class="v6-figma-toggle-on" type="button" role="switch" aria-checked="true" aria-label="Use Bazel build" onclick="event.stopPropagation()"><img class="track" src="assets/figma-icons/v6-toggle-track.svg" width="18" height="10" alt=""><img class="knob" src="assets/figma-icons/v6-toggle-knob.svg" width="6" height="6" alt=""></button></div>' +
+        '<div class="v6-figma-build-card"><div><span>Build commit</span><span>a8g9m1</span></div><div><span>Your commit</span><span>a8g9m1</span></div></div>' +
+        '<div class="v6-figma-link-row"><span class="label">Downloaded build:</span><a href="#" onclick="event.preventDefault()">https://app-store-ksd.king.com/api/pasdasdr...</a><img src="assets/figma-icons/v6-open.svg" width="12" height="12" alt=""></div>' +
+        '<div class="v6-figma-link-row"><span class="label">Remote job:</span><a href="#" onclick="event.preventDefault()">https://app-store-ksd.king.com/api/prasdasddd2dadsda...</a><img src="assets/figma-icons/v6-open.svg" width="12" height="12" alt=""></div>' +
+        '<div class="v6-figma-actions"><button class="v6-figma-ghost" type="button" onclick="v6OpenClearCache()">Clear build cache...</button><button class="v6-figma-primary" type="button" onclick="setState(10)">Request new build</button></div>' +
+      '</div>' +
+    '</section>';
+  }
+
+  function v6LocalDetails() {
+    return '<section class="v6-figma-component" data-node-id="5191:90882">' +
+      v6BranchHeader('5191:90883') +
+      '<div class="v6-figma-content local">' +
+        '<div class="v6-figma-toggle-row"><span>Use Bazel build</span><button class="v6-figma-toggle-off" type="button" role="switch" aria-checked="false" aria-label="Use Bazel build" onclick="selectReadySource(\'Bazel\')"><img src="assets/figma-icons/v6-toggle-off.svg" width="30" height="16" alt=""></button></div>' +
+        '<div class="v6-figma-link-row location"><span class="label">Build location:</span><a href="#" onclick="event.preventDefault()">https://app-store-ksd.king.com/api/pasdasdr...</a><span class="v6-folder-icon"><img src="assets/figma-icons/v6-folder.svg" width="12" height="11" alt=""></span><span class="v6-copy-icon" aria-hidden="true"><i></i><b></b></span></div>' +
+        '<div class="v6-figma-actions"><button class="v6-figma-ghost" type="button" onclick="v6OpenClearCache()">Clear build cache...</button><button class="v6-figma-primary" type="button" onclick="trackPrototypeEvent(\'select_another_local_build_clicked\')">Select another build...</button></div>' +
+      '</div>' +
+    '</section>';
+  }
+
   window.toggleBuildDetails = function (triggerEl) {
     var panel = document.getElementById('build-details-panel');
-    if (panel.classList.contains('visible')) {
-      return;
-    }
+    if (panel.classList.contains('visible')) return;
     v6DetailsTrigger = triggerEl;
     var noBuildStates = [1, 2, 5, 6, 8, 12];
+    var isBazelReady = [0, 9].includes(currentState);
+    var isLocalReady = currentState === 7;
     var head = '';
     var body = '';
     var actions = '';
 
-    if (noBuildStates.includes(currentState)) {
-      head = '<span class="v6-detail-dot yellow"></span><strong>Not ready</strong>';
-      body = '<p>No game build is available yet.</p><p class="v6-detail-emphasis"><strong>Some game-specific visuals may be missing or different. Continue editing, or request a game build when you are ready to validate the final appearance.</strong></p>';
-    } else if (currentState === 3) {
-      head = '<span class="v6-detail-dot green"></span><strong>Ready · Bazel</strong>';
-      body = '<p><strong>Build update failed</strong></p><p>The previous successful game build is still active. The viewport has not changed, so you can continue editing.</p>';
-      actions = '<button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button><button class="v6-btn quiet" type="button" onclick="setState(10)">Retry build</button>';
-    } else if (currentState === 4) {
-      head = '<span class="v6-detail-dot red"></span><strong>Preview unavailable</strong>';
-      body = '<p>The preview could not start. Your work is safe, but the viewport will not update.</p>';
-      actions = '<button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button><button class="v6-btn quiet" type="button" onclick="retryGameBuild()">Try again</button>';
-    } else if (currentState === 7) {
-      head = '<span class="v6-detail-dot green"></span><strong>Ready · Local</strong>';
-      body = '<p>The current local game build is active and ready for visual validation.</p><div class="v6-detail-note">A Bazel game build is also available.</div>';
-      actions = '<button class="v6-text-action" type="button" onclick="v6OpenClearCache()">Clear build cache</button><button class="v6-btn quiet" type="button" onclick="selectReadySource(\'Bazel\')">Use Bazel build</button>';
+    if (isBazelReady || isLocalReady) {
+      panel.className = 'build-details-panel v6-details v6-figma-build-details visible';
+      panel.innerHTML = isLocalReady ? v6LocalDetails() : v6BazelDetails();
     } else {
-      head = '<span class="v6-detail-dot green"></span><strong>Ready · Bazel</strong>';
-      body = '<p>The current game build is active and ready for visual validation.</p><div class="v6-detail-note">Your scene, selection, and viewport context are preserved when builds switch.</div>';
-      actions = '<button class="v6-text-action" type="button" onclick="v6OpenClearCache()">Clear build cache</button><button class="v6-btn quiet" type="button" onclick="selectReadySource(\'Local\')">Select local build</button>';
+      if (noBuildStates.includes(currentState)) {
+        head = '<span class="v6-detail-dot yellow"></span><strong>Not ready</strong>';
+        body = '<p>No game build is available yet.</p><p class="v6-detail-emphasis"><strong>Some game-specific visuals may be missing or different. Continue editing, or request a game build when you are ready to validate the final appearance.</strong></p>';
+      } else if (currentState === 3) {
+        head = '<span class="v6-detail-dot green"></span><strong>Ready · Bazel</strong>';
+        body = '<p><strong>Build update failed</strong></p><p>The previous successful game build is still active. The viewport has not changed, so you can continue editing.</p>';
+        actions = '<button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button><button class="v6-btn quiet" type="button" onclick="setState(10)">Retry build</button>';
+      } else if (currentState === 4) {
+        head = '<span class="v6-detail-dot red"></span><strong>Preview unavailable</strong>';
+        body = '<p>The preview could not start. Your work is safe, but the viewport will not update.</p>';
+        actions = '<button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button><button class="v6-btn quiet" type="button" onclick="retryGameBuild()">Try again</button>';
+      } else {
+        head = '<span class="v6-detail-dot green"></span><strong>Ready · Bazel</strong>';
+        body = '<p>The current game build is active and ready for visual validation.</p>';
+      }
+      panel.className = 'build-details-panel v6-details visible';
+      panel.innerHTML = '<header class="v6-detail-head">' + head + '</header><div class="v6-detail-body">' + body + '</div>' + (noBuildStates.includes(currentState) ? '' : '<footer class="v6-detail-actions">' + actions + '</footer>');
     }
 
-    panel.className = 'build-details-panel v6-details visible';
-    panel.innerHTML = '<header class="v6-detail-head">' + head + '</header><div class="v6-detail-body">' + body + '</div>' + (noBuildStates.includes(currentState) ? '' : '<footer class="v6-detail-actions">' + actions + '</footer>');
     var rect = triggerEl.getBoundingClientRect();
+    var panelWidth = panel.offsetWidth || 400;
     panel.style.position = 'fixed';
     panel.style.top = Math.min(window.innerHeight - panel.offsetHeight - 12, rect.bottom + 7) + 'px';
-    panel.style.left = Math.max(10, Math.min(window.innerWidth - 360, rect.right - 350)) + 'px';
+    panel.style.left = Math.max(10, Math.min(window.innerWidth - panelWidth - 10, rect.right - panelWidth)) + 'px';
     triggerEl.setAttribute('aria-expanded', 'true');
     markStatusInteraction('build_details_opened');
   };

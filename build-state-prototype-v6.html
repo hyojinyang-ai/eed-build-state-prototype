@@ -6001,18 +6001,18 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
 
   states[0].headerLabel = 'Ready · Bazel';
   states[1].headerLabel = 'Not ready';
-  states[2].headerLabel = 'Building';
+  states[2].headerLabel = 'Not ready';
   states[3].headerLabel = 'Ready · Bazel';
   states[3].fallback = false;
   states[4].headerLabel = 'Preview unavailable';
-  states[5].headerLabel = 'Building';
-  states[6].headerLabel = 'Building';
+  states[5].headerLabel = 'Not ready';
+  states[6].headerLabel = 'Not ready';
   states[7].headerLabel = 'Ready · Local';
-  states[8].headerLabel = 'Switching';
+  states[8].headerLabel = 'Not ready';
   states[9].headerLabel = 'Switching';
   states[10].headerLabel = 'Ready · Bazel';
   states[11].headerLabel = 'Switching';
-  states[12].headerLabel = 'Building';
+  states[12].headerLabel = 'Not ready';
 
   var viewportCanvas = document.querySelector('.viewport-canvas');
   viewportCanvas.insertAdjacentHTML('beforeend',
@@ -6154,8 +6154,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     if (index === 3 || index === 10) return { dot: 'green', label: 'Ready · Bazel', source: 'Bazel' };
     if (index === 9 || index === 11) return { dot: 'spinner', label: 'Switching', source: 'Bazel' };
     if (index === 4) return { dot: 'red', label: 'Preview unavailable', source: 'View log' };
-    if ([2, 5, 6, 12].includes(index)) return { dot: 'spinner', label: 'Building', source: 'Bazel' };
-    if (index === 8) return { dot: 'spinner', label: 'Switching', source: 'Bazel' };
+    if ([1, 2, 5, 6, 8, 12].includes(index)) return { dot: 'yellow', label: 'Not ready', source: 'No build' };
     return { dot: 'yellow', label: 'Not ready', source: 'No build' };
   }
 

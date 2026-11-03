@@ -4179,6 +4179,54 @@
   .v6-figma-ghost:hover { background:#414244; }
   .v6-figma-primary:hover { background:#55575b; }
 
+
+  /* Figma-referenced stale build progress */
+  .build-widget .bw-status.v6-progress-active {
+    width: 216px;
+    min-width: 216px;
+    flex-basis: 216px;
+  }
+  .v6-build-progress-inline {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    color: #a5a5a5;
+    font: 400 12px/16px 'Nunito Sans', sans-serif;
+    letter-spacing: .4px;
+  }
+  .v6-build-progress-inline.visible { display: inline-flex; }
+  .v6-build-progress-inline > img {
+    display: block;
+    flex: 0 0 16px;
+    animation: bw-spin 1.1s linear infinite;
+  }
+  .v6-build-progress-track {
+    display: block;
+    flex: 0 0 54px;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: #484b50;
+  }
+  .v6-build-progress-track i {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: #309ae8;
+    transition: width .18s linear;
+  }
+  #v6-build-progress-percent { min-width: 31px; text-align: right; }
+  #v6-switching-saved {
+    display: none;
+    margin-top: -7px;
+    color: #c5cbd1;
+    font: 400 12px/16px 'Nunito Sans', sans-serif;
+    letter-spacing: .25px;
+  }
+  #v6-switching-saved.visible { display: block; }
+
 </style>
 </head>
 <body>
@@ -4196,7 +4244,8 @@
       <button class="proto-state-btn active" data-state="0" data-ready-source="Bazel" onclick="selectReadySource('Bazel')">Ready · Bazel</button>
       <button class="proto-state-btn" data-state="7" data-ready-source="Local" onclick="selectReadySource('Local')">Ready · Local</button>
       <button class="proto-state-btn" data-state="1" onclick="setState(1)">Fallback</button>
-      <button class="proto-state-btn" data-state="3" onclick="setState(3)">Build update failed</button>
+      <button class="proto-state-btn" data-state="10" data-build-outcome="success" onclick="v6StartBazelBuild('success')">Build with Bazel – success</button>
+      <button class="proto-state-btn" data-state="10" data-build-outcome="fail" onclick="v6StartBazelBuild('fail')">Build with Bazel – fail</button>
       <button class="proto-state-btn" data-state="4" onclick="setState(4)">Preview unavailable</button>
       <button class="proto-state-btn v6-cache-scenario" type="button" onclick="v6OpenClearCache()">Clear build cache</button>
     </div>
@@ -6120,6 +6169,9 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   var v6ManualSwitching = false;
   var v6ClearTimer = null;
   var v6DetailsTrigger = null;
+  var v6BazelOutcome = 'success';
+  var v6ProgressTimer = null;
+  var v6SwitchTimer = null;
 
   readyBuildSource = 'Bazel';
   fallbackSwitchMode = 'auto';
@@ -6144,6 +6196,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   viewportCanvas.insertAdjacentHTML('beforeend',
     '<div id="v6-switching-overlay" class="v6-switching-overlay" role="status" aria-live="polite">' +
       '<div id="v6-switching-label">Switching to game build</div>' +
+      '<div id="v6-switching-saved">Every change and edits are saved</div>' +
       '<div class="v6-infinite-track" aria-hidden="true"></div>' +
     '</div>'
   );
@@ -6232,6 +6285,36 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     }, 2200);
   };
 
+  function v6SetBuildProgress(percent) {
+    var safePercent = Math.max(0, Math.min(100, Math.round(percent)));
+    var fill = document.getElementById('v6-build-progress-fill');
+    var value = document.getElementById('v6-build-progress-percent');
+    if (fill) fill.style.width = safePercent + '%';
+    if (value) value.textContent = safePercent + '%';
+  }
+
+  function v6RunBuildProgress() {
+    window.clearInterval(v6ProgressTimer);
+    var percent = 0;
+    v6SetBuildProgress(percent);
+    v6ProgressTimer = window.setInterval(function () {
+      percent = Math.min(100, percent + 5);
+      v6SetBuildProgress(percent);
+      if (percent >= 100) {
+        window.clearInterval(v6ProgressTimer);
+        v6ProgressTimer = null;
+        setState(v6BazelOutcome === 'success' ? 11 : 3);
+      }
+    }, 180);
+  }
+
+  window.v6StartBazelBuild = function (outcome) {
+    v6BazelOutcome = outcome === 'fail' ? 'fail' : 'success';
+    closeBuildDetails();
+    trackPrototypeEvent('bazel_build_started_' + v6BazelOutcome);
+    setState(10);
+  };
+
   window.selectReadySource = function (source) {
     readyBuildSource = source === 'Local' ? 'Local' : 'Bazel';
     markStatusInteraction('ready_build_source_selected_' + readyBuildSource.toLowerCase());
@@ -6271,7 +6354,8 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   function v6StatusFor(index) {
     if (index === 0) return { dot: 'green', label: 'Ready · Bazel', source: 'Bazel' };
     if (index === 7) return { dot: 'green', label: 'Ready · Local', source: 'Local' };
-    if (index === 3 || index === 10) return { dot: 'green', label: 'Ready · Bazel', source: 'Bazel' };
+    if (index === 3) return { dot: 'green', label: 'Ready · Bazel', source: 'Bazel' };
+    if (index === 10) return { dot: 'yellow', label: 'Stale', source: 'Bazel' };
     if (index === 9 || index === 11) return { dot: 'spinner', label: 'Switching', source: 'Bazel' };
     if (index === 4) return { dot: 'red', label: 'Preview unavailable', source: 'View log' };
     if ([1, 2, 5, 6, 8, 12].includes(index)) return { dot: 'yellow', label: 'Not ready', source: 'No build' };
@@ -6291,6 +6375,10 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     var dot = document.getElementById('bw-dot');
     dot.className = 'bw-status-dot ' + status.dot;
     document.getElementById('bw-label').textContent = status.label;
+    var statusArea = document.getElementById('bw-status-area');
+    var progressInline = document.getElementById('v6-build-progress-inline');
+    statusArea.classList.toggle('v6-progress-active', index === 10);
+    if (progressInline) progressInline.classList.toggle('visible', index === 10);
     var source = document.querySelector('#bw-cloud-btn .bw-source-label');
     if (source) source.textContent = status.source;
     var cloud = document.getElementById('bw-cloud-btn');
@@ -6303,12 +6391,21 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     if (!v6ManualSwitching) {
       var gameSwitch = index === 8 || index === 9 || index === 11;
       switching.classList.toggle('visible', gameSwitch);
-      if (gameSwitch) document.getElementById('v6-switching-label').textContent = 'Switching to game build';
+      if (gameSwitch) {
+        document.getElementById('v6-switching-label').textContent = 'Switching to game build';
+        document.getElementById('v6-switching-saved').classList.add('visible');
+      } else {
+        document.getElementById('v6-switching-saved').classList.remove('visible');
+      }
     }
 
     document.querySelectorAll('.proto-state-btn[data-state]').forEach(function (button) {
       var active = Number(button.dataset.state) === index;
       if (button.dataset.readySource) active = active && button.dataset.readySource === readyBuildSource;
+      if (button.dataset.buildOutcome) {
+        active = (index === 10 && button.dataset.buildOutcome === v6BazelOutcome) ||
+          (index === 3 && button.dataset.buildOutcome === 'fail');
+      }
       button.classList.toggle('active', active);
     });
 
@@ -6378,7 +6475,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       } else if (currentState === 3) {
         head = '<span class="v6-detail-dot green"></span><strong>Ready · Bazel</strong>';
         body = '<p><strong>Build update failed</strong></p><p>The previous successful game build is still active. The viewport has not changed, so you can continue editing.</p>';
-        actions = '<button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button><button class="v6-btn quiet" type="button" onclick="setState(10)">Retry build</button>';
+        actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Build with Bazel</button>';
       } else if (currentState === 4) {
         head = '<span class="v6-detail-dot red"></span><strong>Preview unavailable</strong>';
         body = '<p>The preview could not start. Your work is safe, but the viewport will not update.</p>';
@@ -6414,13 +6511,39 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     var detailsPanel = document.getElementById('build-details-panel');
     var detailsWereOpen = detailsPanel.classList.contains('visible') && detailsPanel.classList.contains('v6-details');
     var detailsTrigger = v6DetailsTrigger;
+    window.clearTimeout(v6SwitchTimer);
     v6BaseSetState(index);
     v6ApplyState(index, previous);
-    if (detailsWereOpen && detailsTrigger) {
+
+    if (index === 10) {
+      if (autoLoadTimer) window.clearTimeout(autoLoadTimer);
+      autoLoadTimer = null;
+      v6RunBuildProgress();
+    } else {
+      window.clearInterval(v6ProgressTimer);
+      v6ProgressTimer = null;
+      if (index === 11) {
+        v6SwitchTimer = window.setTimeout(function () { setState(9); }, 1800);
+      }
+    }
+
+    if (detailsWereOpen && detailsTrigger && index !== 10 && index !== 11 && index !== 9) {
       closeBuildDetails();
       toggleBuildDetails(detailsTrigger);
+    } else if (detailsWereOpen) {
+      closeBuildDetails();
     }
   };
+
+  // Add the Figma-referenced progress treatment beside Stale.
+  var statusArea = document.getElementById('bw-status-area');
+  statusArea.insertAdjacentHTML('beforeend',
+    '<span id="v6-build-progress-inline" class="v6-build-progress-inline" aria-live="polite">' +
+      '<img src="assets/figma-icons/v6-build-progress.svg" width="16" height="16" alt="">' +
+      '<span class="v6-build-progress-track" aria-hidden="true"><i id="v6-build-progress-fill"></i></span>' +
+      '<span id="v6-build-progress-percent">0%</span>' +
+    '</span>'
+  );
 
   // The automatic handoff is the only path after a build becomes ready.
   fallbackSwitchMode = 'auto';

@@ -6737,8 +6737,8 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   function v6LocalDetails(useBazel) {
     var bazelRequested = useBazel === true;
     var toggle = bazelRequested
-      ? '<button class="v6-figma-toggle-on" type="button" role="switch" aria-checked="true" aria-label="Use Bazel build" onclick="v6SetLocalBazelIntent(false)"><img class="track" src="assets/figma-icons/v6-toggle-track.svg" width="18" height="10" alt=""><img class="knob" src="assets/figma-icons/v6-toggle-knob.svg" width="6" height="6" alt=""></button>'
-      : '<button class="v6-figma-toggle-off" type="button" role="switch" aria-checked="false" aria-label="Use Bazel build" onclick="v6SetLocalBazelIntent(true)"><img src="assets/figma-icons/v6-toggle-off.svg" width="30" height="16" alt=""></button>';
+      ? '<button class="v6-figma-toggle-on" type="button" role="switch" aria-checked="true" aria-label="Use Bazel build" onclick="event.stopPropagation(); v6SetLocalBazelIntent(false)"><img class="track" src="assets/figma-icons/v6-toggle-track.svg" width="18" height="10" alt=""><img class="knob" src="assets/figma-icons/v6-toggle-knob.svg" width="6" height="6" alt=""></button>'
+      : '<button class="v6-figma-toggle-off" type="button" role="switch" aria-checked="false" aria-label="Use Bazel build" onclick="event.stopPropagation(); v6SetLocalBazelIntent(true)"><img src="assets/figma-icons/v6-toggle-off.svg" width="30" height="16" alt=""></button>';
     var unavailable = bazelRequested
       ? '<div class="v6-local-bazel-unavailable" role="status"><span class="v6-detail-dot yellow" aria-hidden="true"></span><span>There is no available build with Bazel.</span></div>'
       : '';

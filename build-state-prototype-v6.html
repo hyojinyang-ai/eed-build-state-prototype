@@ -6325,19 +6325,19 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   hasUnsavedWork = false;
 
   states[0].headerLabel = 'Ready · Bazel';
-  states[1].headerLabel = 'Not ready';
-  states[2].headerLabel = 'Not ready';
+  states[1].headerLabel = 'Game build not ready';
+  states[2].headerLabel = 'Game build not ready';
   states[3].headerLabel = 'Ready · Bazel';
   states[3].fallback = false;
   states[4].headerLabel = 'Preview unavailable';
-  states[5].headerLabel = 'Not ready';
-  states[6].headerLabel = 'Not ready';
+  states[5].headerLabel = 'Game build not ready';
+  states[6].headerLabel = 'Game build not ready';
   states[7].headerLabel = 'Ready · Local';
-  states[8].headerLabel = 'Not ready';
+  states[8].headerLabel = 'Game build not ready';
   states[9].headerLabel = 'Switching';
   states[10].headerLabel = 'Ready · Bazel';
   states[11].headerLabel = 'Switching';
-  states[12].headerLabel = 'Not ready';
+  states[12].headerLabel = 'Game build not ready';
 
   var viewportCanvas = document.querySelector('.viewport-canvas');
   viewportCanvas.insertAdjacentHTML('beforeend',
@@ -6523,8 +6523,8 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     if (index === 10) return { dot: 'yellow', label: 'Stale', source: 'Bazel' };
     if (index === 9 || index === 11) return { dot: 'spinner', label: 'Switching', source: 'Bazel' };
     if (index === 4) return { dot: 'red', label: 'Game build Crash', source: 'View log' };
-    if ([1, 2, 5, 6, 8, 12].includes(index)) return { dot: 'yellow', label: 'Not ready', source: 'No build' };
-    return { dot: 'yellow', label: 'Not ready', source: 'No build' };
+    if ([1, 2, 5, 6, 8, 12].includes(index)) return { dot: 'yellow', label: 'Game build not ready', source: 'No build' };
+    return { dot: 'yellow', label: 'Game build not ready', source: 'No build' };
   }
 
   function v6EnsureBuildProgress() {
@@ -6635,9 +6635,13 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
 
   window.toggleBuildDetails = function (triggerEl) {
     var panel = document.getElementById('build-details-panel');
+    if (v6ManualSwitching) {
+      closeBuildDetails();
+      return;
+    }
     if (panel.classList.contains('visible')) return;
     v6DetailsTrigger = triggerEl;
-    var noBuildStates = [1, 2, 5, 6, 8, 12];
+    var noBuildStates = [1, 2, 5, 6, 8, 10, 12];
     var isBazelReady = [0, 9].includes(currentState);
     var isLocalReady = currentState === 7;
     var head = '';
@@ -6649,8 +6653,8 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       panel.innerHTML = isLocalReady ? v6LocalDetails() : v6BazelDetails();
     } else {
       if (noBuildStates.includes(currentState)) {
-        head = '<span class="v6-detail-dot yellow"></span><strong>Not ready</strong>';
-        body = '<p>No game build is available yet.</p><p class="v6-detail-emphasis"><strong>Some game-specific visuals may be missing or different. Continue editing, or request a game build when you are ready to validate the final appearance.</strong></p>';
+        head = '<span class="v6-detail-dot yellow"></span><strong>Game build not ready</strong>';
+        body = '<p>No game build is available yet.</p><p class="v6-detail-emphasis">Some game-specific visuals may be missing or different. Continue editing, or request a game build when you are ready to validate the final appearance.</p>';
       } else if (currentState === 3) {
         head = '<span class="v6-detail-dot green"></span><strong>Ready · Bazel</strong>';
         body = '<p><strong>Build update failed</strong></p><p>The previous successful game build is still active. The viewport has not changed, so you can continue editing.</p>';

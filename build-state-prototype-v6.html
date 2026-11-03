@@ -3907,6 +3907,18 @@
     text-overflow: ellipsis;
   }
   .figma-oos-chip { display: none !important; }
+  #bw-cloud-btn { position: relative; }
+  #bw-cloud-btn.v6-build-failed::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 7px;
+    height: 7px;
+    border: 1px solid #313131;
+    border-radius: 50%;
+    background: #e05252;
+  }
 
   .v6-runtime-notice {
     display: none;
@@ -6162,7 +6174,10 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     var source = document.querySelector('#bw-cloud-btn .bw-source-label');
     if (source) source.textContent = status.source;
     var cloud = document.getElementById('bw-cloud-btn');
-    cloud.setAttribute('aria-label', 'Show ' + status.label + ' details');
+    cloud.classList.toggle('v6-build-failed', index === 3);
+    cloud.setAttribute('aria-label', index === 3
+      ? 'Build update failed. Previous Bazel build is ready. Show details'
+      : 'Show ' + status.label + ' details');
 
     var notice = document.getElementById('v6-runtime-notice');
     notice.classList.toggle('visible', noBuildStates.includes(index) && !v6WarningDismissed);

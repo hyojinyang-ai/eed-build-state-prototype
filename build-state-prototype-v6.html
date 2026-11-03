@@ -4391,6 +4391,49 @@
   #bw-cloud-btn.v6-source-hidden {
     display: none;
   }
+  /* Figma 5193:91035 — Bazel build error status */
+  .build-widget.v6-bazel-error-state .bw-status {
+    width: 136px;
+    min-width: 136px;
+    flex-basis: 136px;
+  }
+  .v6-bazel-error-icon {
+    display: block;
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+  }
+  .v6-bazel-error-icon img {
+    display: block;
+    width: 16px;
+    height: 16px;
+  }
+  #bw-cloud-btn.v6-bazel-error-refresh {
+    display: inline-flex;
+    width: 20px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0 2px;
+    border: 1px solid #222325;
+    border-radius: 4px;
+    background: #484b50;
+  }
+  #bw-cloud-btn.v6-bazel-error-refresh:hover {
+    background: #56595e;
+  }
+  .build-widget.v6-bazel-error-state .bw-collapse {
+    position: relative;
+    cursor: pointer;
+  }
+  .build-widget.v6-bazel-error-state .bw-collapse::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    width: 1px;
+    height: 20px;
+    background: #484b50;
+  }
 </style>
 </head>
 <body>
@@ -6543,7 +6586,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   function v6StatusFor(index) {
     if (index === 0) return { dot: 'green', label: 'Ready · Bazel', source: 'Bazel' };
     if (index === 7) return { dot: 'green', label: 'Ready · Local', source: 'Local' };
-    if (index === 3) return { dot: 'green', label: 'Ready · Bazel', source: 'Bazel' };
+    if (index === 3) return { dot: 'yellow', label: 'Bazel error', source: '' };
     if (index === 10) return { dot: 'yellow', label: 'Stale', source: 'Bazel' };
     if (index === 9 || index === 11) return { dot: 'spinner', label: 'Switching', source: 'Bazel' };
     if (index === 4) return { dot: 'red', label: 'Game build Crash', source: 'View log' };
@@ -6574,34 +6617,40 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     confirmation.classList.remove('visible', 'auto-switching');
 
     var status = v6StatusFor(index);
+    var bazelErrorState = index === 3;
     var dot = document.getElementById('bw-dot');
-    dot.className = 'bw-status-dot ' + status.dot;
+    dot.className = bazelErrorState ? 'v6-bazel-error-icon' : 'bw-status-dot ' + status.dot;
+    dot.innerHTML = bazelErrorState
+      ? '<img src="assets/figma-icons/v6-bazel-error-status.svg" width="16" height="16" alt="">'
+      : '';
     document.getElementById('bw-label').textContent = status.label;
     var statusArea = document.getElementById('bw-status-area');
     var progressInline = document.getElementById('v6-build-progress-inline');
     statusArea.classList.toggle('v6-progress-active', index === 10);
+    statusArea.classList.toggle('v6-bazel-error-status', bazelErrorState);
+    document.querySelector('.build-widget').classList.toggle('v6-bazel-error-state', bazelErrorState);
     if (progressInline) progressInline.classList.toggle('visible', index === 10);
     var source = document.querySelector('#bw-cloud-btn .bw-source-label');
     if (source) source.textContent = status.source;
     var cloud = document.getElementById('bw-cloud-btn');
-    var refreshState = index === 0 || index === 1 || index === 7;
+    var requestRefreshState = index === 0 || index === 1 || index === 3 || index === 7;
     var hideSourceDuringBuild = index === 10 || index === 9 || index === 11;
-    cloud.classList.toggle('v6-ready-refresh', refreshState);
-    cloud.classList.toggle('icon-only', refreshState);
+    cloud.classList.toggle('v6-ready-refresh', requestRefreshState);
+    cloud.classList.toggle('v6-bazel-error-refresh', bazelErrorState);
+    cloud.classList.toggle('icon-only', requestRefreshState);
     cloud.classList.toggle('v6-source-hidden', hideSourceDuringBuild);
-    if (refreshState) {
+    if (requestRefreshState) {
+      var refreshLabel = bazelErrorState ? 'Retry Bazel build' : 'Request new Bazel build';
       cloud.innerHTML = v6ReadyRefreshIcon();
       cloud.setAttribute('onclick', "v6StartBazelBuild('success')");
-      cloud.setAttribute('aria-label', 'Request new Bazel build');
-      cloud.setAttribute('title', 'Request new Bazel build');
+      cloud.setAttribute('aria-label', refreshLabel);
+      cloud.setAttribute('title', refreshLabel);
     } else {
       cloud.setAttribute('onclick', 'toggleBuildDetails(this)');
       cloud.removeAttribute('title');
-      cloud.setAttribute('aria-label', index === 3
-        ? 'Build update failed. Previous Bazel build is ready. Show details'
-        : 'Show ' + status.label + ' details');
+      cloud.setAttribute('aria-label', 'Show ' + status.label + ' details');
     }
-    cloud.classList.toggle('v6-build-failed', index === 3);
+    cloud.classList.remove('v6-build-failed');
     cloud.classList.toggle('v6-building-cloud', index === 10);
 
     var switching = document.getElementById('v6-switching-overlay');

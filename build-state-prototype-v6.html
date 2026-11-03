@@ -6585,16 +6585,24 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     if (source) source.textContent = status.source;
     var cloud = document.getElementById('bw-cloud-btn');
     var refreshState = index === 0 || index === 1 || index === 7;
-    var hideSourceDuringBuild = index === 10;
+    var hideSourceDuringBuild = index === 10 || index === 9 || index === 11;
     cloud.classList.toggle('v6-ready-refresh', refreshState);
     cloud.classList.toggle('icon-only', refreshState);
     cloud.classList.toggle('v6-source-hidden', hideSourceDuringBuild);
-    if (refreshState) cloud.innerHTML = v6ReadyRefreshIcon();
+    if (refreshState) {
+      cloud.innerHTML = v6ReadyRefreshIcon();
+      cloud.setAttribute('onclick', "v6StartBazelBuild('success')");
+      cloud.setAttribute('aria-label', 'Request new Bazel build');
+      cloud.setAttribute('title', 'Request new Bazel build');
+    } else {
+      cloud.setAttribute('onclick', 'toggleBuildDetails(this)');
+      cloud.removeAttribute('title');
+      cloud.setAttribute('aria-label', index === 3
+        ? 'Build update failed. Previous Bazel build is ready. Show details'
+        : 'Show ' + status.label + ' details');
+    }
     cloud.classList.toggle('v6-build-failed', index === 3);
     cloud.classList.toggle('v6-building-cloud', index === 10);
-    cloud.setAttribute('aria-label', index === 3
-      ? 'Build update failed. Previous Bazel build is ready. Show details'
-      : 'Show ' + status.label + ' details');
 
     var switching = document.getElementById('v6-switching-overlay');
     if (!v6ManualSwitching) {

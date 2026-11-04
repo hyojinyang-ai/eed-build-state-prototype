@@ -6602,7 +6602,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     if (index === 0) return { dot: 'green', label: 'Ready · Bazel', source: 'Bazel' };
     if (index === 7) return { dot: 'green', label: 'Ready · Local', source: 'Local' };
     if (index === 3) return { dot: 'yellow', label: 'Bazel error', source: '' };
-    if (index === 10) return { dot: 'yellow', label: 'Stale', source: 'Bazel' };
+    if (index === 10) return { dot: 'yellow', label: 'Requesting', source: 'Bazel' };
     if (index === 9 || index === 11) return { dot: 'spinner', label: 'Switching', source: 'Bazel' };
     if (index === 4) return { dot: 'red', label: 'Game build Crash', source: 'View log' };
     if ([1, 2, 5, 6, 8, 12].includes(index)) return { dot: 'yellow', label: 'Game build not ready', source: 'No build' };

@@ -6790,7 +6790,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       } else if (currentState === 3) {
         head = '<span class="v6-detail-dot yellow"></span><strong>Bazel error</strong>';
         body = '<p><strong>Build update failed</strong></p><p>The previous successful game build is still active. The viewport has not changed, so you can continue editing.</p>';
-        actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Build with Bazel</button>';
+        actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Request Bazel build</button>';
       } else if (currentState === 4) {
         head = '<span class="v6-detail-dot red"></span><strong>Game build Crash</strong>';
         body = '<p><strong>Game build couldn’t get started.</strong></p><p>We couldn’t get the game build started. Your work is safe, but the viewport won’t update until the game build is available.</p><p><strong>What you can do</strong><br>Try getting the build again. You can also view the log and share it with the support channel.</p>';

@@ -4449,6 +4449,93 @@
     height: 20px;
     background: #484b50;
   }
+  /* Production Play Button Suite component sync — v4-develop */
+  .build-widget .bw-status {
+    width: 150px;
+    min-width: 150px;
+    flex-basis: 150px;
+  }
+  .bw-transport .ui-icon {
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+  .v6-production-status-icon {
+    display: block;
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+  }
+  .v6-production-status-icon img {
+    display: block;
+    width: 16px;
+    height: 16px;
+  }
+  .v6-production-status-icon.rotating img {
+    animation: bw-spin 1s linear infinite;
+  }
+  #bw-cloud-btn.v6-ready-refresh {
+    width: 20px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0 2px;
+    border: 1px solid #222325;
+    border-radius: 4px;
+    background: #4d4f54;
+  }
+  #bw-cloud-btn.v6-ready-refresh:hover { background: #5c5e63; }
+  #bw-cloud-btn.v6-ready-refresh:active { background: #3a3c41; }
+  #bw-cloud-btn .v6-production-action-icon {
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+  .build-widget .bw-collapse.v6-production-disclosure {
+    position: relative;
+    cursor: pointer;
+  }
+  .bw-collapse.v6-production-disclosure img {
+    display: block;
+    width: 16px;
+    height: 16px;
+    transition: transform 120ms ease;
+  }
+  .bw-collapse.v6-production-disclosure[aria-expanded="true"] img {
+    transform: rotate(180deg);
+  }
+  #build-details-panel.v6-figma-build-details {
+    width: 412px;
+  }
+  .v6-figma-branch-value img {
+    width: 16px;
+    height: 16px;
+  }
+  .v6-figma-toggle-on,
+  .v6-figma-toggle-off {
+    width: 16px;
+    height: 16px;
+  }
+  .v6-figma-toggle-on img,
+  .v6-figma-toggle-off img {
+    position: static;
+    display: block;
+    width: 16px;
+    height: 16px;
+  }
+  .v6-folder-icon img,
+  .v6-copy-icon-image {
+    display: block;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+  }
+  .v6-detail-status-icon {
+    display: block;
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+  }
 </style>
 </head>
 <body>
@@ -4569,10 +4656,10 @@
       <!-- Build Widget — always visible with status -->
       <div class="build-widget" id="header-build-widget">
         <div class="bw-transport">
-          <span class="bw-btn" id="play-btn" title="Play"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAKhJREFUeAHtjs0JwkAQRr9NTAFW4HrwKliR6cCStATtwJs/yGouSjxISvAmLDGjaBCEbDKbH3LJuyzMDm8e0NEY6nwboARO1nAXhNNY62h7CudK2Ykdw1B+X/JjodeH9wFUEf4hIBOiBbe2WPhb5NWyhR/S2n1wndUjTKHk2Tf99WBlwt1zXX8yHq1MK+xCglh6eAzzZGAVMqpQVCiAyKaKxeZ4kehohRcxukKjg9bpDQAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
-          <span class="bw-btn dim" title="Stop"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAHpJREFUeAHtksENQFAQRGdoQAfcHB2VowUl0IEW9CNxdqMDDfhD4iYrJCIh+e+4s/uyhwE8n4PWsOuHQlAjIjKvhFEBqzxL22MUWPsLXH0q299IKDRWZApJxrhE0W3hE7zwJeFWzhkXaOvibaEjSydNOLVhDsEKnn+wAlHmHREeTeu8AAAAAElFTkSuQmCC" width="20" height="20" alt=""></span>
-          <span class="bw-btn dim" title="Pause"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAEhJREFUeAHtjDEKwCAQBN183MvzEgvt1Nes2AoeYifeNAuzMM4Z5xBi9X8q/GIWzY08s4Og9AXgNbcc3MWCVwdBSF+Sr+aMA2jaYCK3P61xegAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
-          <span class="bw-btn dim" title="Step"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAPVJREFUeAHtkjsOgkAQhmc2inZyA42VdmJhrTfwBnoDPYo38AzegNIYI1D5KIzegE55hHEJLBFZAomNJnwV7Ga+zD87ABW/zc44LfbWeQZfgCmheaL4U68Fynw47N5lRYZhqEStluyegZyxzzxzZ10WWdmx40LT9NHVD4dru6yQQypQsNqa57UojGSg82AUAKFMmhf5ww23GilTD51NKKuTMkZ00OFyFv7DQ+PYBR2mUCNvugOMz8J5QnHkBJ13N+APYDX4bEVUET3s9v1x8oUENkO2HA16E1Ggaf2bkMpkouuE8mtz7AA8bTG3XKLFzq5KxZ/zAm1Yeu1gaFmCAAAAAElFTkSuQmCC" width="20" height="20" alt=""></span>
+          <span class="bw-btn" id="play-btn" title="Play"><img class="ui-icon" src="assets/play-button-plugin/playbutton-play.png" width="20" height="20" alt=""></span>
+          <span class="bw-btn dim" title="Stop"><img class="ui-icon" src="assets/play-button-plugin/playbutton-stop-disabled.png" width="20" height="20" alt=""></span>
+          <span class="bw-btn dim" title="Pause"><img class="ui-icon" src="assets/play-button-plugin/playbutton-pause-disabled.png" width="20" height="20" alt=""></span>
+          <span class="bw-btn dim" title="Step"><img class="ui-icon" src="assets/play-button-plugin/playbutton-next-disabled.png" width="20" height="20" alt=""></span>
         </div>
         <span class="bw-menu-btn"><img class="ui-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAFRJREFUeAHt0TkKACEMBdDEOcyU08x99Gh6HEEQS0/jUgouAQst8iCQIgQ+H4D12BClK0O5RcozTEnXXSCq/3vN7F7AwjPYt9S4nhj5DC7lQlwKa2XC5TcYYqjg1QAAAABJRU5ErkJggg==" width="20" height="20" alt=""></span>
         <span class="bw-divider"></span>
@@ -6591,11 +6678,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   };
 
   function v6ReadyRefreshIcon() {
-    return '<span class="figma-reload-icon v6-ready-refresh-icon" aria-hidden="true">' +
-      '<img class="figma-reload-ring" src="assets/figma-icons/217-reload-ring--4727-16705.svg" width="12" height="12" alt="">' +
-      '<img class="figma-reload-arrow-a" src="assets/figma-icons/218-reload-arrow-a--4727-16705.svg" width="5" height="4" alt="">' +
-      '<img class="figma-reload-arrow-b" src="assets/figma-icons/219-reload-arrow-b--4727-16705.svg" width="5" height="4" alt="">' +
-    '</span>';
+    return '<img class="v6-production-action-icon" src="assets/play-button-plugin/playbutton-retrigger-build.png" width="20" height="20" alt="">';
   }
 
   function v6StatusFor(index) {
@@ -6614,7 +6697,6 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     if (!document.getElementById('v6-build-progress-inline')) {
       statusArea.insertAdjacentHTML('beforeend',
         '<span id="v6-build-progress-inline" class="v6-build-progress-inline" aria-live="polite">' +
-          '<img src="assets/figma-icons/v6-build-progress.svg" width="16" height="16" alt="">' +
           '<span class="v6-build-progress-track" aria-hidden="true"><i id="v6-build-progress-fill"></i></span>' +
           '<span id="v6-build-progress-percent">0%</span>' +
         '</span>'
@@ -6644,10 +6726,20 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       dot = document.getElementById('bw-dot');
       label = document.getElementById('bw-label');
     }
-    dot.className = bazelErrorState ? 'v6-bazel-error-icon' : 'bw-status-dot ' + status.dot;
-    dot.innerHTML = bazelErrorState
-      ? '<img src="assets/figma-icons/v6-bazel-error-status.svg" width="16" height="16" alt="">'
-      : '';
+    var productionStatusIcon = '';
+    if (index === 0 || index === 7) productionStatusIcon = 'playbutton-build-ready.png';
+    if (index === 10 || index === 9 || index === 11) productionStatusIcon = 'playbutton-building.png';
+    if (index === 4) productionStatusIcon = 'playbutton-connection-error.png';
+    if (bazelErrorState) {
+      dot.className = 'v6-bazel-error-icon';
+      dot.innerHTML = '<img src="assets/figma-icons/v6-bazel-error-status.svg" width="16" height="16" alt="">';
+    } else if (productionStatusIcon) {
+      dot.className = 'v6-production-status-icon' + (index === 10 || index === 9 || index === 11 ? ' rotating' : '');
+      dot.innerHTML = '<img src="assets/play-button-plugin/' + productionStatusIcon + '" width="16" height="16" alt="">';
+    } else {
+      dot.className = 'bw-status-dot ' + status.dot;
+      dot.innerHTML = '';
+    }
     label.textContent = status.label;
     var progressInline = document.getElementById('v6-build-progress-inline');
     statusArea.classList.toggle('v6-progress-active', index === 10);
@@ -6677,6 +6769,10 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     }
     cloud.classList.remove('v6-build-failed');
     cloud.classList.toggle('v6-building-cloud', index === 10);
+
+    var disclosure = document.querySelector('.build-widget .bw-collapse');
+    disclosure.classList.add('v6-production-disclosure');
+    disclosure.innerHTML = '<img src="assets/play-button-plugin/playbutton-arrow-down.png" width="16" height="16" alt="">';
 
     var switching = document.getElementById('v6-switching-overlay');
     if (!v6ManualSwitching) {
@@ -6717,7 +6813,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   function v6BranchHeader(nodeId) {
     return '<header class="v6-figma-branch" data-node-id="' + nodeId + '">' +
       '<span>Current branch</span>' +
-      '<span class="v6-figma-branch-value"><img src="assets/figma-icons/v6-branch.svg" width="20" height="20" alt="">origin/1.181</span>' +
+      '<span class="v6-figma-branch-value"><img src="assets/play-button-plugin/playbutton-branch.png" width="20" height="20" alt="">origin/1.181</span>' +
     '</header>';
   }
 
@@ -6725,7 +6821,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     return '<section class="v6-figma-component" data-node-id="5191:90717">' +
       v6BranchHeader('5191:90718') +
       '<div class="v6-figma-content">' +
-        '<div class="v6-figma-toggle-row"><span>Use Bazel build</span><button class="v6-figma-toggle-on" type="button" role="switch" aria-checked="true" aria-label="Use Bazel build" onclick="selectReadySource(\'Local\')"><img class="track" src="assets/figma-icons/v6-toggle-track.svg" width="18" height="10" alt=""><img class="knob" src="assets/figma-icons/v6-toggle-knob.svg" width="6" height="6" alt=""></button></div>' +
+        '<div class="v6-figma-toggle-row"><span>Use Bazel build</span><button class="v6-figma-toggle-on" type="button" role="switch" aria-checked="true" aria-label="Use Bazel build" onclick="selectReadySource(\'Local\')"><img src="assets/play-button-plugin/playbutton-toggle-on.png" width="16" height="16" alt=""></button></div>' +
         '<div class="v6-figma-build-card"><div><span>Build commit</span><span>a8g9m1</span></div><div><span>Your commit</span><span>a8g9m1</span></div></div>' +
         '<div class="v6-figma-link-row"><span class="label">Downloaded build:</span><a href="#" onclick="event.preventDefault()">https://app-store-ksd.king.com/api/pasdasdr...</a><img src="assets/figma-icons/v6-open.svg" width="12" height="12" alt=""></div>' +
         '<div class="v6-figma-link-row"><span class="label">Remote job:</span><a href="#" onclick="event.preventDefault()">https://app-store-ksd.king.com/api/prasdasddd2dadsda...</a><img src="assets/figma-icons/v6-open.svg" width="12" height="12" alt=""></div>' +
@@ -6737,8 +6833,8 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   function v6LocalDetails(useBazel) {
     var bazelRequested = useBazel === true;
     var toggle = bazelRequested
-      ? '<button class="v6-figma-toggle-on" type="button" role="switch" aria-checked="true" aria-label="Use Bazel build" onclick="event.stopPropagation(); v6SetLocalBazelIntent(false)"><img class="track" src="assets/figma-icons/v6-toggle-track.svg" width="18" height="10" alt=""><img class="knob" src="assets/figma-icons/v6-toggle-knob.svg" width="6" height="6" alt=""></button>'
-      : '<button class="v6-figma-toggle-off" type="button" role="switch" aria-checked="false" aria-label="Use Bazel build" onclick="event.stopPropagation(); v6SetLocalBazelIntent(true)"><img src="assets/figma-icons/v6-toggle-off.svg" width="30" height="16" alt=""></button>';
+      ? '<button class="v6-figma-toggle-on" type="button" role="switch" aria-checked="true" aria-label="Use Bazel build" onclick="event.stopPropagation(); v6SetLocalBazelIntent(false)"><img src="assets/play-button-plugin/playbutton-toggle-on.png" width="16" height="16" alt=""></button>'
+      : '<button class="v6-figma-toggle-off" type="button" role="switch" aria-checked="false" aria-label="Use Bazel build" onclick="event.stopPropagation(); v6SetLocalBazelIntent(true)"><img src="assets/play-button-plugin/playbutton-toggle-off.png" width="30" height="16" alt=""></button>';
     var unavailable = bazelRequested
       ? '<div class="v6-local-bazel-unavailable" role="status"><span class="v6-detail-dot yellow" aria-hidden="true"></span><span>There is no available build with Bazel.</span></div>'
       : '';
@@ -6750,7 +6846,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       '<div class="v6-figma-content local">' +
         '<div class="v6-figma-toggle-row"><span>Use Bazel build</span>' + toggle + '</div>' +
         unavailable +
-        '<div class="v6-figma-link-row location"><span class="label">Build location:</span><a href="#" onclick="event.preventDefault()">https://app-store-ksd.king.com/api/pasdasdr...</a><span class="v6-folder-icon"><img src="assets/figma-icons/v6-folder.svg" width="12" height="11" alt=""></span><span class="v6-copy-icon" aria-hidden="true"><i></i><b></b></span></div>' +
+        '<div class="v6-figma-link-row location"><span class="label">Build location:</span><a href="#" onclick="event.preventDefault()">https://app-store-ksd.king.com/api/pasdasdr...</a><span class="v6-folder-icon"><img src="assets/play-button-plugin/playbutton-find-folder.png" width="16" height="16" alt=""></span><img class="v6-copy-icon-image" src="assets/play-button-plugin/playbutton-copy.png" width="16" height="16" alt=""></div>' +
         '<div class="v6-figma-actions"><button class="v6-figma-ghost" type="button" onclick="v6OpenClearCache()">Clear build cache...</button>' + primaryAction + '</div>' +
       '</div>' +
     '</section>';
@@ -6792,7 +6888,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
         body = '<p><strong>Build update failed</strong></p><p>The previous successful game build is still active. The viewport has not changed, so you can continue editing.</p>';
         actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Request Bazel build</button>';
       } else if (currentState === 4) {
-        head = '<span class="v6-detail-dot red"></span><strong>Game build Crash</strong>';
+        head = '<img class="v6-detail-status-icon" src="assets/play-button-plugin/playbutton-connection-error.png" width="16" height="16" alt=""><strong>Game build Crash</strong>';
         body = '<p><strong>Game build couldn’t get started.</strong></p><p>We couldn’t get the game build started. Your work is safe, but the viewport won’t update until the game build is available.</p><p><strong>What you can do</strong><br>Try getting the build again. You can also view the log and share it with the support channel.</p>';
         actions = '<button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button><button class="v6-btn quiet" type="button" onclick="retryGameBuild()">Try getting build again</button>';
       } else {

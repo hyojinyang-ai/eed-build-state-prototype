@@ -6486,19 +6486,19 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   hasUnsavedWork = false;
 
   states[0].headerLabel = 'Ready · Bazel';
-  states[1].headerLabel = 'Game build not ready';
-  states[2].headerLabel = 'Game build not ready';
+  states[1].headerLabel = 'Game build not available';
+  states[2].headerLabel = 'Game build not available';
   states[3].headerLabel = 'Ready · Bazel';
   states[3].fallback = false;
   states[4].headerLabel = 'Preview unavailable';
-  states[5].headerLabel = 'Game build not ready';
-  states[6].headerLabel = 'Game build not ready';
+  states[5].headerLabel = 'Game build not available';
+  states[6].headerLabel = 'Game build not available';
   states[7].headerLabel = 'Ready · Local';
-  states[8].headerLabel = 'Game build not ready';
+  states[8].headerLabel = 'Game build not available';
   states[9].headerLabel = 'Switching';
   states[10].headerLabel = 'Ready · Bazel';
   states[11].headerLabel = 'Switching';
-  states[12].headerLabel = 'Game build not ready';
+  states[12].headerLabel = 'Game build not available';
 
   var viewportCanvas = document.querySelector('.viewport-canvas');
   viewportCanvas.insertAdjacentHTML('beforeend',
@@ -6680,7 +6680,8 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   function v6ReadyRefreshIcon(index) {
     var icon = 'playbutton-retrigger-build.png';
     if (index === 7) icon = 'playbutton-ready-local.svg';
-    if (index === 0 || index === 1) icon = 'playbutton-ready-bazel.svg';
+    if (index === 0) icon = 'playbutton-ready-bazel.svg';
+    if (index === 1) icon = 'playbutton-game-build-unavailable.svg';
     return '<img class="v6-production-action-icon" src="assets/play-button-plugin/' + icon + '" width="20" height="20" alt="">';
   }
 
@@ -6691,8 +6692,8 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     if (index === 10) return { dot: 'yellow', label: 'Requesting', source: 'Bazel' };
     if (index === 9 || index === 11) return { dot: 'spinner', label: 'Switching', source: 'Bazel' };
     if (index === 4) return { dot: 'red', label: 'Game build Crash', source: 'View log' };
-    if ([1, 2, 5, 6, 8, 12].includes(index)) return { dot: 'yellow', label: 'Game build not ready', source: 'No build' };
-    return { dot: 'yellow', label: 'Game build not ready', source: 'No build' };
+    if ([1, 2, 5, 6, 8, 12].includes(index)) return { dot: 'yellow', label: 'Game build not available', source: 'No build' };
+    return { dot: 'yellow', label: 'Game build not available', source: 'No build' };
   }
 
   function v6EnsureBuildProgress() {
@@ -6881,7 +6882,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       panel.innerHTML = isLocalReady ? v6LocalDetails() : v6BazelDetails();
     } else {
       if (noBuildStates.includes(currentState)) {
-        head = '<span class="v6-detail-dot yellow"></span><strong>Game build not ready</strong>';
+        head = '<span class="v6-detail-dot yellow"></span><strong>Game build not available</strong>';
         body = '<p>No game build is available yet.</p><p class="v6-detail-emphasis">Some game-specific visuals may be missing or different. Continue editing, or request a game build when you are ready to validate the final appearance.</p>';
         if (currentState === 1) {
           actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Request Bazel build</button>';

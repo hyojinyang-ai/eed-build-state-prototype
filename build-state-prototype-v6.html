@@ -6677,8 +6677,11 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     log.onclick = openBuildLogWidget;
   };
 
-  function v6ReadyRefreshIcon() {
-    return '<img class="v6-production-action-icon" src="assets/play-button-plugin/playbutton-retrigger-build.png" width="20" height="20" alt="">';
+  function v6ReadyRefreshIcon(index) {
+    var icon = 'playbutton-retrigger-build.png';
+    if (index === 7) icon = 'playbutton-ready-local.svg';
+    if (index === 0 || index === 1) icon = 'playbutton-ready-bazel.svg';
+    return '<img class="v6-production-action-icon" src="assets/play-button-plugin/' + icon + '" width="20" height="20" alt="">';
   }
 
   function v6StatusFor(index) {
@@ -6758,7 +6761,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     cloud.classList.toggle('v6-source-hidden', hideSourceDuringBuild);
     if (requestRefreshState) {
       var refreshLabel = bazelErrorState ? 'Retry Bazel build' : 'Request new Bazel build';
-      cloud.innerHTML = v6ReadyRefreshIcon();
+      cloud.innerHTML = v6ReadyRefreshIcon(index);
       cloud.setAttribute('onclick', "v6StartBazelBuild('success')");
       cloud.setAttribute('aria-label', refreshLabel);
       cloud.setAttribute('title', refreshLabel);

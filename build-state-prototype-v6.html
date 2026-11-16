@@ -4908,7 +4908,7 @@
         <div class="viewport-canvas">
           <div class="viewport-connecting-state" role="status" aria-live="polite">
             <span class="connecting-spinner-bar" aria-hidden="true"></span>
-            <span>Starting preview…</span>
+            <span id="viewport-startup-label">Starting preview…</span>
           </div>
           <!-- Canvas overlay controls -->
           <div class="canvas-overlay-controls">
@@ -5865,10 +5865,11 @@ function setState(index) {
   currentState = index;
   resetDialogDragPosition(document.getElementById('canvas-fallback-info'));
   const s = states[index];
-  if (index === 4 && previousState !== 4 && !s.nonBlockingUnavailable) {
+  const hasStartupFailure = (index === 4 || index === 13) && !s.nonBlockingUnavailable;
+  if (hasStartupFailure && previousState !== index) {
     unavailableRestartFailed = false;
     unavailableConnecting = true;
-  } else if (index !== 4) {
+  } else if (!hasStartupFailure) {
     unavailableRestartFailed = false;
     unavailableConnecting = false;
   }
@@ -5881,14 +5882,15 @@ function setState(index) {
   // flow; the error dialog is layered above it once the attempt finishes.
   viewportArea.classList.remove('connecting-state', 'unavailable-state');
   viewportCanvas.classList.remove('launch-failed');
-  if (index === 4 && !s.nonBlockingUnavailable) {
+  if (hasStartupFailure) {
+    document.getElementById('viewport-startup-label').textContent = index === 13 ? 'Trying to launch…' : 'Starting preview…';
     viewportArea.classList.add('connecting-state');
     if (!unavailableConnecting) {
       viewportArea.classList.add('unavailable-state');
       viewportCanvas.classList.add('launch-failed');
     }
   }
-  mountUnavailableDialog(index === 4 && !unavailableConnecting && !s.nonBlockingUnavailable);
+  mountUnavailableDialog(hasStartupFailure && !unavailableConnecting);
 
   // Close details panel on state change
   document.getElementById('build-details-panel').classList.remove('visible', 'oos-details', 'local-details', 'unavailable-details');
@@ -6039,7 +6041,7 @@ function setState(index) {
   } else if ([1, 2, 5, 6, 12].includes(index)) {
     canvasInfoText.textContent = fallbackGuidance;
     canvasInfo.classList.add('visible');
-  } else if (index === 4 && s.fallback) {
+  } else if (hasStartupFailure && s.fallback) {
     canvasInfoText.textContent = viewportWarnings[index];
     canvasInfo.classList.add('error-state');
     canvasInfo.classList.add('visible');
@@ -6085,12 +6087,12 @@ function setState(index) {
       }
     }, transition.delay);
   }
-  if (index === 4 && unavailableConnecting && !s.nonBlockingUnavailable) {
+  if (hasStartupFailure && unavailableConnecting) {
     const sourceState = index;
     autoLoadTimer = setTimeout(() => {
       if (currentState !== sourceState) return;
       unavailableConnecting = false;
-      setState(4);
+      setState(sourceState);
     }, 2600);
   }
 }
@@ -6709,26 +6711,23 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     var close = document.getElementById('canvas-cancel-action');
     var log = document.getElementById('canvas-copy-log-action');
     var launchFailed = currentState === 13;
-    document.getElementById('canvas-error-dialog-title').textContent = launchFailed ? 'Bazel error' : 'Game build crash';
+    document.getElementById('canvas-error-dialog-title').textContent = launchFailed ? 'Bazel build could not launch' : 'Game build crash';
 
     textEl.innerHTML = launchFailed
-      ? '<span class="unavailable-heading">Bazel build was broken (not loaded).</span>' +
-        '<span class="unavailable-resolution"><span>Please request a new Bazel build. If the problem continues, <a href="#" onclick="event.preventDefault(); openBuildLogWidget()">view the log</a>, copy and paste it, then ask for help in the <a href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">support channel</a>.</span></span>'
+      ? '<span class="unavailable-heading">Bazel build could not launch.</span>' +
+        '<span class="unavailable-description">The game build crashed each time we tried to start it. We stopped after six attempts. Other viewports retry separately, so they may still be trying.</span>' +
+        '<span class="unavailable-resolution"><strong>What you can do</strong><span>Your work is safe. Try getting the build again. If it still won’t start, copy the log and share it in the <a href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">support channel</a>.</span></span>'
       :
       '<span class="unavailable-heading">Game build couldn’t get started.</span>' +
       '<span class="unavailable-description">We couldn’t get the game build started. Your work is safe, but the viewport won’t update until the game build is available.</span>' +
       '<span class="unavailable-resolution"><strong>What you can do</strong><span>Try getting the build again. You can also view the log and share it with the <a href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">support channel</a>.</span></span>';
 
-    retry.textContent = launchFailed ? 'Request Bazel build' : 'Try getting build again';
-    retry.setAttribute('aria-label', launchFailed ? 'Request Bazel build' : 'Try getting the game build again');
+    retry.textContent = 'Try getting build again';
+    retry.setAttribute('aria-label', 'Try getting the game build again');
     retry.onclick = function () {
-      if (launchFailed) {
-        v6StartBazelBuild();
-        return;
-      }
       unavailableRestartFailed = true;
       unavailableConnecting = true;
-      setState(4);
+      setState(launchFailed ? 13 : 4);
     };
     retry.classList.add('visible');
 
@@ -6781,12 +6780,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
 
     var canvasInfo = document.getElementById('canvas-fallback-info');
     var confirmation = document.getElementById('canvas-confirmation-info');
-    if (index !== 4) canvasInfo.classList.remove('visible', 'error-state', 'retry-failed');
-    if (index === 13) {
-      renderUnavailableFailure(false);
-      canvasInfo.classList.add('visible', 'error-state');
-      mountUnavailableDialog(true);
-    }
+    if (index !== 4 && index !== 13) canvasInfo.classList.remove('visible', 'error-state', 'retry-failed');
     confirmation.classList.remove('visible', 'auto-switching');
 
     var status = v6StatusFor(index);

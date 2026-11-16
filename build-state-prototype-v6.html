@@ -23,14 +23,10 @@
     --spacing-s: 4px;
     --spacing-l: 8px;
     --corner-radius-m: 4px;
-    --border-size-xs: 1px;
-
-    /* DS Dark Mode tokens */
     --panel-bg: #303030;
     --panel-header: #303030;
     --panel-border: #3f3f3f;
     --viewport-bg: #4c4c4c;
-    --footer-bg: #353535;
     --text-primary: var(--text-emphasis);
     --text-tertiary: #777;
     --text-disabled: #555;
@@ -45,7 +41,6 @@
   html, body {
     height: 100%;
   }
-
   body {
     background: #111;
     font-family: 'Nunito Sans', sans-serif;
@@ -270,6 +265,12 @@
     height: 16px;
     align-items: center;
     justify-content: center;
+  }
+  .editor-unavailable-overlay .canvas-error-modal-titlebar button.modal-title-control {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
   }
   .editor-unavailable-overlay #canvas-fallback-info.error-state .canvas-warning-content {
     width: auto;
@@ -894,16 +895,24 @@
     cursor: default;
   }
 
+  .viewport-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 2px;
+    background: #464646;
+    border-bottom: 1px solid #585858;
+    flex-shrink: 0;
+  }
+
   /* Toolbar row */
   .toolbar-row {
-    height: 28px;
-    min-height: 28px;
-    background: #464646;
+    height: 24px;
+    min-height: 24px;
     display: flex;
     align-items: center;
     padding: 0 8px;
     gap: 6px;
-    border-bottom: 1px solid #585858;
     font-family: 'Nunito Sans', sans-serif;
     overflow: hidden;
     flex-shrink: 0;
@@ -918,7 +927,8 @@
     border: var(--border-size-xs) solid #585858;
     font-family: 'Nunito Sans', sans-serif;
     letter-spacing: 1px;
-    max-width: 220px;
+    width: 250px;
+    max-width: calc(100% - 72px);
     flex-shrink: 1;
     min-width: 0;
   }
@@ -979,14 +989,14 @@
     opacity: 0.42;
     pointer-events: none;
   }
-  .viewport-area.connecting-state .toolbar-row,
+  .viewport-area.connecting-state .viewport-toolbar,
   .viewport-area.connecting-state .canvas-tool-palette,
   .viewport-area.connecting-state .viewport-canvas > .canvas-overlay-controls {
     display: none;
   }
   /* Once the fallback launch has failed, keep the viewport black and present
      the error-reporting component as a centered modal inside the canvas. */
-  .viewport-area.unavailable-state .toolbar-row,
+  .viewport-area.unavailable-state .viewport-toolbar,
   .viewport-area.unavailable-state .canvas-tool-palette {
     display: none;
   }
@@ -3579,11 +3589,11 @@
     height: 380px;
   }
 
-  /* Toolbar row wraps */
+  /* Toolbar rows wrap */
   .toolbar-row {
     flex-wrap: wrap;
     height: auto;
-    min-height: 28px;
+    min-height: 24px;
   }
 
   /* Canvas overlay wraps */
@@ -4039,10 +4049,13 @@
   .v6-detail-head strong { font-size:13px; }
   .v6-detail-body { padding:14px; }
   .v6-detail-body p { margin:0 0 9px; color:#c8cdd2; }
+  .v6-detail-body .v6-detail-log-link { color:#1cbbff; text-decoration:underline; cursor:pointer; }
+  .v6-detail-body .v6-detail-log-link:hover { color:#a8dcff; }
   .v6-detail-body .v6-detail-emphasis { margin:12px 0 2px; color:#e9f1f5; line-height:19px; }
   .v6-detail-note { padding:9px 10px; border-left:3px solid #309ae8; background:#2a3035; color:#d9dde1; }
   .v6-detail-actions { display:flex; align-items:center; justify-content:flex-end; gap:12px; padding:11px 14px; border-top:1px solid #4b4d50; }
-  .v6-detail-actions .v6-text-action:first-child { margin-right:auto; }
+  .v6-detail-actions .v6-text-action:first-child,
+  .v6-detail-actions .v6-figma-ghost:first-child { margin-right:auto; }
   .v6-mini-progress { margin:12px 0 2px; height:4px; overflow:hidden; border-radius:2px; background:#4a4c50; }
   .v6-mini-progress::before {
     content:''; display:block; width:38%; height:100%; background:#309ae8;
@@ -4553,9 +4566,12 @@
       <button class="proto-state-btn active" data-state="0" data-ready-source="Bazel" onclick="selectReadySource('Bazel')">Ready · Bazel</button>
       <button class="proto-state-btn" data-state="7" data-ready-source="Local" onclick="selectReadySource('Local')">Ready · Local</button>
       <button class="proto-state-btn" data-state="1" onclick="setState(1)">Fallback</button>
+      <button class="proto-state-btn" data-state="14" onclick="setState(14)">Default Build fallback</button>
       <button class="proto-state-btn" data-state="10" data-build-outcome="success" onclick="v6StartBazelBuild('success')">Build with Bazel – success</button>
       <button class="proto-state-btn" data-state="10" data-build-outcome="fail" onclick="v6StartBazelBuild('fail')">Build with Bazel – fail</button>
-      <button class="proto-state-btn" data-state="4" onclick="setState(4)">Game build Crash</button>
+      <button class="proto-state-btn" data-state="4" onclick="setState(4)">Game build crash</button>
+      <button class="proto-state-btn" data-state="15" onclick="setState(15)">Bazel build crash (mid-session)</button>
+      <button class="proto-state-btn" data-state="13" onclick="setState(13)">Bazel build could not launch</button>
     </div>
   </div>
 </div>
@@ -4868,11 +4884,13 @@
           <ol id="runtime-event-list"></ol>
         </aside>
 
-        <div class="toolbar-row">
+        <div class="viewport-toolbar">
+        <div class="toolbar-row scene-select-row">
           <select class="scene-select"><option>nodegraphevens_main [scene]</option></select>
           <span class="toolbar-icon" title="Back"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAJ5JREFUeAHtkj0OwjAMhZ+jFtjKDfjZGN0T9MZcoStL3Q0mBDfIhqgQJpUYSWTRLpX6jcnTJz3bwMx0ETlvT+3lKCLrVC6DUdYBNRSqWhThyceyZJaBNNdFVZb7eypPY8qSwn9kPS7+tfIKw0ysQuadXwLVG0ov6uqmuW5gwLSUZ6juQvVs6FJ+SXM8OBA9G2cRMh9ufX0iar93ODMlPr5XSTwO7oJbAAAAAElFTkSuQmCC" width="16" height="16" alt=""></span>
           <span class="toolbar-icon" title="Forward"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAGhJREFUeAHt0MEJgDAMBdD84AIu4dmDe9UN6gqOZT1UT1ancAGtC0igKJRA3/UnHxKiQhfng5n8NqTssBgyEwCbWiqa/W7dEqKeUrceRpoTf/gm3ldNX/16cvaySgrBOEHou7YZqdDrATxfRrx5ouQCAAAAAElFTkSuQmCC" width="16" height="16" alt=""></span>
-          <span style="width:8px"></span>
+        </div>
+        <div class="toolbar-row tool-icons-row">
           <span class="toolbar-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="4" stroke="currentColor" stroke-width="1"/><circle cx="7" cy="7" r="1" fill="currentColor"/></svg></span>
           <span class="toolbar-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M7 2v2M7 10v2M2 7h2M10 7h2M3.8 3.8l1.4 1.4M8.8 8.8l1.4 1.4M3.8 10.2l1.4-1.4M8.8 5.2l1.4-1.4" stroke="currentColor" stroke-width=".8"/></svg></span>
           <span class="toolbar-icon" style="font-size:11px">A&#7468;</span>
@@ -4884,6 +4902,7 @@
           <span class="toolbar-icon" title="Thumbnail view"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAFVJREFUeAHtkbsKwCAMRZP+SNutaxf/f3VydNUfMb4QFEHBScUz5V7CIRCA5cE8cCEVIt4hECj2f2+r91yFLS1F9dPrK8EIhcAQ6TSTO7XXz8H5whZY2oQ0B99xx98AAAAASUVORK5CYII=" width="16" height="16" alt=""></span>
           <span class="toolbar-icon"><span style="font-size:11px">&#9673;</span> <span style="font-size:8px;color:var(--neutral0)">&#9662;</span></span>
           <span class="toolbar-icon"><span style="font-size:11px">&#8865;</span></span>
+        </div>
         </div>
 
         <div class="viewport-canvas">
@@ -4909,13 +4928,13 @@
             </span>
             <!-- Fallback info on canvas overlay (left of Default) -->
             <span id="canvas-fallback-info" class="canvas-fallback-info" role="status" aria-live="polite">
-              <span class="canvas-error-modal-titlebar" aria-hidden="true" data-dialog-drag-target="#canvas-fallback-info" title="Drag to move">
+              <span class="canvas-error-modal-titlebar" data-dialog-drag-target="#canvas-fallback-info" title="Drag to move">
                 <span class="modal-title-icon"><img src="assets/figma-icons/v5-dialog-window-ribbon.svg" alt=""></span>
-                <span>Game build Crash</span>
+                <span id="canvas-error-dialog-title">Game build crash</span>
                 <span class="modal-title-spacer"></span>
                 <span class="modal-title-controls">
                   <span class="modal-title-control"><img src="assets/figma-icons/v5-dialog-question-info.svg" alt=""></span>
-                  <span class="modal-title-control"><img src="assets/figma-icons/v5-dialog-close.svg" alt=""></span>
+                  <button class="modal-title-control" type="button" aria-label="Close error dialog" title="Close" onclick="closeUnavailableDialog()"><img src="assets/figma-icons/v5-dialog-close.svg" alt=""></button>
                 </span>
               </span>
               <span class="canvas-warning-content" data-dialog-drag-target="#canvas-fallback-info" title="Drag to move">
@@ -5354,6 +5373,30 @@ const states = [
     requesting: true,
     headerDot: 'spinner',
     headerLabel: 'Fallback Preview'
+  },
+  {
+    name: 'Bazel Build Could Not Launch',
+    dotColor: 'yellow',
+    label: 'Bazel error',
+    fallback: true,
+    headerDot: 'yellow',
+    headerLabel: 'Bazel error'
+  },
+  {
+    name: 'Default Build Fallback',
+    dotColor: 'yellow',
+    label: 'Game build not available',
+    fallback: true,
+    headerDot: 'yellow',
+    headerLabel: 'Game build not available'
+  },
+  {
+    name: 'Bazel Build Crash Mid-Session',
+    dotColor: 'yellow',
+    label: 'Game build crash',
+    fallback: true,
+    headerDot: 'yellow',
+    headerLabel: 'Game build crash'
   }
 ];
 
@@ -5509,6 +5552,11 @@ function mountUnavailableDialog(showAtEditorLevel) {
   }
 }
 
+function closeUnavailableDialog() {
+  document.getElementById('editor-unavailable-overlay').classList.remove('visible');
+  document.querySelector('.build-widget .bw-collapse').focus();
+}
+
 function saveAndSwitchToGameBuild() {
   const saveRequired = hasUnsavedWork;
   trackPrototypeEvent('runtime_switch_confirmed', { saveRequired });
@@ -5657,8 +5705,8 @@ function renderUnavailableFailure(hasRetried) {
   const copyLogAction = document.getElementById('canvas-copy-log-action');
 
   canvasInfoText.innerHTML = hasRetried
-    ? '<span class="unavailable-heading">Preview still unavailable</span><span class="unavailable-error-code">Startup error</span><span class="unavailable-description">' + unavailableSupportMessage + '</span><span class="unavailable-resolution"><strong>Get help</strong><span>Collect the diagnostic report and share it with <a href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">#help-fictionfactory-editor</a>.</span></span>'
-    : '<span class="unavailable-heading">Preview couldn’t start</span><span class="unavailable-error-code">Startup error</span><span class="unavailable-description">We couldn’t start the preview. Your work is safe, but the viewport won’t update until the preview is available.</span><span class="unavailable-resolution"><strong>What you can do</strong><span>Try starting the preview again. You can continue editing without the preview.</span></span>';
+    ? '<span class="unavailable-heading">Preview still unavailable</span><span class="unavailable-description">' + unavailableSupportMessage + '</span><span class="unavailable-resolution"><strong>Get help</strong><span>Collect the diagnostic report and share it with <a href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">#help-fictionfactory-editor</a>.</span></span>'
+    : '<span class="unavailable-heading">Preview couldn’t start</span><span class="unavailable-description">We couldn’t start the preview. Your work is safe, but the viewport won’t update until the preview is available.</span><span class="unavailable-resolution"><strong>What you can do</strong><span>Try starting the preview again. You can continue editing without the preview.</span></span>';
   restartAction.textContent = 'Try again';
   restartAction.setAttribute('aria-label', 'Try starting the preview again');
   restartAction.onclick = () => {
@@ -5827,7 +5875,7 @@ function setState(index) {
   const viewportArea = document.querySelector('.viewport-area');
   const viewportCanvas = document.querySelector('.viewport-canvas');
   const gamePreview = document.getElementById('game-preview');
-  const usesFallbackComponentRendering = [1, 2, 4, 5, 6, 8, 12].includes(index);
+  const usesFallbackComponentRendering = [1, 2, 4, 5, 6, 8, 12, 13, 14, 15].includes(index);
   gamePreview.classList.toggle('component-fallback', usesFallbackComponentRendering);
   // Keep the same black connection canvas mounted for the entire unavailable
   // flow; the error dialog is layered above it once the attempt finishes.
@@ -6556,6 +6604,17 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
         '[Editor] Viewport content was not changed.',
         '[Action] Retry when the build issue is resolved.'
       ];
+    } else if (currentState === 13) {
+      lines = [
+        '[Bazel] Startup attempt 1 of 6 crashed for this viewport.',
+        '[Bazel] Startup attempt 2 of 6 crashed for this viewport.',
+        '[Bazel] Startup attempt 3 of 6 crashed for this viewport.',
+        '[Bazel] Startup attempt 4 of 6 crashed for this viewport.',
+        '[Bazel] Startup attempt 5 of 6 crashed for this viewport.',
+        '[Bazel] Startup attempt 6 of 6 failed for this viewport.',
+        '[Bazel] Other viewports may still be retrying independently.',
+        '[Action] Request a new Bazel build or share this log with #help-fiction-editor.'
+      ];
     } else if (currentState === 4 || unavailableRestartFailed) {
       lines = [
         '[Preview] Startup attempt failed.',
@@ -6649,16 +6708,24 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     var retry = document.getElementById('canvas-warning-action');
     var close = document.getElementById('canvas-cancel-action');
     var log = document.getElementById('canvas-copy-log-action');
+    var launchFailed = currentState === 13;
+    document.getElementById('canvas-error-dialog-title').textContent = launchFailed ? 'Bazel error' : 'Game build crash';
 
-    textEl.innerHTML =
+    textEl.innerHTML = launchFailed
+      ? '<span class="unavailable-heading">Bazel build was broken (not loaded).</span>' +
+        '<span class="unavailable-resolution"><span>Please request a new Bazel build. If the problem continues, <a href="#" onclick="event.preventDefault(); openBuildLogWidget()">view the log</a>, copy and paste it, then ask for help in the <a href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">support channel</a>.</span></span>'
+      :
       '<span class="unavailable-heading">Game build couldn’t get started.</span>' +
-      '<a class="unavailable-error-code" href="#" onclick="event.preventDefault(); openBuildLogWidget()">Startup error</a>' +
       '<span class="unavailable-description">We couldn’t get the game build started. Your work is safe, but the viewport won’t update until the game build is available.</span>' +
       '<span class="unavailable-resolution"><strong>What you can do</strong><span>Try getting the build again. You can also view the log and share it with the <a href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">support channel</a>.</span></span>';
 
-    retry.textContent = 'Try getting build again';
-    retry.setAttribute('aria-label', 'Try getting the game build again');
+    retry.textContent = launchFailed ? 'Request Bazel build' : 'Try getting build again';
+    retry.setAttribute('aria-label', launchFailed ? 'Request Bazel build' : 'Try getting the game build again');
     retry.onclick = function () {
+      if (launchFailed) {
+        v6StartBazelBuild();
+        return;
+      }
       unavailableRestartFailed = true;
       unavailableConnecting = true;
       setState(4);
@@ -6666,9 +6733,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     retry.classList.add('visible');
 
     close.textContent = 'Close';
-    close.onclick = function () {
-      document.getElementById('editor-unavailable-overlay').classList.remove('visible');
-    };
+    close.onclick = closeUnavailableDialog;
     close.classList.add('visible');
 
     log.innerHTML = '<span>View log</span>';
@@ -6689,10 +6754,12 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     if (index === 0) return { dot: 'green', label: 'Ready · Bazel', source: 'Bazel' };
     if (index === 7) return { dot: 'green', label: 'Ready · Local', source: 'Local' };
     if (index === 3) return { dot: 'yellow', label: 'Bazel error', source: '' };
+    if (index === 13) return { dot: 'yellow', label: 'Bazel error', source: '' };
+    if (index === 15) return { dot: 'yellow', label: 'Game build crash', source: '' };
     if (index === 10) return { dot: 'yellow', label: 'Requesting', source: 'Bazel' };
     if (index === 9 || index === 11) return { dot: 'spinner', label: 'Switching', source: 'Bazel' };
-    if (index === 4) return { dot: 'red', label: 'Game build Crash', source: 'View log' };
-    if ([1, 2, 5, 6, 8, 12].includes(index)) return { dot: 'yellow', label: 'Game build not available', source: 'No build' };
+    if (index === 4) return { dot: 'red', label: 'Game build crash', source: 'View log' };
+    if ([1, 2, 5, 6, 8, 12, 14].includes(index)) return { dot: 'yellow', label: 'Game build not available', source: 'No build' };
     return { dot: 'yellow', label: 'Game build not available', source: 'No build' };
   }
 
@@ -6709,16 +6776,21 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
   }
 
   function v6ApplyState(index, previous) {
-    var noBuildStates = [1, 2, 5, 6, 12];
+    var noBuildStates = [1, 2, 5, 6, 12, 13, 14, 15];
     if (!noBuildStates.includes(index) && noBuildStates.includes(previous)) v6WarningDismissed = false;
 
     var canvasInfo = document.getElementById('canvas-fallback-info');
     var confirmation = document.getElementById('canvas-confirmation-info');
     if (index !== 4) canvasInfo.classList.remove('visible', 'error-state', 'retry-failed');
+    if (index === 13) {
+      renderUnavailableFailure(false);
+      canvasInfo.classList.add('visible', 'error-state');
+      mountUnavailableDialog(true);
+    }
     confirmation.classList.remove('visible', 'auto-switching');
 
     var status = v6StatusFor(index);
-    var bazelErrorState = index === 3;
+    var bazelErrorState = index === 3 || index === 13;
     var statusArea = document.getElementById('bw-status-area');
     var dot = document.getElementById('bw-dot');
     var label = document.getElementById('bw-label');
@@ -6733,8 +6805,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     var productionStatusIcon = '';
     if (index === 0 || index === 7) productionStatusIcon = 'playbutton-build-ready.png';
     if (index === 10 || index === 9 || index === 11) productionStatusIcon = 'playbutton-building.png';
-    if (index === 4) productionStatusIcon = 'playbutton-connection-error.png';
-    if (bazelErrorState) {
+    if (bazelErrorState || index === 4 || index === 15) {
       dot.className = 'v6-bazel-error-icon';
       dot.innerHTML = '<img src="assets/figma-icons/v6-bazel-error-status.svg" width="16" height="16" alt="">';
     } else if (productionStatusIcon) {
@@ -6754,7 +6825,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     if (source) source.textContent = status.source;
     var cloud = document.getElementById('bw-cloud-btn');
     cloud.classList.remove('figma-oos-cloud');
-    var requestRefreshState = index === 0 || index === 1 || index === 3 || index === 7;
+    var requestRefreshState = index === 0 || index === 1 || index === 3 || index === 7 || index === 13;
     var hideSourceDuringBuild = index === 10 || index === 9 || index === 11;
     cloud.classList.toggle('v6-ready-refresh', requestRefreshState);
     cloud.classList.toggle('v6-bazel-error-refresh', bazelErrorState);
@@ -6870,7 +6941,7 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
     }
     if (panel.classList.contains('visible')) return;
     v6DetailsTrigger = triggerEl;
-    var noBuildStates = [1, 2, 5, 6, 8, 10, 12];
+    var noBuildStates = [1, 2, 5, 6, 8, 10, 12, 14, 15];
     var isBazelReady = [0, 9].includes(currentState);
     var isLocalReady = currentState === 7;
     var head = '';
@@ -6881,26 +6952,38 @@ if (researchMode && prototypeParams.get('static') !== '0' && initialState !== 4)
       panel.className = 'build-details-panel v6-details v6-figma-build-details visible';
       panel.innerHTML = isLocalReady ? v6LocalDetails() : v6BazelDetails();
     } else {
-      if (noBuildStates.includes(currentState)) {
+      if (currentState === 13) {
+        head = '<img class="v6-detail-status-icon" src="assets/figma-icons/v6-bazel-error-status.svg" width="16" height="16" alt=""><strong>Bazel error</strong>';
+        body = '<p><strong>Bazel build was broken (not loaded).</strong></p><p>Please request a new Bazel build. If the problem continues, <a href="#" class="v6-detail-log-link" onclick="event.preventDefault(); openBuildLogWidget()">view the log</a>, copy and paste it, then ask for help in the <a class="v6-detail-log-link" href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">support channel</a>.</p>';
+        actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild()">Request Bazel build</button>';
+      } else if (currentState === 14) {
+        head = '<span class="v6-detail-dot yellow"></span><strong>Game build not available</strong>';
+        body = '<p>There is no build available. Build path is cleared. Please request Bazel build or select local build</p>';
+        actions = '<button class="v6-figma-ghost" type="button" onclick="selectReadySource(&quot;Local&quot;)">Select local build</button><button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild()">Request Bazel build</button>';
+      } else if (currentState === 15) {
+        head = '<img class="v6-detail-status-icon" src="assets/figma-icons/v6-bazel-error-status.svg" width="16" height="16" alt=""><strong>Bazel build crash</strong>';
+        body = '<p>Bazel build crashed because there might be a bug either in a game code or runtime engine code.</p><p>Your work is safe, but some game-specific visuals may be missing or different.</p><p>Please <a href="#" class="v6-detail-log-link" onclick="event.preventDefault(); openBuildLogWidget()">view the log</a> and ask for help in the <a class="v6-detail-log-link" href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">support channel</a>.</p>';
+        actions = '<button class="v6-figma-ghost" type="button" onclick="selectReadySource(&quot;Local&quot;)">Select local build</button><button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild()">Request Bazel build</button>';
+      } else if (noBuildStates.includes(currentState)) {
         head = '<span class="v6-detail-dot yellow"></span><strong>Game build not available</strong>';
         body = '<p>No game build is available yet.</p><p class="v6-detail-emphasis">Some game-specific visuals may be missing or different. Continue editing, or request a game build when you are ready to validate the final appearance.</p>';
         if (currentState === 1) {
-          actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Request Bazel build</button>';
+          actions = '<button class="v6-figma-ghost" type="button" onclick="selectReadySource(\'Local\')">Select local build</button><button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Request Bazel build</button>';
         }
       } else if (currentState === 3) {
-        head = '<span class="v6-detail-dot yellow"></span><strong>Bazel error</strong>';
+        head = '<img class="v6-detail-status-icon" src="assets/figma-icons/v6-bazel-error-status.svg" width="16" height="16" alt=""><strong>Bazel error</strong>';
         body = '<p><strong>Build update failed</strong></p><p>The previous successful game build is still active. The viewport has not changed, so you can continue editing.</p>';
-        actions = '<button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Request Bazel build</button>';
+        actions = '<button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button><button class="v6-figma-primary" type="button" onclick="v6StartBazelBuild(\'success\')">Request Bazel build</button>';
       } else if (currentState === 4) {
-        head = '<img class="v6-detail-status-icon" src="assets/play-button-plugin/playbutton-connection-error.png" width="16" height="16" alt=""><strong>Game build Crash</strong>';
-        body = '<p><strong>Game build couldn’t get started.</strong></p><p>We couldn’t get the game build started. Your work is safe, but the viewport won’t update until the game build is available.</p><p><strong>What you can do</strong><br>Try getting the build again. You can also view the log and share it with the support channel.</p>';
-        actions = '<button class="v6-text-action" type="button" onclick="openBuildLogWidget()">View log</button><button class="v6-btn quiet" type="button" onclick="retryGameBuild()">Try getting build again</button>';
+        head = '<img class="v6-detail-status-icon" src="assets/figma-icons/v6-bazel-error-status.svg" width="16" height="16" alt=""><strong>Game build crash</strong>';
+        body = '<p><strong>Game build couldn’t get started.</strong></p><p>We couldn’t get the game build started. Your work is safe, but the viewport won’t update until the game build is available.</p><p><strong>What you can do</strong><br>Try getting the build again. You can also <a href="#" class="v6-detail-log-link" onclick="event.preventDefault(); openBuildLogWidget()">view the log</a> and share it with the <a class="v6-detail-log-link" href="https://abk.enterprise.slack.com/archives/C9RBVB9DM" target="_blank" rel="noopener noreferrer">support channel</a>.</p>';
+        actions = '<button class="v6-figma-ghost" type="button" onclick="selectReadySource(\'Local\')">Select local build</button><button class="v6-btn quiet" type="button" onclick="retryGameBuild()">Try getting build again</button>';
       } else {
         head = '<span class="v6-detail-dot green"></span><strong>Ready · Bazel</strong>';
         body = '<p>The current game build is active and ready for visual validation.</p>';
       }
       panel.className = 'build-details-panel v6-details visible';
-      panel.innerHTML = '<header class="v6-detail-head">' + head + '</header><div class="v6-detail-body">' + body + '</div>' + (noBuildStates.includes(currentState) && currentState !== 1 ? '' : '<footer class="v6-detail-actions">' + actions + '</footer>');
+      panel.innerHTML = '<header class="v6-detail-head">' + head + '</header><div class="v6-detail-body">' + body + '</div>' + (noBuildStates.includes(currentState) && currentState !== 1 && currentState !== 14 && currentState !== 15 ? '' : '<footer class="v6-detail-actions">' + actions + '</footer>');
     }
 
     var rect = triggerEl.getBoundingClientRect();

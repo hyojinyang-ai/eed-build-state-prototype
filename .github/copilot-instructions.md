@@ -31,7 +31,10 @@ Preserve these scenarios and their interactions:
 | Fallback scenario | `1` | User-facing status is **Game build not available**. Do not expose “fallback engine” or “fallback runtime” in user-facing status copy. Use `playbutton-game-build-unavailable.svg` for its action icon. The details panel offers **Request Bazel build**. |
 | Build with Bazel — success | `10`, then `11`/`9` | Show **Requesting**, a progress bar, and percentage. When ready, switch automatically while showing **Switching to game build** and reassuring the user that changes are saved. |
 | Build with Bazel — fail | `10`, then `3` | Show the same requesting progress first. End at **Bazel error** while keeping the previous successful build active. Offer **Request Bazel build**. |
-| Game build Crash | `4` | Show the crash/recovery details immediately, including the error link, safe-work message, **View log**, and **Try getting build again**. |
+| Game build crash | `4` | Show the crash/recovery dialog, including the error link, safe-work message, **View log**, and **Try getting build again**. Both the title-bar **x** button and **Close** dismiss the dialog. |
+| Bazel build could not launch | `13` | Each viewport retries startup independently up to six times. Show **Bazel error** with a refresh action when this viewport fails; others may still be retrying. Show the same dismissible error dialog as Game build crash, explain that the build was broken and not loaded, link to the log and support channel, and offer **Request Bazel build**. |
+| Default Build fallback | `14` | Show **Game build not available** with a yellow dot and disconnected-cloud icon. Details explain that no build is available because the build path was cleared, and offer **Select local build** or **Request Bazel build**. |
+| Bazel build crash (mid-session) | `15` | Show the supplied yellow warning icon with **Game build crash** status and a disconnected cloud. Details explain the possible game/runtime-code cause, reassure that work is safe, link to the log and support channel, and offer **Select local build** or **Request Bazel build**. |
 
 Other internal states support transitions and historical scenarios. Do not remove or renumber states unless the task explicitly requires a state-machine change.
 
@@ -70,9 +73,8 @@ Other internal states support transitions and historical scenarios. Do not remov
 - Game build not available action: `assets/play-button-plugin/playbutton-game-build-unavailable.svg`
 - Requesting/switching status: `assets/play-button-plugin/playbutton-building.png`
 - Ready status: `assets/play-button-plugin/playbutton-build-ready.png`
-- Crash status: `assets/play-button-plugin/playbutton-connection-error.png`
+- Bazel error and game-build crash status (states `3`, `4`, `13`, `15`), including details headers: `assets/figma-icons/v6-bazel-error-status.svg`
 - Disclosure arrow: `assets/play-button-plugin/playbutton-arrow-down.png`
-- Figma-specific Bazel error status: `assets/figma-icons/v6-bazel-error-status.svg`
 
 ## Implementation guidance
 

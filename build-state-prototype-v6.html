@@ -845,6 +845,7 @@
   /* Viewport */
   .viewport-area {
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -931,6 +932,32 @@
     max-width: calc(100% - 72px);
     flex-shrink: 1;
     min-width: 0;
+  }
+
+  .toolbar-row.scene-select-row {
+    flex-wrap: nowrap;
+  }
+
+  .scene-select-row > .toolbar-icon {
+    flex-shrink: 0;
+  }
+
+  .viewport-build-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  .viewport-build-name img {
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
   }
 
   .toolbar-icon {
@@ -4889,6 +4916,10 @@
           <select class="scene-select"><option>nodegraphevens_main [scene]</option></select>
           <span class="toolbar-icon" title="Back"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAJ5JREFUeAHtkj0OwjAMhZ+jFtjKDfjZGN0T9MZcoStL3Q0mBDfIhqgQJpUYSWTRLpX6jcnTJz3bwMx0ETlvT+3lKCLrVC6DUdYBNRSqWhThyceyZJaBNNdFVZb7eypPY8qSwn9kPS7+tfIKw0ysQuadXwLVG0ov6uqmuW5gwLSUZ6juQvVs6FJ+SXM8OBA9G2cRMh9ufX0iar93ODMlPr5XSTwO7oJbAAAAAElFTkSuQmCC" width="16" height="16" alt=""></span>
           <span class="toolbar-icon" title="Forward"><img class="ui-icon icon-16" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAGhJREFUeAHt0MEJgDAMBdD84AIu4dmDe9UN6gqOZT1UT1ancAGtC0igKJRA3/UnHxKiQhfng5n8NqTssBgyEwCbWiqa/W7dEqKeUrceRpoTf/gm3ldNX/16cvaySgrBOEHou7YZqdDrATxfRrx5ouQCAAAAAElFTkSuQmCC" width="16" height="16" alt=""></span>
+          <span class="viewport-build-name" title="Game build: Candy Crush Saga">
+            <img src="assets/reference/candy-crush-saga-icon.png" width="20" height="20" alt="">
+            <span>Candy Crush Saga</span>
+          </span>
         </div>
         <div class="toolbar-row tool-icons-row">
           <span class="toolbar-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="4" stroke="currentColor" stroke-width="1"/><circle cx="7" cy="7" r="1" fill="currentColor"/></svg></span>

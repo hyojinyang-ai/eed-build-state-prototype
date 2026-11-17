@@ -58,6 +58,7 @@ Other internal states support transitions and historical scenarios. Do not remov
 ## Visual rules
 
 - Match the Fiction Factory dark UI and existing Version 6 component styling.
+- Keep the Candy Crush Saga icon and build name after the scene selector and Back/Forward arrows whenever the viewport toolbar is visible, across all scenarios.
 - Editor UI uses Nunito Sans; the prototype control bar uses Inter.
 - Keep status controls fixed-width or spatially stable so label changes do not nudge neighboring toolbar controls.
 - Yellow represents warning/not-available states. Red is reserved for crash/error conditions that prevent reliable previewing.

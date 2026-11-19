@@ -26,15 +26,17 @@ Preserve these scenarios and their interactions:
 
 | Scenario | Internal state | User-facing behavior |
 | --- | ---: | --- |
-| Ready · Bazel | `0` | Green ready status. The blue cloud action icon requests a new Bazel build. The adjacent disclosure arrow opens Bazel details. |
-| Ready · Local | `7` | Green ready status. The gray disconnected-cloud action icon requests a new Bazel build. The adjacent disclosure arrow opens Local details. |
-| Fallback scenario | `1` | User-facing status is **Game build not available**. Do not expose “fallback engine” or “fallback runtime” in user-facing status copy. Use `playbutton-game-build-unavailable.svg` for its action icon. The details panel offers **Request Bazel build**. |
+| Ready · Bazel | `0` | Green **Ready** status. The blue cloud action icon requests a new Bazel build. The adjacent disclosure arrow opens Bazel details. |
+| Ready · Local | `7` | Green **Ready** status. The gray disconnected-cloud action icon requests a new Bazel build. The adjacent disclosure arrow opens Local details. |
+| Fallback scenario | `1` | User-facing status is **Game build not available** with the empty-circle status icon. Do not expose “fallback engine” or “fallback runtime” in user-facing status copy. Use `playbutton-game-build-unavailable.svg` for its action icon. The details panel offers **Request Bazel build**. |
 | Build with Bazel — success | `10`, then `11`/`9` | Show **Requesting**, a progress bar, and percentage. When ready, switch automatically while showing **Switching to game build** and reassuring the user that changes are saved. |
-| Build with Bazel — fail | `10`, then `3` | Show the same requesting progress first. End at **Bazel error** while keeping the previous successful build active. Offer **Request Bazel build**. |
-| Game build crash | `4` | Show the crash/recovery dialog, including the error link, safe-work message, **View log**, and **Try getting build again**. Both the title-bar **x** button and **Close** dismiss the dialog. |
-| Bazel build could not launch | `13` | Show **Trying to launch...** in the viewport for 2.6 seconds, then the dismissible **Bazel build could not launch** dialog. Explain that this viewport stopped after six failed startup attempts while other viewports may still be trying independently. Reassure that work is safe and link to the support channel. Keep **View log**, **Close**, and **Try getting build again** in the footer; retry repeats the launch flow. The toolbar retains **Bazel error** and its refresh action. |
-| Default Build fallback | `14` | Show **Game build not available** with a yellow dot and disconnected-cloud icon. Details explain that no build is available because the build path was cleared, and offer **Select local build** or **Request Bazel build**. |
-| Bazel build crash (mid-session) | `15` | Show the supplied yellow warning icon with **Game build crash** status and a disconnected cloud. Details explain the possible game/runtime-code cause, reassure that work is safe, link to the log and support channel, and offer **Select local build** or **Request Bazel build**. |
+| Build with Bazel — fail | `10`, then `3` | Show the same requesting progress first. End at **Game build Failed** while keeping the previous successful build active. Offer **Request Bazel build**. |
+| Game build crash | `4` | Show the connection attempt, then return to the normal viewport and automatically open the crash details flyout instead of a centered dialog. |
+| Bazel build could not launch | `13` | Show **Trying to launch...** in the viewport for 2.6 seconds, then return to the normal viewport and automatically open the crash details flyout instead of a centered dialog. The toolbar shows **Game build Failed** and its refresh action. |
+| Default Build fallback | `14` | Show **Game build not available** with the empty-circle status icon and disconnected-cloud icon. Details use the same fallback copy and ErrorFlyout layout as state `1`. |
+| Bazel build crash (mid-session) | `15` | Show the supplied yellow warning icon with **Game build crash** status and a blue connected cloud. The details arrow opens the crash details flyout. |
+
+For states `1`, `3`, `4`, `13`, `14`, and `15`, the details arrow opens the Figma ErrorFlyout design. States `1` and `14` use **Game build not available**, omit Next steps, and offer **select local build** and **Request build**. State `3` uses **Build update failed** and explains that the viewport has not changed; state `13` uses **Game build failed**, while states `4` and `15` use **Game build crashed**. The failure next-step links open the log widget, focus its copy action, open the support channel, or open a local-file picker. The fallback **select local build** button opens the same picker; selecting a file simulates switching to a local build.
 
 Other internal states support transitions and historical scenarios. Do not remove or renumber states unless the task explicitly requires a state-machine change.
 
@@ -46,7 +48,7 @@ Other internal states support transitions and historical scenarios. Do not remov
 - Runtime switching must preserve the open scene/document, selection, viewport context, and edits.
 - Changes are auto-saved; do not add a blocking save-confirmation dialog.
 - A successful request switches automatically. Do not add a manual “Save and switch” action.
-- During requesting and switching, hide redundant source/cloud controls and keep the progress/switching communication clear.
+- During requesting and switching, hide redundant source/cloud controls and keep the progress/switching communication clear. While requesting, disable the details arrow and keep the details panel closed; re-enable it after requesting.
 - A failed Bazel update must not change the viewport if a previous good build exists.
 - The Local “Use Bazel build” toggle must keep the details panel open. When no Bazel build exists, show **There is no available build with Bazel.** and offer **Request Bazel build**.
 - Keep the viewport free of persistent warning boxes for these build states.
@@ -74,6 +76,7 @@ Other internal states support transitions and historical scenarios. Do not remov
 - Game build not available action: `assets/play-button-plugin/playbutton-game-build-unavailable.svg`
 - Requesting/switching status: `assets/play-button-plugin/playbutton-building.png`
 - Ready status: `assets/play-button-plugin/playbutton-build-ready.png`
+- Fallback and default-build fallback status: `assets/figma-icons/v6-build-fallback-status.svg`
 - Bazel error and game-build crash status (states `3`, `4`, `13`, `15`), including details headers: `assets/figma-icons/v6-bazel-error-status.svg`
 - Disclosure arrow: `assets/play-button-plugin/playbutton-arrow-down.png`
 

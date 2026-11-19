@@ -1,0 +1,22 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="62" height="62" viewBox="0 0 62 62" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="warning-modal">
+<g id="Rectangle 779">
+<use xlink:href="#stroke0_0_1978" fill="#FFCD36"/>
+<mask id="stroke1_0_1978" fill="white">
+<use xlink:href="#stroke0_0_1978"/>
+</mask>
+<path d="M9.04167 50.8333V20.8706C9.04167 16.4778 12.6028 12.9167 16.9956 12.9167H46.2961C50.6889 12.9167 54.25 16.4778 54.25 20.8706V42.8794C54.25 47.2722 50.6889 50.8333 46.2961 50.8333H22.2841C20.6991 50.8333 19.1503 51.3068 17.8364 52.1931L15.0868 54.0476C12.5117 55.7845 9.04167 53.9394 9.04167 50.8333Z" stroke-width="7.95395" stroke="#BF7B15" mask="url(#stroke1_0_1978)"/>
+</g>
+<circle id="Ellipse 198" cx="51.2035" cy="16.9022" r="7.95395" fill="#FFCD36"/>
+<circle id="Ellipse 199" cx="31" cy="37.4583" r="3.37788" fill="#393A3A" stroke-width="0.994243" stroke="#393A3A"/>
+<path id="Vector 650" d="M51.2035 12.9252V16.405" stroke-width="2.98273" stroke-linecap="round" stroke-linejoin="round" stroke="#393A3A"/>
+<circle id="Ellipse 200" cx="51.2035" cy="20.382" r="1.49137" fill="#393A3A"/>
+<g id="Group 453">
+<path id="Vector 644" d="M26.4792 26.1733V28.7566" stroke-width="2.98273" stroke-linecap="round" stroke-linejoin="round" stroke="#393A3A"/>
+<path id="Vector 645" d="M35.5208 26.1733V28.7566" stroke-width="2.98273" stroke-linecap="round" stroke-linejoin="round" stroke="#393A3A"/>
+</g>
+</g>
+<defs>
+<path id="stroke0_0_1978" d="M9.04167 20.8706C9.04167 16.4778 12.6028 12.9167 16.9956 12.9167H46.2961C50.6889 12.9167 54.25 16.4778 54.25 20.8706V42.8794C54.25 47.2722 50.6889 50.8333 46.296 50.8333H22.2841C20.6991 50.8333 19.1503 51.3068 17.8364 52.1931L15.0868 54.0476C12.5117 55.7845 9.04167 53.9395 9.04167 50.8333V20.8706Z"/>
+</defs>
+</svg>
